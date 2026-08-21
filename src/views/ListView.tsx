@@ -1,4 +1,4 @@
-import { ArrowClockwise, Plus } from "@phosphor-icons/react";
+import { ArrowClockwise } from "@phosphor-icons/react";
 import { BarChart } from "../components/Charts";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
@@ -53,12 +53,11 @@ export function ListView({
               {refreshing ? "Refreshing" : `Updated ${fetched}`}
             </span>
           ) : null}
-          <Button onClick={onRefresh} disabled={refreshing}>
-            <ArrowClockwise size={16} className={refreshing ? "animate-spin" : ""} />
+          <Button variant="quiet" onClick={onRefresh} disabled={refreshing} aria-label="Refresh">
+            <ArrowClockwise size={14} className={refreshing ? "animate-spin" : ""} />
             Refresh
           </Button>
           <Button variant="primary" onClick={onOpenPicker}>
-            <Plus size={16} />
             Repos
           </Button>
         </>
@@ -90,7 +89,6 @@ export function ListView({
                 Choose the repositories you want to watch. Only that set is tracked.
               </p>
               <Button variant="primary" className="mt-5" onClick={onOpenPicker}>
-                <Plus size={16} />
                 Repos
               </Button>
             </div>

@@ -82,7 +82,9 @@ export function PickerView({
       trailing={
         <>
           <span className="mr-1 text-[12px] text-mist">{selected.size} selected</span>
-          <Button onClick={onCancel}>Cancel</Button>
+          <Button variant="quiet" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button variant="primary" onClick={() => onSave([...selected])} disabled={loading}>
             Save
           </Button>

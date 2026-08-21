@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, CaretDown, WarningCircle } from "@phosphor-icons/react";
+import { CaretDown, WarningCircle } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
@@ -35,12 +35,11 @@ export function DetailView({
       trailing={
         <>
           {detail ? (
-            <Button onClick={() => openUrl(`https://github.com/${detail.fullName}`)}>
+            <Button variant="quiet" onClick={() => openUrl(`https://github.com/${detail.fullName}`)}>
               GitHub
             </Button>
           ) : null}
-          <Button onClick={onBack}>
-            <ArrowLeft size={16} />
+          <Button variant="quiet" onClick={onBack}>
             Back
           </Button>
         </>

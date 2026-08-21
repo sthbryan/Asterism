@@ -3,12 +3,9 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 type Variant = "primary" | "ghost" | "quiet";
 
 const styles: Record<Variant, string> = {
-  primary:
-    "border-accent bg-accent text-white hover:border-accent-soft hover:bg-accent-soft disabled:border-accent/40 disabled:bg-accent/40",
-  ghost:
-    "border-line bg-transparent text-paper hover:bg-white/[0.04] disabled:text-mist",
-  quiet:
-    "border-transparent text-mist hover:bg-white/[0.04] hover:text-paper disabled:text-mist/50",
+  primary: "bg-accent text-white hover:bg-[#b9151c] disabled:opacity-40",
+  ghost: "text-paper hover:bg-white/[0.06] disabled:text-mist",
+  quiet: "text-mist hover:bg-white/[0.06] hover:text-paper disabled:opacity-40",
 };
 
 export function Button({
@@ -22,7 +19,7 @@ export function Button({
 }) {
   return (
     <button
-      className={`inline-flex h-8 shrink-0 items-center justify-center gap-2 rounded-md border px-3 text-[13px] leading-none font-medium tracking-[-0.015em] transition-colors disabled:cursor-not-allowed ${styles[variant]} ${className}`}
+      className={`inline-flex h-7 shrink-0 items-center justify-center gap-1.5 rounded px-2.5 text-[12px] leading-none font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed ${styles[variant]} ${className}`}
       {...props}
     >
       {children}
