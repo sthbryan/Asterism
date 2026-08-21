@@ -1,11 +1,21 @@
-import { useState } from "react";
-import { CaretDown, WarningCircle } from "@phosphor-icons/react";
+import { useState, type ReactNode } from "react";
+import {
+  ArrowSquareOut,
+  CaretDown,
+  CaretLeft,
+  DownloadSimple,
+  Eye,
+  Globe,
+  LockSimple,
+  WarningCircle,
+} from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { DetailSkeleton } from "../components/Skeleton";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum, fmtRepoSizeKb } from "../lib/format";
+import { langColor } from "../lib/langcolors";
 import type { RepoDetail } from "../lib/types";
 
 export function DetailView({
@@ -13,6 +23,7 @@ export function DetailView({
   loading,
   error,
   detail,
+  trackedCount,
   onBack,
   onOpenPicker,
 }: {
@@ -20,6 +31,7 @@ export function DetailView({
   loading: boolean;
   error: string | null;
   detail: RepoDetail | null;
+  trackedCount?: number;
   onBack: () => void;
   onOpenPicker: () => void;
 }) {
@@ -31,33 +43,43 @@ export function DetailView({
         if (id === "overview") onBack();
         if (id === "repos") onOpenPicker();
       }}
-      title={detail?.fullName ?? "Repository"}
+      trackedCount={trackedCount}
+      title={
+        <nav className="flex items-center gap-2 text-[13px]">
+          <button
+            type="button"
+            onClick={onBack}
+            className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-mist transition-colors hover:bg-white/[0.04] hover:text-paper"
+          >
+            <CaretLeft size={13} />
+            Overview
+          </button>
+          <span className="text-faint">/</span>
+          <span className="font-mono text-[13px] font-semibold">{detail?.fullName ?? "…"}</span>
+        </nav>
+      }
       trailing={
-        <>
-          {detail ? (
-            <Button variant="quiet" onClick={() => openUrl(`https://github.com/${detail.fullName}`)}>
-              GitHub
-            </Button>
-          ) : null}
-          <Button variant="quiet" onClick={onBack}>
-            Back
+        detail ? (
+          <Button variant="ghost" onClick={() => openUrl(`https://github.com/${detail.fullName}`)}>
+            GitHub
+            <ArrowSquareOut size={12} />
           </Button>
-        </>
+        ) : null
       }
     >
       {loading ? (
         <DetailSkeleton />
       ) : (
-      <div className="h-full min-h-0 overflow-auto px-6 pb-8">
-        {error ? (
-          <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
-            <WarningCircle size={16} />
-            {error}
-          </div>
-        ) : detail ? (
-          <DetailBody detail={detail} />
-        ) : null}
-      </div>
+        <div className="h-full min-h-0 overflow-auto px-7 pt-6 pb-8">
+          {error ? (
+            <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
+              <WarningCircle size={16} />
+              {error}
+            </div>
+          ) : detail ? (
+            <DetailBody detail={detail} />
+          ) : null}
+        </div>
       )}
     </Chrome>
   );
@@ -76,66 +98,102 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
     ["Created", fmtDate(detail.createdAt)],
     ["Updated", fmtDate(detail.updatedAt)],
     ["Last push", fmtDate(detail.pushedAt)],
+    ["Open issues", fmtNum(detail.openIssues)],
     ["Homepage", detail.homepage ?? "—"],
   ];
 
   return (
     <div>
-      {detail.description ? (
-        <p className="mb-5 max-w-3xl text-[14px] leading-relaxed text-mist">{detail.description}</p>
-      ) : null}
-      <div className="mb-5 flex flex-wrap gap-1.5">
-        {detail.private ? <Flag>Private</Flag> : <Flag>Public</Flag>}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h2 className="font-mono text-[22px] font-semibold tracking-[-0.02em]">
+          {detail.fullName}
+        </h2>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[11.5px] leading-none font-medium text-accent-soft">
+          {detail.private ? <LockSimple size={11} /> : <Globe size={12} />}
+          {detail.private ? "Private" : "Public"}
+        </span>
         {detail.archived ? <Flag>Archived</Flag> : null}
         {detail.isTemplate ? <Flag>Template</Flag> : null}
-        {detail.topics.map((topic) => (
-          <Flag key={topic}>{topic}</Flag>
-        ))}
+      </div>
+      {detail.description ? (
+        <p className="mt-2.5 max-w-3xl text-[13.5px] leading-relaxed text-mist">
+          {detail.description}
+        </p>
+      ) : null}
+      {detail.topics.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {detail.topics.map((topic) => (
+            <span
+              key={topic}
+              className="rounded-md border border-hairline bg-white/[0.02] px-2 py-0.5 font-mono text-[11.5px] text-mist"
+            >
+              #{topic}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="mt-6 grid grid-cols-4 gap-3.5">
+        <KpiCard label="Stars" value={detail.stars} sub="en total" />
+        <KpiCard label="Forks" value={detail.forks} sub="en total" />
+        <KpiCard label="Watchers" value={detail.watchers} sub="en total" />
+        <KpiCard label="Downloads" value={detail.downloads} sub="release assets" hero />
       </div>
 
-      <div className="card grid grid-cols-4 divide-x divide-line">
-        <KpiCard label="Stars" value={detail.stars} />
-        <KpiCard label="Forks" value={detail.forks} />
-        <KpiCard label="Watchers" value={detail.watchers} />
-        <KpiCard label="Downloads" value={detail.downloads} />
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-3.5 grid gap-3.5 lg:grid-cols-2">
         <div className="card p-5">
-          <div className="text-[13px] font-medium">Traffic, 14 days</div>
+          <div className="text-[13.5px] font-semibold">Traffic · last 14 days</div>
           {detail.trafficError && !detail.views && !detail.clones ? (
             <p className="mt-3 text-[13px] leading-relaxed text-mist">
-              Views and clones need push access. {detail.trafficError}
+              Views and clones require push access. {detail.trafficError}
             </p>
           ) : (
-            <div className="mt-5 grid grid-cols-2 gap-4">
-              <TrafficBlock label="Views" traffic={detail.views} />
-              <TrafficBlock label="Clones" traffic={detail.clones} />
-            </div>
+            <>
+              <div className="mt-5 grid grid-cols-2 gap-6">
+                <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
+                <TrafficBlock
+                  label="Clones"
+                  icon={<DownloadSimple size={14} />}
+                  traffic={detail.clones}
+                  unique="unique"
+                />
+              </div>
+              <p className="mt-5 border-t border-hairline pt-3.5 text-[12px] text-faint">
+                GitHub only exposes the last 14 days of traffic.
+              </p>
+            </>
           )}
         </div>
+
         <div className="card p-5">
-          <div className="text-[13px] font-medium">Languages</div>
+          <div className="text-[13.5px] font-semibold">Languages</div>
           {detail.languages.length === 0 ? (
-            <p className="mt-3 text-[13px] text-mist">No language data.</p>
+            <p className="mt-3 text-[13px] text-faint">No language data.</p>
           ) : (
             <ul className="mt-4 space-y-2.5">
               {detail.languages.map((lang) => {
                 const pct = (lang.bytes / langTotal) * 100;
                 return (
-                  <li key={lang.name}>
-                    <div className="mb-1 flex justify-between text-[12px]">
-                      <span>{lang.name}</span>
-                      <span className="text-mist tabular">
-                        {pct < 1 ? "<1" : pct.toFixed(0)}%
-                      </span>
-                    </div>
-                    <div className="h-1.5 overflow-hidden rounded-sm bg-line">
-                      <div
-                        className="h-full bg-accent"
-                        style={{ width: `${Math.max(pct, 2)}%` }}
+                  <li key={lang.name} className="grid grid-cols-[110px_1fr_44px] items-center gap-3">
+                    <span className="flex min-w-0 items-center gap-2 text-[13px]">
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{ background: langColor(lang.name) }}
                       />
-                    </div>
+                      <span className="truncate">{lang.name}</span>
+                    </span>
+                    <span className="block h-[7px] overflow-hidden rounded-full bg-raised">
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${Math.max(pct, 2)}%`,
+                          background: langColor(lang.name),
+                        }}
+                      />
+                    </span>
+                    <span className="text-right font-mono text-[12px] text-mist tabular">
+                      {pct < 1 ? "<1%" : `${Math.round(pct)}%`}
+                    </span>
                   </li>
                 );
               })}
@@ -144,43 +202,43 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         </div>
       </div>
 
-      <div className="card mt-4 p-5">
-        <div className="text-[13px] font-medium">Details</div>
-        <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="card mt-3.5 p-5">
+        <div className="text-[13.5px] font-semibold">Details</div>
+        <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-3.5 sm:grid-cols-3 lg:grid-cols-6">
           {facts.map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-[11px] text-mist">{label}</dt>
-              <dd className="mt-1 truncate text-[13px] tabular">{value}</dd>
+            <div key={label} className="min-w-0">
+              <dt className="font-mono text-[10.5px] tracking-[0.08em] uppercase text-faint">
+                {label}
+              </dt>
+              <dd className="mt-1.5 truncate font-mono text-[13px] tabular">{value}</dd>
             </div>
           ))}
-          <div>
-            <dt className="text-[11px] text-mist">Open issues</dt>
-            <dd className="mt-1 text-[13px] tabular">{fmtNum(detail.openIssues)}</dd>
-          </div>
         </dl>
       </div>
 
-      <div className="card mt-4 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4">
-          <div className="text-[13px] font-medium">Releases</div>
-          <span className="text-[12px] text-mist">{fmtNum(detail.releases.length)}</span>
+      <div className="card mt-3.5 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-hairline px-5 py-3.5">
+          <div className="text-[13.5px] font-semibold">Releases</div>
+          <span className="font-mono text-[12px] text-faint tabular">
+            {fmtNum(detail.releases.length)}
+          </span>
         </div>
         {detail.releases.length === 0 ? (
-          <p className="px-5 pb-5 text-[13px] text-mist">No releases published.</p>
+          <p className="px-5 py-6 text-center text-[13px] text-faint">No releases published.</p>
         ) : (
           <ul>
             {detail.releases.map((release) => {
               const open = openTag === release.tag;
               return (
-                <li key={release.tag} className="border-t border-white/5">
+                <li key={release.tag} className="border-b border-hairline last:border-b-0">
                   <button
                     type="button"
                     onClick={() => setOpenTag(open ? null : release.tag)}
-                    className="flex w-full items-center gap-3 px-5 py-3.5 text-left hover:bg-white/[0.03]"
+                    className="flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-white/[0.03]"
                   >
                     <CaretDown
                       size={12}
-                      className={`text-mist transition-transform ${open ? "" : "-rotate-90"}`}
+                      className={`text-faint transition-transform ${open ? "" : "-rotate-90"}`}
                     />
                     <span className="font-mono text-[13px] text-paper">{release.tag}</span>
                     <span className="min-w-0 flex-1 truncate text-[13px] text-mist">
@@ -188,23 +246,25 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                     </span>
                     {release.draft ? <Flag>Draft</Flag> : null}
                     {release.prerelease ? <Flag>Pre</Flag> : null}
-                    <span className="text-[12px] text-mist">{fmtDate(release.publishedAt)}</span>
-                    <span className="w-20 text-right text-[13px] font-medium tabular">
+                    <span className="font-mono text-[12px] text-faint">
+                      {fmtDate(release.publishedAt)}
+                    </span>
+                    <span className="w-16 text-right text-[13px] font-medium tabular">
                       {fmtCompact(release.downloads)}
                     </span>
                   </button>
                   {open ? (
-                    <ul className="px-5 pb-4 pl-12">
+                    <ul className="pr-5 pb-4 pl-12">
                       {release.assets.length === 0 ? (
-                        <li className="py-1 text-[12px] text-mist">No assets</li>
+                        <li className="py-1 text-[12px] text-faint">No assets</li>
                       ) : (
                         release.assets.map((asset) => (
                           <li
                             key={asset.name}
-                            className="grid grid-cols-[minmax(0,1fr)_88px_72px] gap-3 py-1.5 text-[12px]"
+                            className="grid grid-cols-[minmax(0,1fr)_96px_72px] gap-3 border-t border-hairline py-2 font-mono text-[12px] first:border-t-0"
                           >
                             <span className="truncate">{asset.name}</span>
-                            <span className="text-right text-mist">{fmtBytes(asset.size)}</span>
+                            <span className="text-right text-faint">{fmtBytes(asset.size)}</span>
                             <span className="text-right tabular">{fmtNum(asset.downloadCount)}</span>
                           </li>
                         ))
@@ -223,7 +283,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
 
 function Flag({ children }: { children: string }) {
   return (
-    <span className="rounded-md border border-line px-2 py-0.5 text-[11px] text-mist">
+    <span className="shrink-0 rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase text-mist">
       {children}
     </span>
   );
@@ -231,23 +291,32 @@ function Flag({ children }: { children: string }) {
 
 function TrafficBlock({
   label,
+  icon,
   traffic,
+  unique,
 }: {
   label: string;
+  icon: ReactNode;
   traffic: RepoDetail["views"];
+  unique: string;
 }) {
   return (
     <div>
-      <div className="text-[12px] text-mist">{label}</div>
+      <div className="flex items-center gap-2 text-mist">
+        <span className="text-faint">{icon}</span>
+        <span className="kpi-label">{label}</span>
+      </div>
       {traffic ? (
-        <div className="mt-2">
-          <div className="text-[22px] font-semibold tracking-[-0.03em] tabular">
+        <div className="mt-2.5">
+          <div className="font-mono text-[26px] leading-none font-semibold tabular">
             {fmtCompact(traffic.count)}
           </div>
-          <div className="mt-1 text-[12px] text-mist">{fmtNum(traffic.uniques)} unique</div>
+          <div className="mt-1.5 text-[12px] leading-none text-faint">
+            {fmtNum(traffic.uniques)} {unique}
+          </div>
         </div>
       ) : (
-        <p className="mt-2 text-[13px] text-mist">Unavailable</p>
+        <p className="mt-2.5 text-[13px] text-faint">Unavailable</p>
       )}
     </div>
   );
