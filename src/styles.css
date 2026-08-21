@@ -9,7 +9,7 @@
   --color-night: #161616;
   --color-panel: #1c1c1c;
   --color-line: #2e2e2e;
-  --color-mist: #8a8a8a;
+  --color-mist: #a3a3a3;
   --color-paper: #ececec;
   --color-accent: #d71921;
   --color-accent-soft: #ef4444;
@@ -70,5 +70,5 @@ textarea {
 @utility card {
   background-color: var(--color-panel);
   border: 1px solid var(--color-line);
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
 }

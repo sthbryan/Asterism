@@ -8,7 +8,7 @@ export function ErrorScreen({ status }: { status: Status }) {
       <div className="flex h-full items-center justify-center px-10">
         <div className="card max-w-md p-8">
           <span className="grid h-10 w-10 place-items-center rounded-md border border-line text-accent">
-            <WarningCircle size={24} weight="fill" />
+            <WarningCircle size={16} />
           </span>
           <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.04em]">
             GitHub CLI is required

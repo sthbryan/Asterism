@@ -4,6 +4,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
+import { DetailSkeleton } from "../components/Skeleton";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum, fmtRepoSizeKb } from "../lib/format";
 import type { RepoDetail } from "../lib/types";
 
@@ -39,24 +40,26 @@ export function DetailView({
             </Button>
           ) : null}
           <Button onClick={onBack}>
-            <ArrowLeft size={14} />
+            <ArrowLeft size={16} />
             Back
           </Button>
         </>
       }
     >
+      {loading ? (
+        <DetailSkeleton />
+      ) : (
       <div className="h-full min-h-0 overflow-auto px-6 pb-8">
-        {loading ? (
-          <div className="card h-20 animate-pulse" />
-        ) : error ? (
+        {error ? (
           <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
-            <WarningCircle size={18} />
+            <WarningCircle size={16} />
             {error}
           </div>
         ) : detail ? (
           <DetailBody detail={detail} />
         ) : null}
       </div>
+      )}
     </Chrome>
   );
 }
@@ -91,7 +94,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         ))}
       </div>
 
-      <div className="card grid grid-cols-4 gap-6 px-5 py-4">
+      <div className="card grid grid-cols-4 divide-x divide-line">
         <KpiCard label="Stars" value={detail.stars} />
         <KpiCard label="Forks" value={detail.forks} />
         <KpiCard label="Watchers" value={detail.watchers} />
@@ -100,7 +103,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         <div className="card p-5">
-          <div className="text-[15px] font-semibold tracking-[-0.02em]">Traffic, 14 days</div>
+          <div className="text-[13px] font-medium">Traffic, 14 days</div>
           {detail.trafficError && !detail.views && !detail.clones ? (
             <p className="mt-3 text-[13px] leading-relaxed text-mist">
               Views and clones need push access. {detail.trafficError}
@@ -113,7 +116,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
           )}
         </div>
         <div className="card p-5">
-          <div className="text-[15px] font-semibold tracking-[-0.02em]">Languages</div>
+          <div className="text-[13px] font-medium">Languages</div>
           {detail.languages.length === 0 ? (
             <p className="mt-3 text-[13px] text-mist">No language data.</p>
           ) : (
@@ -143,7 +146,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
       </div>
 
       <div className="card mt-4 p-5">
-        <div className="text-[15px] font-semibold tracking-[-0.02em]">Details</div>
+        <div className="text-[13px] font-medium">Details</div>
         <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
           {facts.map(([label, value]) => (
             <div key={label}>
@@ -160,7 +163,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
 
       <div className="card mt-4 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4">
-          <div className="text-[15px] font-semibold tracking-[-0.02em]">Releases</div>
+          <div className="text-[13px] font-medium">Releases</div>
           <span className="text-[12px] text-mist">{fmtNum(detail.releases.length)}</span>
         </div>
         {detail.releases.length === 0 ? (
@@ -235,7 +238,7 @@ function TrafficBlock({
   traffic: RepoDetail["views"];
 }) {
   return (
-    <div className="border border-line p-4">
+    <div>
       <div className="text-[12px] text-mist">{label}</div>
       {traffic ? (
         <div className="mt-2">

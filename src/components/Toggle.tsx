@@ -14,13 +14,13 @@ export function Toggle({
       aria-checked={on}
       aria-label={label}
       onClick={() => onChange(!on)}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+      className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
         on ? "bg-accent" : "bg-line"
       }`}
     >
       <span
-        className={`absolute top-[3px] left-[3px] h-[18px] w-[18px] rounded-full bg-paper shadow-sm transition-transform ${
-          on ? "translate-x-[20px]" : ""
+        className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-paper transition-transform ${
+          on ? "translate-x-4" : ""
         }`}
       />
     </button>

@@ -9,6 +9,8 @@ import {
   saveConfig,
 } from "./lib/api";
 import type { CatalogRepo, RepoDetail, Status, TrackedRepo } from "./lib/types";
+import { Chrome } from "./components/Chrome";
+import { ListSkeleton } from "./components/Skeleton";
 import { DetailView } from "./views/DetailView";
 import { ErrorScreen } from "./views/ErrorScreen";
 import { ListView } from "./views/ListView";
@@ -148,9 +150,9 @@ export default function App() {
 
   if (screen === "boot") {
     return (
-      <div className="flex h-full items-center justify-center bg-void text-[14px] text-mist">
-        Checking gh…
-      </div>
+      <Chrome login={null} nav="overview" onNav={() => undefined} title="Overview">
+        <ListSkeleton />
+      </Chrome>
     );
   }
 

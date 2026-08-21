@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
+import { PickerSkeleton } from "../components/Skeleton";
 import { Toggle } from "../components/Toggle";
 import { fmtNum } from "../lib/format";
 import type { CatalogRepo } from "../lib/types";
@@ -89,13 +90,13 @@ export function PickerView({
       }
     >
       <div className="flex h-full min-h-0 flex-col px-6 pb-6">
-        <div className="card flex items-center gap-2 px-4 py-2">
-          <MagnifyingGlass size={16} className="text-mist" />
+        <div className="card flex h-8 items-center gap-2 px-3">
+          <MagnifyingGlass size={16} className="shrink-0 text-mist" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Filter repositories"
-            className="h-9 w-full bg-transparent text-[13px] text-paper outline-none placeholder:text-mist"
+            className="h-full w-full bg-transparent text-[13px] leading-none text-paper outline-none placeholder:text-mist"
           />
         </div>
         <div className="mt-3 flex min-h-0 gap-1.5 overflow-x-auto pb-1">
@@ -119,7 +120,7 @@ export function PickerView({
           {error ? (
             <div className="px-6 py-8 text-[14px] text-accent-soft">{error}</div>
           ) : loading ? (
-            <div className="px-6 py-8 text-[14px] text-mist">Loading repositories from gh…</div>
+            <PickerSkeleton />
           ) : filtered.length === 0 ? (
             <div className="px-6 py-8 text-[14px] text-mist">No repositories match that filter.</div>
           ) : (
@@ -127,8 +128,8 @@ export function PickerView({
               {filtered.map((repo) => {
                 const on = selected.has(repo.fullName);
                 return (
-                  <li key={repo.fullName} className="border-b border-white/5 last:border-b-0">
-                    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.03]">
+                  <li key={repo.fullName} className="border-b border-line last:border-b-0">
+                    <div className="flex items-center gap-4 px-4 py-3 hover:bg-white/[0.03]">
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-[14px] font-medium tracking-[-0.02em]">
                           {repo.fullName}
@@ -138,7 +139,7 @@ export function PickerView({
                           {repo.private ? <span>Private</span> : null}
                           {repo.fork ? <span>Fork</span> : null}
                           {repo.archived ? <span>Archived</span> : null}
-                          <span className="tabular">★ {fmtNum(repo.stars)}</span>
+                          <span className="tabular">{fmtNum(repo.stars)} stars</span>
                         </div>
                       </div>
                       <Toggle
@@ -173,7 +174,7 @@ function OwnerChip({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-md px-3 py-1.5 text-[12px] font-medium ${
+      className={`inline-flex h-8 shrink-0 items-center rounded-md px-3 text-[13px] leading-none font-medium ${
         active ? "bg-accent text-white" : "bg-panel text-mist hover:text-paper"
       }`}
     >
