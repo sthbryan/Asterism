@@ -4,41 +4,54 @@ mod models;
 
 use models::{Cache, CatalogRepo, Config, RepoDetail, Status, TrackedRepo};
 
-#[tauri::command]
-fn get_status() -> Status {
-    gh::status()
+async fn offload<T, F>(f: F) -> Result<T, String>
+where
+    T: Send + 'static,
+    F: FnOnce() -> T + Send + 'static,
+{
+    tauri::async_runtime::spawn_blocking(f)
+        .await
+        .map_err(|e| format!("background task failed: {e}"))
 }
 
 #[tauri::command]
-fn get_config() -> Result<Config, String> {
-    config::load_config()
+async fn get_status() -> Result<Status, String> {
+    offload(gh::status).await
 }
 
 #[tauri::command]
-fn save_config(repos: Vec<String>) -> Result<Config, String> {
-    config::save_config(Config { version: 1, repos })
+async fn get_config() -> Result<Config, String> {
+    offload(config::load_config).await?
 }
 
 #[tauri::command]
-fn get_cache() -> Result<Option<Cache>, String> {
-    config::load_cache()
+async fn save_config(repos: Vec<String>) -> Result<Config, String> {
+    offload(move || config::save_config(Config { version: 1, repos })).await?
 }
 
 #[tauri::command]
-fn list_catalog() -> Result<Vec<CatalogRepo>, String> {
-    gh::list_catalog()
+async fn get_cache() -> Result<Option<Cache>, String> {
+    offload(config::load_cache).await?
 }
 
 #[tauri::command]
-fn refresh_tracked() -> Result<Cache, String> {
-    let cfg = config::load_config()?;
-    let repos: Vec<TrackedRepo> = gh::refresh_tracked(cfg.repos);
-    config::save_cache(repos)
+async fn list_catalog() -> Result<Vec<CatalogRepo>, String> {
+    offload(gh::list_catalog).await?
 }
 
 #[tauri::command]
-fn get_repo_detail(full_name: String) -> Result<RepoDetail, String> {
-    gh::repo_detail(full_name)
+async fn refresh_tracked() -> Result<Cache, String> {
+    offload(|| {
+        let cfg = config::load_config()?;
+        let repos: Vec<TrackedRepo> = gh::refresh_tracked(cfg.repos);
+        config::save_cache(repos)
+    })
+    .await?
+}
+
+#[tauri::command]
+async fn get_repo_detail(full_name: String) -> Result<RepoDetail, String> {
+    offload(move || gh::repo_detail(full_name)).await?
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

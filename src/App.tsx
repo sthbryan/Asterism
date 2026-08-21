@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getCache,
   getConfig,
@@ -28,6 +28,7 @@ export default function App() {
   const [catalog, setCatalog] = useState<CatalogRepo[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
+  const catalogRequest = useRef<Promise<void> | null>(null);
 
   const [detail, setDetail] = useState<RepoDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -52,8 +53,9 @@ export default function App() {
           setFetchedAt(cache.fetchedAt);
         }
         setScreen("list");
+        void loadCatalog();
         if (cfg.repos.length > 0) {
-          await runRefresh();
+          void runRefresh();
         }
       } catch (err) {
         if (cancelled) return;
@@ -85,17 +87,29 @@ export default function App() {
     }
   }
 
-  async function openPicker() {
-    setScreen("picker");
+  function loadCatalog() {
+    if (catalogRequest.current) return catalogRequest.current;
     setCatalogLoading(true);
     setCatalogError(null);
-    try {
-      const rows = await listCatalog();
-      setCatalog(rows);
-    } catch (err) {
-      setCatalogError(String(err));
-    } finally {
-      setCatalogLoading(false);
+    const request = (async () => {
+      try {
+        const rows = await listCatalog();
+        setCatalog(rows);
+      } catch (err) {
+        setCatalogError(String(err));
+      } finally {
+        setCatalogLoading(false);
+        catalogRequest.current = null;
+      }
+    })();
+    catalogRequest.current = request;
+    return request;
+  }
+
+  function openPicker() {
+    setScreen("picker");
+    if (catalog.length === 0) {
+      void loadCatalog();
     }
   }
 
@@ -109,25 +123,27 @@ export default function App() {
         setFetchedAt(null);
         return;
       }
-      await runRefresh();
+      void runRefresh();
     } catch (err) {
       setCatalogError(String(err));
     }
   }
 
-  async function openDetail(fullName: string) {
+  function openDetail(fullName: string) {
     setScreen("detail");
     setDetail(null);
     setDetailError(null);
     setDetailLoading(true);
-    try {
-      const next = await getRepoDetail(fullName);
-      setDetail(next);
-    } catch (err) {
-      setDetailError(String(err));
-    } finally {
-      setDetailLoading(false);
-    }
+    void (async () => {
+      try {
+        const next = await getRepoDetail(fullName);
+        setDetail(next);
+      } catch (err) {
+        setDetailError(String(err));
+      } finally {
+        setDetailLoading(false);
+      }
+    })();
   }
 
   if (screen === "boot") {
@@ -149,7 +165,7 @@ export default function App() {
       <PickerView
         login={login}
         catalog={catalog}
-        loading={catalogLoading}
+        loading={catalogLoading && catalog.length === 0}
         error={catalogError}
         initialSelected={selectedNames}
         onCancel={() => setScreen("list")}
