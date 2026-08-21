@@ -33,6 +33,7 @@ body {
   background: var(--color-void);
   color: var(--color-paper);
   font-family: var(--font-sans);
+  font-size: 13px;
   font-feature-settings: "ss01" on, "cv11" on;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

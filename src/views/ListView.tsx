@@ -345,7 +345,7 @@ function SortHead({
     <button
       type="button"
       onClick={() => onSort(k)}
-      className={`inline-flex cursor-pointer items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.07em] whitespace-nowrap transition-colors ${
+      className={`inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-medium whitespace-nowrap transition-colors ${
         active ? "text-accent-soft" : "text-faint hover:text-mist"
       }`}
     >
