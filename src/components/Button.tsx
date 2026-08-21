@@ -21,7 +21,7 @@ export function Button({
 }) {
   return (
     <button
-      className={`inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3.5 text-[13px] leading-none font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed ${styles[variant]} ${className}`}
+      className={`inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-md px-3 text-[12.5px] leading-none font-medium tracking-[-0.01em] transition-colors disabled:cursor-not-allowed ${styles[variant]} ${className}`}
       {...props}
     >
       {children}

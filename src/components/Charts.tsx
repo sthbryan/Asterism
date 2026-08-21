@@ -15,16 +15,16 @@ export function BarChart({
         return (
           <li
             key={item.label}
-            className="grid grid-cols-[minmax(0,150px)_1fr_64px] items-center gap-3.5 border-b border-hairline py-2.5 first:pt-0 last:border-b-0 last:pb-0"
+            className="grid grid-cols-[minmax(0,140px)_1fr_56px] items-center gap-3 border-b border-hairline py-2 first:pt-0 last:border-b-0 last:pb-0"
           >
-            <span className="flex min-w-0 items-center gap-2">
+            <span className="flex min-w-0 items-center gap-1.5">
               <span
-                className="h-2 w-2 shrink-0 rounded-full"
+                className="h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ background: item.color ?? "#6f6f6f" }}
               />
-              <span className="truncate text-[13px] font-medium">{name}</span>
+              <span className="truncate text-[12.5px] font-medium">{name}</span>
             </span>
-            <span className="block h-2 overflow-hidden rounded-full bg-raised">
+            <span className="block h-1.5 overflow-hidden rounded-full bg-raised">
               <span
                 className={`block h-full rounded-full transition-[width] duration-500 ${
                   top ? "bg-gradient-to-r from-accent to-accent-hover" : "bg-[#707070]"
@@ -33,7 +33,7 @@ export function BarChart({
               />
             </span>
             <span
-              className={`text-right font-mono text-[12px] tabular ${
+              className={`text-right font-mono text-[11.5px] tabular ${
                 top ? "font-semibold text-paper" : "text-mist"
               }`}
             >
