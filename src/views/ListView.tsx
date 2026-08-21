@@ -21,7 +21,7 @@ import { fmtFetched, fmtNum } from "../lib/format";
 import { langColor } from "../lib/langcolors";
 import type { TrackedRepo } from "../lib/types";
 
-const COLS = "grid-cols-[minmax(0,1fr)_88px_88px_104px_28px]";
+const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
 
 type SortKey = "fullName" | "stars" | "forks" | "downloads";
 
@@ -94,7 +94,7 @@ export function ListView({
         if (id === "repos") onOpenPicker();
       }}
       trackedCount={repos.length}
-      title={<h1 className="text-[17px] font-semibold tracking-[-0.01em]">Overview</h1>}
+      title={<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>}
       trailing={
         <>
           {fetched ? (
@@ -126,15 +126,15 @@ export function ListView({
       {showSkeleton ? (
         <ListSkeleton />
       ) : (
-        <div className="h-full min-h-0 overflow-auto px-7 pt-6 pb-8">
+        <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
           {banner ? (
-            <div className="mb-3.5 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/[0.06] px-3.5 py-2.5 text-[13px] text-accent-soft">
-              <WarningCircle size={15} className="shrink-0" />
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/[0.06] px-3 py-2 text-[12.5px] text-accent-soft">
+              <WarningCircle size={14} className="shrink-0" />
               <span className="truncate">{banner}</span>
             </div>
           ) : null}
 
-          <div className="grid grid-cols-4 gap-3.5">
+          <div className="grid grid-cols-4 gap-3">
             <KpiCard
               label="Repositories"
               value={repos.length}
@@ -153,51 +153,51 @@ export function ListView({
           </div>
 
           {repos.length === 0 ? (
-            <div className="card mt-3.5 flex min-h-[280px] flex-col items-center justify-center px-8 text-center">
-              <h2 className="text-[18px] font-semibold tracking-[-0.02em]">
+            <div className="card mt-3 flex min-h-[240px] flex-col items-center justify-center px-8 text-center">
+              <h2 className="text-[16px] font-semibold tracking-[-0.02em]">
                 No repositories tracked
               </h2>
-              <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-mist">
+              <p className="mt-2 max-w-sm text-[12.5px] leading-relaxed text-mist">
                 Choose the repositories you want to watch. Only that set is synced.
               </p>
-              <Button variant="primary" className="mt-5" onClick={onOpenPicker}>
+              <Button variant="primary" className="mt-4" onClick={onOpenPicker}>
                 Edit repositories
               </Button>
             </div>
           ) : (
-            <div className="mt-3.5 grid items-start gap-3.5 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
-              <div className="flex min-w-0 flex-col gap-3.5">
+            <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(260px,1fr)]">
+              <div className="flex min-w-0 flex-col gap-3">
                 {chartItems.some((item) => item.value > 0) ? (
                   <div className="card">
-                    <div className="flex items-center gap-3 border-b border-hairline px-5 py-3">
-                      <span className="text-[13.5px] font-semibold">
+                    <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
+                      <span className="text-[13px] font-semibold">
                         Downloads by repo
                       </span>
-                      <span className="ml-auto font-mono text-[12px] text-faint tabular">
+                      <span className="ml-auto font-mono text-[11.5px] text-faint tabular">
                         total {fmtNum(downloads)}
                       </span>
                     </div>
-                    <div className="p-5">
+                    <div className="p-4">
                       <BarChart items={chartItems} />
                     </div>
                   </div>
                 ) : null}
 
                 <div className="card overflow-hidden">
-                  <div className="flex items-center gap-3 border-b border-hairline py-2 pr-4 pl-5">
-                    <span className="text-[13.5px] font-semibold">Repositories</span>
-                    <label className="ml-auto flex h-8 w-[190px] items-center gap-2 rounded-lg border border-hairline bg-white/[0.02] px-2.5 transition-colors focus-within:border-line">
-                      <MagnifyingGlass size={13} className="shrink-0 text-faint" />
+                  <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
+                    <span className="text-[13px] font-semibold">Repositories</span>
+                    <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-white/[0.02] px-2 transition-colors focus-within:border-line">
+                      <MagnifyingGlass size={12} className="shrink-0 text-faint" />
                       <input
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Filter…"
                         aria-label="Filter repositories"
-                        className="w-full bg-transparent text-[12.5px] leading-none outline-none placeholder:text-faint"
+                        className="w-full bg-transparent text-[12px] leading-none outline-none placeholder:text-faint"
                       />
                     </label>
                   </div>
-                  <div className={`grid ${COLS} items-center gap-3 border-b border-hairline px-5 py-2.5`}>
+                  <div className={`grid ${COLS} items-center gap-3 border-b border-hairline px-4 py-2`}>
                     <SortHead label="Repository" k="fullName" sort={sort} onSort={toggleSort} />
                     <div className="flex justify-end">
                       <SortHead label="Stars" k="stars" sort={sort} onSort={toggleSort} />
@@ -216,14 +216,14 @@ export function ListView({
                         <button
                           type="button"
                           onClick={() => onOpenRepo(repo.fullName)}
-                          className={`group grid w-full ${COLS} items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-white/[0.03]`}
+                          className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.03]`}
                         >
-                          <span className="flex min-w-0 items-center gap-2.5">
+                          <span className="flex min-w-0 items-center gap-2">
                             <span
-                              className="h-2 w-2 shrink-0 rounded-full"
+                              className="h-1.5 w-1.5 shrink-0 rounded-full"
                               style={{ background: langColor(repo.language) }}
                             />
-                            <span className="truncate text-[13px]">
+                            <span className="truncate text-[12.5px]">
                               <span className="text-faint">
                                 {repo.fullName.split("/")[0]}/
                               </span>
@@ -257,38 +257,38 @@ export function ListView({
                 </div>
               </div>
 
-              <div className="flex min-w-0 flex-col gap-3.5">
-                <div className="card p-5">
+              <div className="flex min-w-0 flex-col gap-3">
+                <div className="card p-4">
                   <div className="flex items-center gap-2 text-mist">
                     <Star size={14} className="text-faint" />
                     <span className="kpi-label">Top repository</span>
                   </div>
                   {top ? (
                     <>
-                      <p className="mt-3 truncate font-mono text-[17px] font-semibold tracking-[-0.01em]">
+                      <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
                         {top.fullName}
                       </p>
-                      <div className="mt-3.5 grid grid-cols-2 gap-2.5">
+                      <div className="mt-3 grid grid-cols-2 gap-2">
                         <div>
-                          <div className="text-[11.5px] leading-none text-faint">Stars</div>
-                          <div className="mt-1.5 font-mono text-[20px] leading-none font-semibold tabular">
+                          <div className="text-[11px] leading-none text-faint">Stars</div>
+                          <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
                             {fmtNum(top.stars)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-[11.5px] leading-none text-faint">Downloads</div>
-                          <div className="mt-1.5 font-mono text-[20px] leading-none font-semibold text-accent-soft tabular">
+                          <div className="text-[11px] leading-none text-faint">Downloads</div>
+                          <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
                             {fmtNum(top.downloads)}
                           </div>
                         </div>
                       </div>
-                      <div className="mt-3.5 h-2 overflow-hidden rounded-full bg-raised">
+                      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-accent to-accent-hover"
                           style={{ width: `${share}%` }}
                         />
                       </div>
-                      <p className="mt-2.5 text-[12px] leading-snug text-faint">
+                      <p className="mt-2 text-[11.5px] leading-snug text-faint">
                         Accounts for {share}% of total downloads
                       </p>
                     </>
@@ -297,25 +297,25 @@ export function ListView({
                   )}
                 </div>
 
-                <div className="card p-5">
+                <div className="card p-4">
                   <div className="flex items-center gap-2 text-mist">
                     <Clock size={14} className="text-faint" />
                     <span className="kpi-label">Last sync</span>
                   </div>
-                  <p className="mt-3 font-mono text-[20px] leading-none font-semibold tabular">
+                  <p className="mt-2.5 font-mono text-[16px] leading-none font-semibold tabular">
                     {fetched ?? "—"}
                   </p>
-                  <p className="mt-2 text-[12px] leading-none text-faint">
+                  <p className="mt-1.5 text-[11.5px] leading-none text-faint">
                     GitHub REST + Traffic API · local cache
                   </p>
                 </div>
 
                 {forks === 0 ? (
                   <div className="card overflow-hidden">
-                    <div className="border-b border-hairline px-5 py-3 text-[13.5px] font-semibold">
+                    <div className="border-b border-hairline px-4 py-2.5 text-[13px] font-semibold">
                       Forks
                     </div>
-                    <p className="px-5 py-6 text-center text-[12.5px] leading-relaxed text-faint">
+                    <p className="px-4 py-5 text-center text-[12px] leading-relaxed text-faint">
                       No tracked repositories have forks yet.
                     </p>
                   </div>
@@ -345,7 +345,7 @@ function SortHead({
     <button
       type="button"
       onClick={() => onSort(k)}
-      className={`inline-flex cursor-pointer items-center gap-1 font-mono text-[11px] uppercase tracking-[0.07em] whitespace-nowrap transition-colors ${
+      className={`inline-flex cursor-pointer items-center gap-1 font-mono text-[10.5px] uppercase tracking-[0.07em] whitespace-nowrap transition-colors ${
         active ? "text-accent-soft" : "text-faint hover:text-mist"
       }`}
     >
@@ -363,7 +363,7 @@ function SortHead({
 function NumCell({ value, strong }: { value: number; strong: boolean }) {
   return (
     <span
-      className={`text-right text-[13px] tabular ${
+      className={`text-right text-[12.5px] tabular ${
         value > 0 ? (strong ? "font-medium" : "") : "text-faint"
       }`}
     >
