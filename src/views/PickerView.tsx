@@ -117,7 +117,7 @@ export function PickerView({
         </div>
         <div className="card mt-3 min-h-0 flex-1 overflow-auto">
           {error ? (
-            <div className="px-6 py-8 text-[14px] text-amber">{error}</div>
+            <div className="px-6 py-8 text-[14px] text-accent-soft">{error}</div>
           ) : loading ? (
             <div className="px-6 py-8 text-[14px] text-mist">Loading repositories from gh…</div>
           ) : filtered.length === 0 ? (
@@ -173,7 +173,7 @@ function OwnerChip({
     <button
       type="button"
       onClick={onClick}
-      className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${
+      className={`shrink-0 rounded-md px-3 py-1.5 text-[12px] font-medium ${
         active ? "bg-accent text-white" : "bg-panel text-mist hover:text-paper"
       }`}
     >

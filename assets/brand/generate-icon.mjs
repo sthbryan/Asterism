@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const SIZE = 1024;
 const BG = "#000000";
 const FG = "#FFFFFF";
-const ACCENT = "#7C6FFF";
+const ACCENT = "#D71921";
 
 function squirclePath(size, n = 5, samples = 128) {
   const a = size / 2;

@@ -7,7 +7,7 @@ export function ErrorScreen({ status }: { status: Status }) {
     <Chrome login={null} nav="overview" onNav={() => undefined} title="Setup">
       <div className="flex h-full items-center justify-center px-10">
         <div className="card max-w-md p-8">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber/15 text-amber">
+          <span className="grid h-10 w-10 place-items-center rounded-md border border-line text-accent">
             <WarningCircle size={24} weight="fill" />
           </span>
           <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.04em]">
@@ -17,7 +17,7 @@ export function ErrorScreen({ status }: { status: Status }) {
             {status.error ?? "Asterism talks to GitHub through gh. It cannot start without it."}
           </p>
           {status.hint ? (
-            <p className="mt-4 rounded-2xl bg-white/[0.04] px-4 py-3 font-mono text-[12px] leading-relaxed text-paper/80">
+            <p className="mt-4 border border-line px-4 py-3 font-mono text-[12px] leading-relaxed text-paper/80">
               {status.hint}
             </p>
           ) : null}

@@ -1,13 +1,5 @@
 import { useState } from "react";
-import {
-  ArrowLeft,
-  CaretDown,
-  DownloadSimple,
-  Eye,
-  GitFork,
-  Star,
-  WarningCircle,
-} from "@phosphor-icons/react";
+import { ArrowLeft, CaretDown, WarningCircle } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
@@ -55,13 +47,9 @@ export function DetailView({
     >
       <div className="h-full min-h-0 overflow-auto px-6 pb-8">
         {loading ? (
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="card h-28 animate-pulse bg-panel" />
-            ))}
-          </div>
+          <div className="card h-20 animate-pulse" />
         ) : error ? (
-          <div className="card flex items-start gap-3 p-6 text-[14px] text-amber">
+          <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
             <WarningCircle size={18} />
             {error}
           </div>
@@ -103,21 +91,11 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <KpiCard label="Stars" value={detail.stars} icon={<Star size={16} weight="fill" />} />
-        <KpiCard label="Forks" value={detail.forks} icon={<GitFork size={16} />} tone="cyan" />
-        <KpiCard
-          label="Watchers"
-          value={detail.watchers}
-          icon={<Eye size={16} />}
-          tone="rose"
-        />
-        <KpiCard
-          label="Downloads"
-          value={detail.downloads}
-          icon={<DownloadSimple size={16} />}
-          tone="amber"
-        />
+      <div className="card grid grid-cols-4 gap-6 px-5 py-4">
+        <KpiCard label="Stars" value={detail.stars} />
+        <KpiCard label="Forks" value={detail.forks} />
+        <KpiCard label="Watchers" value={detail.watchers} />
+        <KpiCard label="Downloads" value={detail.downloads} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -139,25 +117,21 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
           {detail.languages.length === 0 ? (
             <p className="mt-3 text-[13px] text-mist">No language data.</p>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {detail.languages.map((lang, i) => {
+            <ul className="mt-4 space-y-2.5">
+              {detail.languages.map((lang) => {
                 const pct = (lang.bytes / langTotal) * 100;
-                const colors = ["#7c6fff", "#4fd1c5", "#f0b429", "#f472b6", "#60a5fa"];
                 return (
                   <li key={lang.name}>
                     <div className="mb-1 flex justify-between text-[12px]">
                       <span>{lang.name}</span>
-                      <span className="font-mono text-mist tabular">
+                      <span className="text-mist tabular">
                         {pct < 1 ? "<1" : pct.toFixed(0)}%
                       </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-line">
+                    <div className="h-1.5 overflow-hidden rounded-sm bg-line">
                       <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${Math.max(pct, 2)}%`,
-                          background: colors[i % colors.length],
-                        }}
+                        className="h-full bg-accent"
+                        style={{ width: `${Math.max(pct, 2)}%` }}
                       />
                     </div>
                   </li>
@@ -206,7 +180,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                       size={12}
                       className={`text-mist transition-transform ${open ? "" : "-rotate-90"}`}
                     />
-                    <span className="font-mono text-[13px] text-accent-soft">{release.tag}</span>
+                    <span className="font-mono text-[13px] text-paper">{release.tag}</span>
                     <span className="min-w-0 flex-1 truncate text-[13px] text-mist">
                       {release.name && release.name !== release.tag ? release.name : ""}
                     </span>
@@ -247,7 +221,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
 
 function Flag({ children }: { children: string }) {
   return (
-    <span className="rounded-full bg-white/[0.06] px-2.5 py-0.5 text-[11px] text-mist">
+    <span className="rounded-md border border-line px-2 py-0.5 text-[11px] text-mist">
       {children}
     </span>
   );
@@ -261,7 +235,7 @@ function TrafficBlock({
   traffic: RepoDetail["views"];
 }) {
   return (
-    <div className="rounded-2xl bg-white/[0.03] p-4">
+    <div className="border border-line p-4">
       <div className="text-[12px] text-mist">{label}</div>
       {traffic ? (
         <div className="mt-2">
