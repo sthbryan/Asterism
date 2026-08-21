@@ -5,14 +5,17 @@
 @theme {
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
-  --color-void: #0c0d11;
-  --color-night: #12141a;
-  --color-panel: #171a21;
-  --color-line: #2c303a;
-  --color-mist: #9a948a;
-  --color-paper: #eeeae1;
-  --color-star: #e0b15b;
-  --color-star-dim: #8f6c2e;
+  --color-void: #0d0f1a;
+  --color-night: #12141f;
+  --color-panel: #191c2e;
+  --color-line: #2c3148;
+  --color-mist: #9aa3c4;
+  --color-paper: #eef0fa;
+  --color-accent: #7c6fff;
+  --color-accent-soft: #9d94ff;
+  --color-cyan: #4fd1c5;
+  --color-amber: #f0b429;
+  --color-rose: #f472b6;
 }
 
 html,
@@ -32,12 +35,12 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-star) 35%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 40%, transparent);
   color: var(--color-paper);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-star);
+  outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
@@ -53,7 +56,7 @@ textarea {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3a3e48 transparent;
+  scrollbar-color: #3a4060 transparent;
 }
 
 *::-webkit-scrollbar {
@@ -62,7 +65,14 @@ textarea {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #3a3e48;
+  background: #3a4060;
   border-radius: 99px;
   border: 2px solid var(--color-void);
+}
+
+@utility card {
+  background-color: var(--color-panel);
+  border: 1px solid rgb(255 255 255 / 0.07);
+  border-radius: 1.25rem;
+  box-shadow: 0 16px 36px rgb(4 6 18 / 0.35);
 }

@@ -3,6 +3,19 @@ export function fmtNum(n: number | null | undefined) {
   return new Intl.NumberFormat("en-US").format(n);
 }
 
+export function fmtCompact(n: number | null | undefined) {
+  if (n == null || Number.isNaN(n)) return "—";
+  if (n >= 1_000_000) {
+    const v = n / 1_000_000;
+    return `${v >= 10 ? v.toFixed(0) : v.toFixed(1)}M`;
+  }
+  if (n >= 10_000) {
+    const v = n / 1000;
+    return `${v >= 100 ? v.toFixed(0) : v.toFixed(1)}k`;
+  }
+  return fmtNum(n);
+}
+
 export function fmtBytes(n: number) {
   if (n < 1024) return `${fmtNum(n)} B`;
   const kb = n / 1024;

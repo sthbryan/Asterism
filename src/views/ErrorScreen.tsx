@@ -4,18 +4,20 @@ import type { Status } from "../lib/types";
 
 export function ErrorScreen({ status }: { status: Status }) {
   return (
-    <Chrome>
+    <Chrome login={null} nav="overview" onNav={() => undefined} title="Setup">
       <div className="flex h-full items-center justify-center px-10">
-        <div className="max-w-md">
-          <WarningCircle size={28} weight="light" className="text-star" />
-          <h1 className="mt-5 text-[28px] leading-tight font-semibold tracking-[-0.04em]">
+        <div className="card max-w-md p-8">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber/15 text-amber">
+            <WarningCircle size={24} weight="fill" />
+          </span>
+          <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.04em]">
             GitHub CLI is required
           </h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-mist">
+          <p className="mt-3 text-[14px] leading-relaxed text-mist">
             {status.error ?? "Asterism talks to GitHub through gh. It cannot start without it."}
           </p>
           {status.hint ? (
-            <p className="mt-4 font-mono text-[13px] leading-relaxed text-paper/80">
+            <p className="mt-4 rounded-2xl bg-white/[0.04] px-4 py-3 font-mono text-[12px] leading-relaxed text-paper/80">
               {status.hint}
             </p>
           ) : null}

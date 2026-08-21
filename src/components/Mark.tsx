@@ -3,7 +3,7 @@ export function Mark({ className = "h-5 w-5" }: { className?: string }) {
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
       <path
         fill="currentColor"
-        d="M12 2.2l1.28 5.52L18.9 8.9l-5.62 1.86L12 16.3l-1.28-5.54L5.1 8.9l5.62-1.18L12 2.2z"
+        d="M12 1.6 14.1 9 21.4 12 14.1 15 12 22.4 9.9 15 2.6 12 9.9 9 12 1.6z"
       />
     </svg>
   );

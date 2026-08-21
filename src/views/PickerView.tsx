@@ -73,11 +73,14 @@ export function PickerView({
   return (
     <Chrome
       login={login}
+      nav="repos"
+      onNav={(id) => {
+        if (id === "overview") onCancel();
+      }}
+      title="Select repositories"
       trailing={
         <>
-          <span className="mr-1 font-mono text-[11px] text-mist">
-            {selected.size} selected
-          </span>
+          <span className="mr-1 text-[12px] text-mist">{selected.size} selected</span>
           <Button onClick={onCancel}>Cancel</Button>
           <Button variant="primary" onClick={() => onSave([...selected])} disabled={loading}>
             Save
@@ -85,69 +88,57 @@ export function PickerView({
         </>
       }
     >
-      <div className="flex h-full min-h-0">
-        <aside className="flex w-56 shrink-0 flex-col border-r border-line">
-          <button
-            type="button"
+      <div className="flex h-full min-h-0 flex-col px-6 pb-6">
+        <div className="card flex items-center gap-2 px-4 py-2">
+          <MagnifyingGlass size={16} className="text-mist" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter repositories"
+            className="h-9 w-full bg-transparent text-[13px] text-paper outline-none placeholder:text-mist"
+          />
+        </div>
+        <div className="mt-3 flex min-h-0 gap-1.5 overflow-x-auto pb-1">
+          <OwnerChip
+            label="All"
+            count={catalog.length}
+            active={ownerFilter === null}
             onClick={() => setOwnerFilter(null)}
-            className={`flex items-center justify-between px-4 py-2.5 text-left text-[13px] ${
-              ownerFilter === null ? "bg-white/[0.04] text-paper" : "text-mist hover:text-paper"
-            }`}
-          >
-            All owners
-            <span className="font-mono text-[11px]">{fmtNum(catalog.length)}</span>
-          </button>
-          <div className="min-h-0 flex-1 overflow-auto">
-            {owners.map((owner) => (
-              <button
-                key={owner.name}
-                type="button"
-                onClick={() => setOwnerFilter(owner.name)}
-                className={`flex w-full items-center justify-between px-4 py-2 text-left text-[13px] ${
-                  ownerFilter === owner.name
-                    ? "bg-white/[0.04] text-paper"
-                    : "text-mist hover:text-paper"
-                }`}
-              >
-                <span className="truncate">{owner.name}</span>
-                <span className="font-mono text-[11px]">{fmtNum(owner.count)}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
-        <section className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center gap-2 border-b border-line px-4 py-2.5">
-            <MagnifyingGlass size={14} className="text-mist" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Filter repositories"
-              className="h-8 w-full bg-transparent text-[13px] text-paper outline-none placeholder:text-mist"
+          />
+          {owners.map((owner) => (
+            <OwnerChip
+              key={owner.name}
+              label={owner.name}
+              count={owner.count}
+              active={ownerFilter === owner.name}
+              onClick={() => setOwnerFilter(owner.name)}
             />
-          </div>
+          ))}
+        </div>
+        <div className="card mt-3 min-h-0 flex-1 overflow-auto">
           {error ? (
-            <div className="px-6 py-8 text-[14px] text-star">{error}</div>
+            <div className="px-6 py-8 text-[14px] text-amber">{error}</div>
           ) : loading ? (
             <div className="px-6 py-8 text-[14px] text-mist">Loading repositories from gh…</div>
           ) : filtered.length === 0 ? (
             <div className="px-6 py-8 text-[14px] text-mist">No repositories match that filter.</div>
           ) : (
-            <ul className="min-h-0 flex-1 overflow-auto">
+            <ul>
               {filtered.map((repo) => {
                 const on = selected.has(repo.fullName);
                 return (
-                  <li key={repo.fullName} className="border-b border-line/70">
-                    <div className="flex items-center gap-4 px-5 py-3 hover:bg-white/[0.025]">
+                  <li key={repo.fullName} className="border-b border-white/5 last:border-b-0">
+                    <div className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.03]">
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[13.5px] font-medium tracking-[-0.02em]">
+                        <div className="truncate text-[14px] font-medium tracking-[-0.02em]">
                           {repo.fullName}
                         </div>
-                        <div className="mt-0.5 flex gap-2 text-[12px] text-mist">
+                        <div className="mt-1 flex flex-wrap gap-2 text-[12px] text-mist">
                           {repo.language ? <span>{repo.language}</span> : null}
                           {repo.private ? <span>Private</span> : null}
                           {repo.fork ? <span>Fork</span> : null}
                           {repo.archived ? <span>Archived</span> : null}
-                          <span className="font-mono tabular">★ {fmtNum(repo.stars)}</span>
+                          <span className="tabular">★ {fmtNum(repo.stars)}</span>
                         </div>
                       </div>
                       <Toggle
@@ -161,8 +152,33 @@ export function PickerView({
               })}
             </ul>
           )}
-        </section>
+        </div>
       </div>
     </Chrome>
+  );
+}
+
+function OwnerChip({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium ${
+        active ? "bg-accent text-white" : "bg-panel text-mist hover:text-paper"
+      }`}
+    >
+      {label}
+      <span className="ml-1.5 tabular opacity-70">{count}</span>
+    </button>
   );
 }

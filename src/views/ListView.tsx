@@ -1,14 +1,15 @@
-import type { ReactNode } from "react";
 import {
   ArrowClockwise,
-  CaretRight,
   DownloadSimple,
+  Folders,
   GitFork,
   Plus,
   Star,
 } from "@phosphor-icons/react";
+import { BarChart, Donut } from "../components/Charts";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
+import { KpiCard } from "../components/KpiCard";
 import { fmtFetched, fmtNum } from "../lib/format";
 import type { TrackedRepo } from "../lib/types";
 
@@ -32,14 +33,26 @@ export function ListView({
   onOpenRepo: (fullName: string) => void;
 }) {
   const fetched = fmtFetched(fetchedAt);
+  const stars = repos.reduce((sum, repo) => sum + repo.stars, 0);
+  const forks = repos.reduce((sum, repo) => sum + repo.forks, 0);
+  const downloads = repos.reduce((sum, repo) => sum + repo.downloads, 0);
+  const chartItems = [...repos]
+    .sort((a, b) => b.downloads - a.downloads)
+    .slice(0, 8)
+    .map((repo) => ({ label: repo.fullName, value: repo.downloads }));
 
   return (
     <Chrome
       login={login}
+      nav="overview"
+      onNav={(id) => {
+        if (id === "repos") onOpenPicker();
+      }}
+      title="Overview"
       trailing={
         <>
           {fetched ? (
-            <span className="mr-1 font-mono text-[11px] text-mist">
+            <span className="mr-1 text-[12px] text-mist">
               {refreshing ? "Refreshing" : `Updated ${fetched}`}
             </span>
           ) : null}
@@ -54,93 +67,123 @@ export function ListView({
         </>
       }
     >
-      <div className="flex h-full min-h-0 flex-col">
+      <div className="h-full min-h-0 overflow-auto px-6 pb-8">
         {banner ? (
-          <div className="border-b border-line px-6 py-2 text-[13px] text-star">{banner}</div>
+          <div className="mb-4 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-3 text-[13px] text-accent-soft">
+            {banner}
+          </div>
         ) : null}
+
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <KpiCard label="Repos" value={repos.length} icon={<Folders size={16} />} hint="Tracked" />
+          <KpiCard label="Stars" value={stars} icon={<Star size={16} weight="fill" />} tone="accent" />
+          <KpiCard label="Forks" value={forks} icon={<GitFork size={16} />} tone="cyan" />
+          <KpiCard
+            label="Downloads"
+            value={downloads}
+            icon={<DownloadSimple size={16} />}
+            tone="amber"
+          />
+        </div>
+
         {repos.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center px-10">
-            <div className="max-w-sm">
-              <h1 className="text-[28px] leading-tight font-semibold tracking-[-0.04em]">
-                No stars picked yet
-              </h1>
-              <p className="mt-3 text-[15px] leading-relaxed text-mist">
-                Choose the repositories you want to watch. Only that set is tracked.
-              </p>
-              <Button variant="primary" className="mt-6" onClick={onOpenPicker}>
-                <Plus size={14} weight="bold" />
-                Repos
-              </Button>
-            </div>
+          <div className="card mt-5 flex min-h-[360px] flex-col items-center justify-center px-10 text-center">
+            <span className="grid h-14 w-14 place-items-center rounded-2xl bg-accent/15 text-accent-soft">
+              <Star size={26} weight="fill" />
+            </span>
+            <h2 className="mt-5 text-[24px] font-semibold tracking-[-0.04em]">
+              Pick the stars you care about
+            </h2>
+            <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-mist">
+              Only the repositories you mark are tracked. Stars, forks, and release downloads show up here.
+            </p>
+            <Button variant="primary" className="mt-6" onClick={onOpenPicker}>
+              <Plus size={14} weight="bold" />
+              Repos
+            </Button>
           </div>
         ) : (
-          <div className="min-h-0 flex-1 overflow-auto">
-            <div className="grid grid-cols-[minmax(0,1fr)_92px_92px_112px_76px] items-center gap-x-4 border-b border-line px-6 py-2 font-mono text-[11px] text-mist">
-              <span>Repository</span>
-              <span className="text-right">Stars</span>
-              <span className="text-right">Forks</span>
-              <span className="text-right">Downloads</span>
-              <span />
+          <>
+            <div className="mt-5 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+              <div className="card p-5">
+                <div className="mb-4 text-[15px] font-semibold tracking-[-0.02em]">
+                  Downloads by repo
+                </div>
+                {chartItems.some((item) => item.value > 0) ? (
+                  <BarChart items={chartItems} />
+                ) : (
+                  <p className="py-10 text-[13px] text-mist">No release downloads yet.</p>
+                )}
+              </div>
+              <div className="card p-5">
+                <div className="mb-4 text-[15px] font-semibold tracking-[-0.02em]">Share</div>
+                {chartItems.some((item) => item.value > 0) ? (
+                  <Donut items={chartItems} />
+                ) : (
+                  <p className="py-10 text-[13px] text-mist">Nothing to split yet.</p>
+                )}
+              </div>
             </div>
-            <ul>
+
+            <div className="mt-6 mb-3 text-[15px] font-semibold tracking-[-0.02em]">
+              Tracked repositories
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
               {repos.map((repo) => (
-                <li key={repo.fullName} className="border-b border-line/70">
-                  <div className="grid grid-cols-[minmax(0,1fr)_92px_92px_112px_76px] items-center gap-x-4 px-6 py-3.5 hover:bg-white/[0.025]">
+                <button
+                  key={repo.fullName}
+                  type="button"
+                  onClick={() => onOpenRepo(repo.fullName)}
+                  className="card p-5 text-left transition-colors hover:border-accent/40 hover:bg-white/[0.03]"
+                >
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="truncate text-[14px] font-medium tracking-[-0.02em]">
+                      <div className="truncate text-[15px] font-semibold tracking-[-0.02em]">
                         {repo.fullName}
                       </div>
-                      <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[12px] text-mist">
-                        {repo.language ? <span>{repo.language}</span> : null}
-                        {repo.private ? <span>Private</span> : null}
-                        {repo.error ? (
-                          <span className="truncate text-star">{repo.error}</span>
-                        ) : repo.description ? (
-                          <span className="truncate">{repo.description}</span>
-                        ) : null}
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {repo.language ? <Pill>{repo.language}</Pill> : null}
+                        {repo.private ? <Pill>Private</Pill> : null}
                       </div>
                     </div>
-                    <Stat icon={<Star size={12} />} value={repo.stars} accent />
-                    <Stat icon={<GitFork size={12} />} value={repo.forks} />
-                    <Stat icon={<DownloadSimple size={12} />} value={repo.downloads} />
-                    <div className="flex justify-end">
-                      <Button
-                        variant="quiet"
-                        className="px-2"
-                        onClick={() => onOpenRepo(repo.fullName)}
-                      >
-                        View
-                        <CaretRight size={12} />
-                      </Button>
-                    </div>
                   </div>
-                </li>
+                  {repo.error ? (
+                    <p className="mt-3 truncate text-[12px] text-amber">{repo.error}</p>
+                  ) : repo.description ? (
+                    <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-mist">
+                      {repo.description}
+                    </p>
+                  ) : (
+                    <p className="mt-3 text-[13px] text-mist">No description</p>
+                  )}
+                  <div className="mt-4 grid grid-cols-3 gap-2 border-t border-white/5 pt-4">
+                    <MiniStat label="Stars" value={repo.stars} />
+                    <MiniStat label="Forks" value={repo.forks} />
+                    <MiniStat label="Downloads" value={repo.downloads} />
+                  </div>
+                </button>
               ))}
-            </ul>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </Chrome>
   );
 }
 
-function Stat({
-  icon,
-  value,
-  accent = false,
-}: {
-  icon: ReactNode;
-  value: number;
-  accent?: boolean;
-}) {
+function Pill({ children }: { children: string }) {
   return (
-    <div
-      className={`flex items-center justify-end gap-1.5 font-mono text-[13px] tabular ${
-        accent ? "text-star" : "text-paper"
-      }`}
-    >
-      <span className={accent ? "text-star-dim" : "text-mist"}>{icon}</span>
-      {fmtNum(value)}
+    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[11px] text-mist">
+      {children}
+    </span>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div>
+      <div className="text-[11px] text-mist">{label}</div>
+      <div className="mt-0.5 text-[14px] font-medium tabular">{fmtNum(value)}</div>
     </div>
   );
 }

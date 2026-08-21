@@ -166,6 +166,7 @@ export default function App() {
         error={detailError}
         detail={detail}
         onBack={() => setScreen("list")}
+        onOpenPicker={openPicker}
       />
     );
   }
