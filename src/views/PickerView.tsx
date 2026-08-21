@@ -101,19 +101,19 @@ export function PickerView({
         </>
       }
     >
-      <div className="flex h-full min-h-0 flex-col px-7 pt-6 pb-6">
+      <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex h-9 min-w-[220px] flex-1 items-center gap-2.5 rounded-lg border border-hairline bg-white/[0.02] px-3 transition-colors focus-within:border-line">
-            <MagnifyingGlass size={14} className="shrink-0 text-faint" />
+          <label className="flex h-8 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-hairline bg-white/[0.02] px-2.5 transition-colors focus-within:border-line">
+            <MagnifyingGlass size={13} className="shrink-0 text-faint" />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or language…"
               aria-label="Search repositories"
-              className="h-full w-full bg-transparent text-[13px] leading-none outline-none placeholder:text-faint"
+              className="h-full w-full bg-transparent text-[12.5px] leading-none outline-none placeholder:text-faint"
             />
           </label>
-          <div className="inline-flex gap-0.5 rounded-[10px] border border-hairline bg-white/[0.02] p-[3px]">
+          <div className="inline-flex gap-0.5 rounded-lg border border-hairline bg-white/[0.02] p-[3px]">
             <SegTab label="All" count={catalog.length} active={ownerFilter === null} onClick={() => setOwnerFilter(null)} />
             {owners.map((owner) => (
               <SegTab
@@ -127,13 +127,13 @@ export function PickerView({
           </div>
         </div>
 
-        <div className="card mt-3.5 min-h-0 flex-1 overflow-auto">
+        <div className="card mt-3 min-h-0 flex-1 overflow-auto">
           {error ? (
-            <div className="px-6 py-8 text-[13.5px] text-accent-soft">{error}</div>
+            <div className="px-5 py-6 text-[13px] text-accent-soft">{error}</div>
           ) : loading ? (
             <PickerSkeleton />
           ) : filtered.length === 0 ? (
-            <p className="px-6 py-8 text-center text-[13px] text-faint">
+            <p className="px-5 py-6 text-center text-[12.5px] text-faint">
               No repositories match that filter.
             </p>
           ) : (
@@ -153,22 +153,22 @@ export function PickerView({
                           toggle(repo.fullName);
                         }
                       }}
-                      className="flex w-full items-center gap-3.5 px-5 py-3 text-left transition-colors hover:bg-white/[0.03]"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
                     >
                       <span
-                        className={`grid h-[18px] w-[18px] shrink-0 place-items-center rounded-md border transition-colors ${
+                        className={`grid h-4 w-4 shrink-0 place-items-center rounded-[5px] border transition-colors ${
                           on ? "border-accent bg-accent" : "border-line"
                         }`}
                       >
                         {on ? (
-                          <Check size={11} weight="bold" className="text-white" />
+                          <Check size={10} weight="bold" className="text-white" />
                         ) : null}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate font-mono text-[13px] font-medium">
+                        <span className="block truncate font-mono text-[12.5px] font-medium">
                           {repo.fullName}
                         </span>
-                        <span className="mt-0.5 block truncate text-[12px] text-faint">
+                        <span className="mt-0.5 block truncate text-[11.5px] text-faint">
                           {repo.description ||
                             [repo.language, repo.fork ? "Fork" : null]
                               .filter(Boolean)
@@ -176,11 +176,11 @@ export function PickerView({
                             "No description"}
                         </span>
                       </span>
-                      <span className="flex shrink-0 items-center gap-3 font-mono text-[12px] text-mist">
-                        {repo.private ? <Meta>Privado</Meta> : null}
-                        {repo.archived ? <Meta>Archivado</Meta> : null}
+                      <span className="flex shrink-0 items-center gap-3 font-mono text-[11.5px] text-mist">
+                        {repo.private ? <Meta>Private</Meta> : null}
+                        {repo.archived ? <Meta>Archived</Meta> : null}
                         <span className="tabular">
-                          <Star size={11} className="mr-1 inline-block -translate-y-px text-faint" />
+                          <Star size={10} className="mr-1 inline-block -translate-y-px text-faint" />
                           {fmtNum(repo.stars)}
                         </span>
                       </span>
@@ -213,14 +213,14 @@ function SegTab({
       role="tab"
       aria-selected={active}
       onClick={onClick}
-      className={`inline-flex h-7 shrink-0 items-center gap-1.5 rounded-lg px-3 text-[12.5px] leading-none font-medium transition-colors ${
+      className={`inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[12px] leading-none font-medium transition-colors ${
         active
           ? "bg-overlay text-paper shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
           : "text-mist hover:text-paper"
       }`}
     >
       {label}
-      <span className="font-mono text-[11px] text-faint tabular">{count}</span>
+      <span className="font-mono text-[10.5px] text-faint tabular">{count}</span>
     </button>
   );
 }
