@@ -6,13 +6,20 @@
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
   --color-void: #111111;
-  --color-night: #161616;
+  --color-night: #191919;
   --color-panel: #1c1c1c;
+  --color-raised: #232323;
+  --color-overlay: #2a2a2a;
   --color-line: #2e2e2e;
+  --color-hairline: #242424;
   --color-mist: #a3a3a3;
+  --color-faint: #8a8a8a;
   --color-paper: #ececec;
   --color-accent: #d71921;
+  --color-accent-hover: #ea343c;
+  --color-accent-press: #b9151c;
   --color-accent-soft: #ef4444;
+  --color-ok: #28c840;
 }
 
 html,
@@ -69,6 +76,13 @@ textarea {
 
 @utility card {
   background-color: var(--color-panel);
-  border: 1px solid var(--color-line);
-  border-radius: 0.5rem;
+  border: 1px solid var(--color-hairline);
+  border-radius: 0.75rem;
+}
+
+@utility kpi-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
