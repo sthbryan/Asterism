@@ -10,7 +10,7 @@ export function ErrorScreen({ status }: { status: Status }) {
           <span className="grid h-10 w-10 place-items-center rounded-md border border-line text-accent">
             <WarningCircle size={16} />
           </span>
-          <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.04em]">
+          <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.03em]">
             GitHub CLI is required
           </h1>
           <p className="mt-3 text-[14px] leading-relaxed text-mist">

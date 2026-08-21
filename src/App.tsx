@@ -149,11 +149,11 @@ export default function App() {
   }
 
   if (screen === "boot") {
-    return (
-      <Chrome login={null} nav="overview" onNav={() => undefined} title="Overview">
-        <ListSkeleton />
-      </Chrome>
-    );
+      return (
+        <Chrome login={null} nav="overview" onNav={() => undefined} title="Overview">
+          <ListSkeleton />
+        </Chrome>
+      );
   }
 
   if (screen === "error" && status) {
@@ -183,6 +183,7 @@ export default function App() {
         loading={detailLoading}
         error={detailError}
         detail={detail}
+        trackedCount={selectedNames.length}
         onBack={() => setScreen("list")}
         onOpenPicker={openPicker}
       />
