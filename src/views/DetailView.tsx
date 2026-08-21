@@ -70,7 +70,7 @@ export function DetailView({
       {loading ? (
         <DetailSkeleton />
       ) : (
-        <div className="h-full min-h-0 overflow-auto px-7 pt-6 pb-8">
+        <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
           {error ? (
             <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
               <WarningCircle size={16} />
@@ -105,10 +105,10 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h2 className="font-mono text-[22px] font-semibold tracking-[-0.02em]">
+        <h2 className="font-mono text-[19px] font-semibold tracking-[-0.02em]">
           {detail.fullName}
         </h2>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[11.5px] leading-none font-medium text-accent-soft">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] leading-none font-medium text-accent-soft">
           {detail.private ? <LockSimple size={11} /> : <Globe size={12} />}
           {detail.private ? "Private" : "Public"}
         </span>
@@ -116,16 +116,16 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         {detail.isTemplate ? <Flag>Template</Flag> : null}
       </div>
       {detail.description ? (
-        <p className="mt-2.5 max-w-3xl text-[13.5px] leading-relaxed text-mist">
+        <p className="mt-2 max-w-3xl text-[13px] leading-relaxed text-mist">
           {detail.description}
         </p>
       ) : null}
       {detail.topics.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
           {detail.topics.map((topic) => (
             <span
               key={topic}
-              className="rounded-md border border-hairline bg-white/[0.02] px-2 py-0.5 font-mono text-[11.5px] text-mist"
+              className="rounded-md border border-hairline bg-white/[0.02] px-1.5 py-0.5 font-mono text-[11px] text-mist"
             >
               #{topic}
             </span>
@@ -133,23 +133,23 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         </div>
       ) : null}
 
-      <div className="mt-6 grid grid-cols-4 gap-3.5">
+      <div className="mt-5 grid grid-cols-4 gap-3">
         <KpiCard label="Stars" value={detail.stars} sub="en total" />
         <KpiCard label="Forks" value={detail.forks} sub="en total" />
         <KpiCard label="Watchers" value={detail.watchers} sub="en total" />
         <KpiCard label="Downloads" value={detail.downloads} sub="release assets" hero />
       </div>
 
-      <div className="mt-3.5 grid gap-3.5 lg:grid-cols-2">
-        <div className="card p-5">
-          <div className="text-[13.5px] font-semibold">Traffic · last 14 days</div>
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="card p-4">
+          <div className="text-[13px] font-semibold">Traffic · last 14 days</div>
           {detail.trafficError && !detail.views && !detail.clones ? (
             <p className="mt-3 text-[13px] leading-relaxed text-mist">
               Views and clones require push access. {detail.trafficError}
             </p>
           ) : (
             <>
-              <div className="mt-5 grid grid-cols-2 gap-6">
+              <div className="mt-4 grid grid-cols-2 gap-5">
                 <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
                 <TrafficBlock
                   label="Clones"
@@ -158,31 +158,31 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                   unique="unique"
                 />
               </div>
-              <p className="mt-5 border-t border-hairline pt-3.5 text-[12px] text-faint">
+              <p className="mt-4 border-t border-hairline pt-3 text-[11.5px] text-faint">
                 GitHub only exposes the last 14 days of traffic.
               </p>
             </>
           )}
         </div>
 
-        <div className="card p-5">
-          <div className="text-[13.5px] font-semibold">Languages</div>
+        <div className="card p-4">
+          <div className="text-[13px] font-semibold">Languages</div>
           {detail.languages.length === 0 ? (
             <p className="mt-3 text-[13px] text-faint">No language data.</p>
           ) : (
-            <ul className="mt-4 space-y-2.5">
+            <ul className="mt-3.5 space-y-2">
               {detail.languages.map((lang) => {
                 const pct = (lang.bytes / langTotal) * 100;
                 return (
-                  <li key={lang.name} className="grid grid-cols-[110px_1fr_44px] items-center gap-3">
-                    <span className="flex min-w-0 items-center gap-2 text-[13px]">
+                  <li key={lang.name} className="grid grid-cols-[100px_1fr_40px] items-center gap-2.5">
+                    <span className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
                       <span
-                        className="h-2 w-2 shrink-0 rounded-full"
+                        className="h-1.5 w-1.5 shrink-0 rounded-full"
                         style={{ background: langColor(lang.name) }}
                       />
                       <span className="truncate">{lang.name}</span>
                     </span>
-                    <span className="block h-[7px] overflow-hidden rounded-full bg-raised">
+                    <span className="block h-1.5 overflow-hidden rounded-full bg-raised">
                       <span
                         className="block h-full rounded-full"
                         style={{
@@ -191,7 +191,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                         }}
                       />
                     </span>
-                    <span className="text-right font-mono text-[12px] text-mist tabular">
+                    <span className="text-right font-mono text-[11.5px] text-mist tabular">
                       {pct < 1 ? "<1%" : `${Math.round(pct)}%`}
                     </span>
                   </li>
@@ -202,24 +202,24 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         </div>
       </div>
 
-      <div className="card mt-3.5 p-5">
-        <div className="text-[13.5px] font-semibold">Details</div>
-        <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-3.5 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="card mt-3 p-4">
+        <div className="text-[13px] font-semibold">Details</div>
+        <dl className="mt-3.5 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
           {facts.map(([label, value]) => (
             <div key={label} className="min-w-0">
-              <dt className="font-mono text-[10.5px] tracking-[0.08em] uppercase text-faint">
+              <dt className="font-mono text-[10px] tracking-[0.08em] uppercase text-faint">
                 {label}
               </dt>
-              <dd className="mt-1.5 truncate font-mono text-[13px] tabular">{value}</dd>
+              <dd className="mt-1 truncate font-mono text-[12.5px] tabular">{value}</dd>
             </div>
           ))}
         </dl>
       </div>
 
-      <div className="card mt-3.5 overflow-hidden">
-        <div className="flex items-center justify-between border-b border-hairline px-5 py-3.5">
-          <div className="text-[13.5px] font-semibold">Releases</div>
-          <span className="font-mono text-[12px] text-faint tabular">
+      <div className="card mt-3 overflow-hidden">
+        <div className="flex items-center justify-between border-b border-hairline px-4 py-2.5">
+          <div className="text-[13px] font-semibold">Releases</div>
+          <span className="font-mono text-[11.5px] text-faint tabular">
             {fmtNum(detail.releases.length)}
           </span>
         </div>
@@ -234,7 +234,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                   <button
                     type="button"
                     onClick={() => setOpenTag(open ? null : release.tag)}
-                    className="flex w-full items-center gap-3 px-5 py-3.5 text-left transition-colors hover:bg-white/[0.03]"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.03]"
                   >
                     <CaretDown
                       size={12}
@@ -254,14 +254,14 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                     </span>
                   </button>
                   {open ? (
-                    <ul className="pr-5 pb-4 pl-12">
+                    <ul className="pr-4 pb-3.5 pl-10">
                       {release.assets.length === 0 ? (
                         <li className="py-1 text-[12px] text-faint">No assets</li>
                       ) : (
                         release.assets.map((asset) => (
                           <li
                             key={asset.name}
-                            className="grid grid-cols-[minmax(0,1fr)_96px_72px] gap-3 border-t border-hairline py-2 font-mono text-[12px] first:border-t-0"
+                            className="grid grid-cols-[minmax(0,1fr)_96px_72px] gap-3 border-t border-hairline py-1.5 font-mono text-[11.5px] first:border-t-0"
                           >
                             <span className="truncate">{asset.name}</span>
                             <span className="text-right text-faint">{fmtBytes(asset.size)}</span>
@@ -308,7 +308,7 @@ function TrafficBlock({
       </div>
       {traffic ? (
         <div className="mt-2.5">
-          <div className="font-mono text-[26px] leading-none font-semibold tabular">
+          <div className="font-mono text-[22px] leading-none font-semibold tabular">
             {fmtCompact(traffic.count)}
           </div>
           <div className="mt-1.5 text-[12px] leading-none text-faint">
