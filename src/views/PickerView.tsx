@@ -82,22 +82,17 @@ export function PickerView({
         if (id === "overview") onCancel();
       }}
       trackedCount={selected.size}
-      title={<h1 className="text-[17px] font-semibold tracking-[-0.01em]">Select repositories</h1>}
+      title={<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Select repositories</h1>}
       trailing={
         <>
-          <span className="mr-1 rounded-full bg-accent/15 px-2.5 py-1 font-mono text-[12px] leading-none text-accent-soft tabular">
-            {selected.size} selected
-          </span>
-          <Button variant="ghost" onClick={onCancel}>
+          <Button variant="quiet" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => onSave([...selected])}
-            disabled={loading || !dirty}
-          >
-            Save changes
-          </Button>
+          {dirty ? (
+            <Button variant="primary" onClick={() => onSave([...selected])} disabled={loading}>
+              Save changes
+            </Button>
+          ) : null}
         </>
       }
     >
@@ -140,6 +135,10 @@ export function PickerView({
             <ul>
               {filtered.map((repo) => {
                 const on = selected.has(repo.fullName);
+                const sub =
+                  repo.description ||
+                  [repo.language, repo.fork ? "Fork" : null].filter(Boolean).join(" · ") ||
+                  null;
                 return (
                   <li key={repo.fullName} className="border-b border-hairline last:border-b-0">
                     <button
@@ -153,7 +152,9 @@ export function PickerView({
                           toggle(repo.fullName);
                         }
                       }}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                        on ? "bg-accent/[0.07] hover:bg-accent/[0.1]" : "hover:bg-white/[0.03]"
+                      }`}
                     >
                       <span
                         className={`grid h-4 w-4 shrink-0 place-items-center rounded-[5px] border transition-colors ${
@@ -168,13 +169,11 @@ export function PickerView({
                         <span className="block truncate font-mono text-[12.5px] font-medium">
                           {repo.fullName}
                         </span>
-                        <span className="mt-0.5 block truncate text-[11.5px] text-faint">
-                          {repo.description ||
-                            [repo.language, repo.fork ? "Fork" : null]
-                              .filter(Boolean)
-                              .join(" · ") ||
-                            "No description"}
-                        </span>
+                        {sub ? (
+                          <span className="mt-0.5 block truncate text-[11.5px] text-faint">
+                            {sub}
+                          </span>
+                        ) : null}
                       </span>
                       <span className="flex shrink-0 items-center gap-3 font-mono text-[11.5px] text-mist">
                         {repo.private ? <Meta>Private</Meta> : null}
