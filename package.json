@@ -9,7 +9,8 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/asterism-icon.svg"
+    "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/asterism-icon.svg",
+    "release": "bun scripts/release.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
