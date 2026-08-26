@@ -3,7 +3,6 @@ import {
   ArrowClockwise,
   CaretDown,
   CaretRight,
-  Clock,
   DownloadSimple,
   FolderSimple,
   GitFork,
@@ -55,11 +54,9 @@ export function ListView({
   const downloads = repos.reduce((sum, repo) => sum + repo.downloads, 0);
 
   const byDownloads = [...repos].sort((a, b) => b.downloads - a.downloads);
-  const top = byDownloads[0];
   const chartItems = byDownloads
     .slice(0, 6)
     .map((repo) => ({ label: repo.fullName, value: repo.downloads, color: langColor(repo.language) }));
-  const share = top && downloads > 0 ? Math.round((top.downloads / downloads) * 100) : 0;
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -159,8 +156,7 @@ export function ListView({
               </Button>
             </div>
           ) : (
-            <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.6fr)_minmax(260px,1fr)]">
-              <div className="flex min-w-0 flex-col gap-3">
+            <div className="mt-3 flex min-w-0 flex-col gap-3">
                 {chartItems.some((item) => item.value > 0) ? (
                   <div className="card">
                     <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
@@ -172,7 +168,7 @@ export function ListView({
                       </span>
                     </div>
                     <div className="p-4">
-                      <BarChart items={chartItems} />
+                      <BarChart items={chartItems} onSelect={onOpenRepo} />
                     </div>
                   </div>
                 ) : null}
@@ -249,72 +245,6 @@ export function ListView({
                     ) : null}
                   </ul>
                 </div>
-              </div>
-
-              <div className="flex min-w-0 flex-col gap-3">
-                <div className="card p-4">
-                  <div className="flex items-center gap-2 text-mist">
-                    <Star size={14} className="text-faint" />
-                    <span className="kpi-label">Top repository</span>
-                  </div>
-                  {top ? (
-                    <>
-                      <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
-                        {top.fullName}
-                      </p>
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <div>
-                          <div className="text-[11px] leading-none text-faint">Stars</div>
-                          <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
-                            {fmtNum(top.stars)}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-[11px] leading-none text-faint">Downloads</div>
-                          <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
-                            {fmtNum(top.downloads)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-accent to-accent-hover"
-                          style={{ width: `${share}%` }}
-                        />
-                      </div>
-                      <p className="mt-2 text-[11.5px] leading-snug text-faint">
-                        Accounts for {share}% of total downloads
-                      </p>
-                    </>
-                  ) : (
-                    <p className="mt-3 text-[13px] text-faint">No data yet.</p>
-                  )}
-                </div>
-
-                <div className="card p-4">
-                  <div className="flex items-center gap-2 text-mist">
-                    <Clock size={14} className="text-faint" />
-                    <span className="kpi-label">Last sync</span>
-                  </div>
-                  <p className="mt-2.5 font-mono text-[16px] leading-none font-semibold tabular">
-                    {fetched ?? "—"}
-                  </p>
-                  <p className="mt-1.5 text-[11.5px] leading-none text-faint">
-                    GitHub REST + Traffic API · local cache
-                  </p>
-                </div>
-
-                {forks === 0 ? (
-                  <div className="card overflow-hidden">
-                    <div className="border-b border-hairline px-4 py-2.5 text-[13px] font-semibold">
-                      Forks
-                    </div>
-                    <p className="px-4 py-5 text-center text-[12px] leading-relaxed text-faint">
-                      No tracked repositories have forks yet.
-                    </p>
-                  </div>
-                ) : null}
-              </div>
             </div>
           )}
         </div>
