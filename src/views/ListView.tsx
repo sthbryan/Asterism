@@ -3,7 +3,6 @@ import {
   ArrowClockwise,
   CaretDown,
   CaretRight,
-  CircleNotch,
   Clock,
   DownloadSimple,
   FolderSimple,
@@ -96,31 +95,26 @@ export function ListView({
       trackedCount={repos.length}
       title={<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>}
       trailing={
-        <>
-          {fetched ? (
-            <span className="mr-1 inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
-              {refreshing ? (
-                <>
-                  <CircleNotch size={12} className="animate-spin" />
-                  Refreshing…
-                </>
-              ) : (
-                <>
-                  <span className="h-[7px] w-[7px] rounded-full bg-ok" />
-                  Updated {fetched}
-                </>
-              )}
+        <div className="flex items-center gap-1">
+          {refreshing ? (
+            <span className="font-mono text-[12px] leading-none text-faint">Refreshing…</span>
+          ) : fetched ? (
+            <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
+              <span className="h-[7px] w-[7px] rounded-full bg-ok" />
+              Updated {fetched}
             </span>
           ) : null}
-          <Button variant="ghost" onClick={onRefresh} disabled={refreshing} aria-label="Refresh">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={refreshing}
+            aria-label="Refresh"
+            title="Refresh"
+            className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-white/[0.06] hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
+          >
             <ArrowClockwise size={14} className={refreshing ? "animate-spin" : ""} />
-            Refresh
-          </Button>
-          <Button variant="primary" onClick={onOpenPicker}>
-            <FolderSimple size={14} />
-            Edit repositories
-          </Button>
-        </>
+          </button>
+        </div>
       }
     >
       {showSkeleton ? (
