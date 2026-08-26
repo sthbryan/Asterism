@@ -66,7 +66,7 @@ export function PickerSkeleton() {
 export function DetailSkeleton() {
   return (
     <div className="px-6 pt-5 pb-6">
-      <Bone className="h-5 w-56" />
+      <Bone className="h-5 w-16 rounded-full" />
       <Bone className="mt-2.5 h-3 w-2/3 max-w-xl" />
       <div className="mt-3 flex gap-1.5">
         <Bone className="h-5 w-16 rounded-md" />

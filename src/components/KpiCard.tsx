@@ -22,7 +22,7 @@ export function KpiCard({
       </div>
       <div
         className={`mt-2.5 font-mono text-[24px] leading-none font-semibold tracking-[-0.02em] tabular ${
-          hero ? "text-accent-soft" : ""
+          hero ? "text-accent-soft" : value === 0 ? "text-faint" : ""
         }`}
       >
         {fmtCompact(value)}

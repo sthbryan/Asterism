@@ -5,12 +5,13 @@ import {
   CaretLeft,
   DownloadSimple,
   Eye,
+  GitFork,
   Globe,
   LockSimple,
+  Star,
   WarningCircle,
 } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { DetailSkeleton } from "../components/Skeleton";
@@ -67,10 +68,16 @@ export function DetailView({
       }
       trailing={
         detail ? (
-          <Button variant="ghost" onClick={() => openUrl(`https://github.com/${detail.fullName}`)}>
+          <button
+            type="button"
+            onClick={() => {
+              void openUrl(`https://github.com/${detail.fullName}`);
+            }}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-medium text-mist transition-colors hover:bg-white/[0.06] hover:text-paper"
+          >
             GitHub
             <ArrowSquareOut size={12} />
-          </Button>
+          </button>
         ) : null
       }
     >
@@ -99,22 +106,17 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
     ["Language", detail.language ?? "—"],
     ["License", detail.license ?? "—"],
     ["Default branch", detail.defaultBranch ?? "—"],
-    ["Visibility", detail.visibility ?? (detail.private ? "private" : "public")],
     ["Size", fmtRepoSizeKb(detail.size)],
     ["Network", fmtNum(detail.networkCount)],
     ["Created", fmtDate(detail.createdAt)],
     ["Updated", fmtDate(detail.updatedAt)],
     ["Last push", fmtDate(detail.pushedAt)],
     ["Open issues", fmtNum(detail.openIssues)],
-    ["Homepage", <HomepageValue value={detail.homepage} />],
   ];
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h2 className="font-mono text-[19px] font-semibold tracking-[-0.02em]">
-          {detail.fullName}
-        </h2>
+      <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] leading-none font-medium text-accent-soft">
           {detail.private ? <LockSimple size={11} /> : <Globe size={12} />}
           {detail.private ? "Private" : "Public"}
@@ -123,7 +125,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         {detail.isTemplate ? <Flag>Template</Flag> : null}
       </div>
       {detail.description ? (
-        <p className="mt-2 max-w-3xl text-[13px] leading-relaxed text-mist">
+        <p className="mt-2.5 max-w-3xl text-[13px] leading-relaxed text-mist">
           {detail.description}
         </p>
       ) : null}
@@ -141,34 +143,32 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
       ) : null}
 
       <div className="mt-5 grid grid-cols-4 gap-3">
-        <KpiCard label="Stars" value={detail.stars} sub="en total" />
-        <KpiCard label="Forks" value={detail.forks} sub="en total" />
-        <KpiCard label="Watchers" value={detail.watchers} sub="en total" />
-        <KpiCard label="Downloads" value={detail.downloads} sub="release assets" hero />
+        <KpiCard label="Stars" value={detail.stars} icon={<Star size={15} />} sub="total" />
+        <KpiCard label="Forks" value={detail.forks} icon={<GitFork size={15} />} sub="total" />
+        <KpiCard label="Watchers" value={detail.watchers} icon={<Eye size={15} />} sub="total" />
+        <KpiCard label="Downloads" value={detail.downloads} icon={<DownloadSimple size={15} />} sub="release assets" hero />
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         <div className="card p-4">
-          <div className="text-[13px] font-semibold">Traffic · last 14 days</div>
+          <div className="flex items-baseline justify-between gap-3">
+            <div className="text-[13px] font-semibold">Traffic · 14 days</div>
+            <span className="text-[11px] text-faint">GitHub only exposes the last 14 days</span>
+          </div>
           {detail.trafficError && !detail.views && !detail.clones ? (
             <p className="mt-3 text-[13px] leading-relaxed text-mist">
               Views and clones require push access. {detail.trafficError}
             </p>
           ) : (
-            <>
-              <div className="mt-4 grid grid-cols-2 gap-5">
-                <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
-                <TrafficBlock
-                  label="Clones"
-                  icon={<DownloadSimple size={14} />}
-                  traffic={detail.clones}
-                  unique="unique"
-                />
-              </div>
-              <p className="mt-4 border-t border-hairline pt-3 text-[11.5px] text-faint">
-                GitHub only exposes the last 14 days of traffic.
-              </p>
-            </>
+            <div className="mt-3 grid grid-cols-2 gap-4">
+              <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
+              <TrafficBlock
+                label="Clones"
+                icon={<DownloadSimple size={14} />}
+                traffic={detail.clones}
+                unique="unique"
+              />
+            </div>
           )}
         </div>
 
@@ -220,6 +220,14 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
               <dd className="mt-1 truncate font-mono text-[12.5px] tabular">{value}</dd>
             </div>
           ))}
+          <div className="min-w-0 sm:col-span-2">
+            <dt className="font-mono text-[10px] tracking-[0.08em] uppercase text-faint">
+              Homepage
+            </dt>
+            <dd className="mt-1 font-mono text-[12.5px]">
+              <HomepageValue value={detail.homepage} />
+            </dd>
+          </div>
         </dl>
       </div>
 
@@ -296,7 +304,9 @@ function HomepageValue({ value }: { value: string | null }) {
     <button
       type="button"
       title={href}
-      onClick={() => openUrl(href)}
+      onClick={() => {
+        void openUrl(href);
+      }}
       className="inline-flex max-w-full items-center gap-1 text-left text-accent-soft hover:underline"
     >
       <span className="truncate">{value}</span>
@@ -332,7 +342,7 @@ function TrafficBlock({
       </div>
       {traffic ? (
         <div className="mt-2.5">
-          <div className="font-mono text-[22px] leading-none font-semibold tabular">
+          <div className="font-mono text-[18px] leading-none font-semibold tabular">
             {fmtCompact(traffic.count)}
           </div>
           <div className="mt-1.5 text-[12px] leading-none text-faint">
