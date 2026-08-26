@@ -115,20 +115,25 @@ export default function App() {
     }
   }
 
-  async function persistSelection(repos: string[]) {
-    try {
-      const cfg = await saveConfig(repos);
-      setSelectedNames(cfg.repos);
-      setScreen("list");
-      if (cfg.repos.length === 0) {
-        setTracked([]);
-        setFetchedAt(null);
-        return;
+  function persistSelection(repos: string[]) {
+    const previous = selectedNames;
+    setSelectedNames(repos);
+    setScreen("list");
+    void (async () => {
+      try {
+        const cfg = await saveConfig(repos);
+        setSelectedNames(cfg.repos);
+        if (cfg.repos.length === 0) {
+          setTracked([]);
+          setFetchedAt(null);
+          return;
+        }
+        void runRefresh();
+      } catch (err) {
+        setSelectedNames(previous);
+        setBanner(String(err));
       }
-      void runRefresh();
-    } catch (err) {
-      setCatalogError(String(err));
-    }
+    })();
   }
 
   function openDetail(fullName: string) {
@@ -197,7 +202,9 @@ export default function App() {
       refreshing={refreshing}
       fetchedAt={fetchedAt}
       banner={banner}
-      onRefresh={runRefresh}
+      onRefresh={() => {
+        void runRefresh();
+      }}
       onOpenPicker={openPicker}
       onOpenRepo={openDetail}
     />
