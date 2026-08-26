@@ -100,12 +100,12 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
-      className={`relative flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-left text-[13px] font-medium transition-colors ${
+      className={`relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md px-2.5 text-left text-[13px] font-medium transition-colors ${
         active ? "bg-white/[0.06] text-paper" : "text-mist hover:bg-white/[0.03] hover:text-paper"
       }`}
     >
       {active ? (
-        <span className="absolute top-1 bottom-1 -left-3 w-[3px] rounded-r-full bg-accent-soft" />
+        <span className="absolute inset-y-0 left-0 w-[3px] bg-accent-soft" />
       ) : null}
       <span className={`grid w-4 place-items-center ${active ? "text-accent-soft" : ""}`}>
         {icon}
