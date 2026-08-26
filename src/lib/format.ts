@@ -46,3 +46,27 @@ export function fmtFetched(unix: number | null | undefined) {
   const d = new Date(unix * 1000);
   return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
+
+const BARE_HOST =
+  /^(www\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+([/:?#].*)?$/i;
+
+export function hrefFromMaybeUrl(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  const value = raw.trim();
+  if (!value) return null;
+
+  let candidate = value;
+  if (!/^https?:\/\//i.test(value)) {
+    if (value.startsWith("//")) candidate = `https:${value}`;
+    else if (BARE_HOST.test(value)) candidate = `https://${value}`;
+    else return null;
+  }
+
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+}

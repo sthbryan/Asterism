@@ -14,7 +14,14 @@ import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { DetailSkeleton } from "../components/Skeleton";
-import { fmtBytes, fmtCompact, fmtDate, fmtNum, fmtRepoSizeKb } from "../lib/format";
+import {
+  fmtBytes,
+  fmtCompact,
+  fmtDate,
+  fmtNum,
+  fmtRepoSizeKb,
+  hrefFromMaybeUrl,
+} from "../lib/format";
 import { langColor } from "../lib/langcolors";
 import type { RepoDetail } from "../lib/types";
 
@@ -88,7 +95,7 @@ export function DetailView({
 function DetailBody({ detail }: { detail: RepoDetail }) {
   const [openTag, setOpenTag] = useState<string | null>(detail.releases[0]?.tag ?? null);
   const langTotal = detail.languages.reduce((sum, lang) => sum + lang.bytes, 0) || 1;
-  const facts: [string, string][] = [
+  const facts: [string, ReactNode][] = [
     ["Language", detail.language ?? "—"],
     ["License", detail.license ?? "—"],
     ["Default branch", detail.defaultBranch ?? "—"],
@@ -99,7 +106,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
     ["Updated", fmtDate(detail.updatedAt)],
     ["Last push", fmtDate(detail.pushedAt)],
     ["Open issues", fmtNum(detail.openIssues)],
-    ["Homepage", detail.homepage ?? "—"],
+    ["Homepage", <HomepageValue value={detail.homepage} />],
   ];
 
   return (
@@ -278,6 +285,23 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         )}
       </div>
     </div>
+  );
+}
+
+function HomepageValue({ value }: { value: string | null }) {
+  if (!value) return "—";
+  const href = hrefFromMaybeUrl(value);
+  if (!href) return value;
+  return (
+    <button
+      type="button"
+      title={href}
+      onClick={() => openUrl(href)}
+      className="inline-flex max-w-full items-center gap-1 text-left text-accent-soft hover:underline"
+    >
+      <span className="truncate">{value}</span>
+      <ArrowSquareOut size={11} className="shrink-0" />
+    </button>
   );
 }
 
