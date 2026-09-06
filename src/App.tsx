@@ -4,6 +4,7 @@ import {
   getConfig,
   getRepoDetail,
   getStatus,
+  isMockMode,
   listCatalog,
   refreshTracked,
   saveConfig,
@@ -58,6 +59,31 @@ export default function App() {
         void loadCatalog();
         if (cfg.repos.length > 0) {
           void runRefresh();
+        }
+        // Mock / screenshot mode: allow deep-linking for screenshots,
+        // e.g. ?mock&screen=picker or ?mock&screen=detail&repo=sthbryan/hyperion
+        if (isMockMode()) {
+          const params = new URLSearchParams(window.location.search);
+          const screenParam = params.get("screen");
+          if (screenParam === "picker") {
+            setScreen("picker");
+          } else if (screenParam === "detail") {
+            const fullName = params.get("repo") ?? "sthbryan/hyperion";
+            setScreen("detail");
+            setDetail(null);
+            setDetailError(null);
+            setDetailLoading(true);
+            try {
+              const next = await getRepoDetail(fullName);
+              if (cancelled) return;
+              setDetail(next);
+            } catch (err) {
+              if (cancelled) return;
+              setDetailError(String(err));
+            } finally {
+              if (!cancelled) setDetailLoading(false);
+            }
+          }
         }
       } catch (err) {
         if (cancelled) return;

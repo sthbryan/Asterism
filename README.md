@@ -28,6 +28,14 @@ It uses the GitHub CLI you already signed in with. If `gh` is missing or not aut
 
 ---
 
+## Screenshots
+
+![Overview](./assets/screenshots/overview.png)
+![Repo detail](./assets/screenshots/detail.png)
+![Repo picker](./assets/screenshots/picker.png)
+
+---
+
 ## What it actually does
 
 **Only the repos you mark**  
