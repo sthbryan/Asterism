@@ -125,25 +125,6 @@ html[data-transparency="on"] body {
   outline-offset: 2px;
 }
 
-[data-tauri-drag-region] {
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-app-region: drag;
-  app-region: drag;
-}
-
-button,
-a,
-input,
-textarea,
-select,
-[role="button"],
-[role="switch"],
-[data-no-drag] {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
-
 input,
 button,
 textarea {
