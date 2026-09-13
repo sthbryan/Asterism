@@ -1,6 +1,6 @@
 [package]
 name = "asterism"
-version = "0.1.0"
+version = "0.2.0"
 description = "Track GitHub stars, forks, and release downloads"
 authors = ["sthbryan"]
 edition = "2021"
