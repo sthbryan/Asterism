@@ -24,7 +24,7 @@
 
 Asterism does not list every repository you own. You choose the set, the selection lives in `~/.config/asterism/config.json`, and the window shows stars, forks, and download totals for that set. Open a repo and you get traffic, languages, each release, and each asset.
 
-It uses the GitHub CLI you already signed in with. If `gh` is missing or not authenticated, the app stops and tells you why.
+It uses the GitHub CLI you already signed in with. If `gh` is missing or not authenticated, setup shows installation and sign-in instructions. Use **Check connection** to retry without restarting. Network failures show connection details instead of claiming the CLI is missing.
 
 ---
 

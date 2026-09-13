@@ -24,6 +24,7 @@ type Screen = "create" | "boot" | "error" | "list" | "picker" | "detail";
 
 export default function App() {
   const [createVisited, setCreateVisited] = useState(false);
+  const [bootAttempt, setBootAttempt] = useState(0);
   const [screen, setScreen] = useState<Screen>("boot");
   const [status, setStatus] = useState<Status | null>(null);
   const [tracked, setTracked] = useState<TrackedRepo[]>([]);
@@ -117,7 +118,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [bootAttempt]);
 
   async function runRefresh() {
     setRefreshing(true);
@@ -258,6 +259,7 @@ export default function App() {
         login={login}
         nav={nav}
         onNav={(id) => {
+          if (!status?.ok) return;
           if (id === "create") { setCreateVisited(true); setScreen("create"); }
           if (id === "overview") setScreen("list");
           if (id === "repos") openPicker();
@@ -268,7 +270,7 @@ export default function App() {
       >
         {createVisited && status?.ok && <div className="h-full" hidden={screen !== "create"}><CreateView login={login} onCreated={handleCreated} onOverview={() => setScreen("list")} /></div>}
         {screen === "error" && status ? (
-          <ErrorScreen status={status} />
+          <ErrorScreen status={status} onRetry={() => { setScreen("boot"); setBootAttempt((value) => value + 1); }} />
         ) : screen === "create" ? null : (
           <div className="t-page-slide" data-page={page}>
             <section className="t-page" data-page-id="1">

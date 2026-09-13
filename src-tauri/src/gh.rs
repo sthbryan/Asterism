@@ -114,7 +114,7 @@ pub fn status() -> Status {
                     ok: false,
                     login: None,
                     error: Some("GitHub CLI did not return an authenticated user.".to_string()),
-                    hint: Some("Run gh auth login, then reopen Asterism.".to_string()),
+                    hint: Some("Run gh auth login, then check the connection again.".to_string()),
                 }
             } else {
                 Status {
@@ -135,7 +135,7 @@ pub fn status() -> Status {
                     "Install GitHub CLI from https://cli.github.com and run gh auth login."
                         .to_string()
                 } else {
-                    "Sign in with gh auth login, then reopen Asterism.".to_string()
+                    "Sign in with gh auth login, then check the connection again.".to_string()
                 }),
             }
         }

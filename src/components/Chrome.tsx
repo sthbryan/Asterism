@@ -76,7 +76,7 @@ export function Chrome({
             </span>
             <div className="min-w-0">
               <div className="truncate text-[12px] leading-tight font-semibold">{login}</div>
-              <div className="text-[10.5px] leading-tight text-faint">GitHub · synced</div>
+              <div className="text-[10.5px] leading-tight text-faint">GitHub · connected</div>
             </div>
           </div>
         ) : null}

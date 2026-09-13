@@ -40,7 +40,15 @@ function delay<T>(value: T, ms = 250): Promise<T> {
 let mockRepos = [...MOCK_CONFIG.repos];
 
 export function getStatus() {
-  if (isMockMode()) return delay({ ...MOCK_STATUS });
+  if (isMockMode()) {
+    const setup = new URLSearchParams(window.location.search).get("setup");
+    if (setup === "missing" || setup === "auth" || setup === "network") {
+      return delay<Status>({ ok: false, login: null, hint: null,
+        error: setup === "missing" ? "GitHub CLI (gh) was not found on this machine."
+          : setup === "auth" ? "GitHub CLI is not authenticated." : "Could not connect to api.github.com." });
+    }
+    return delay({ ...MOCK_STATUS });
+  }
   return invoke<Status>("get_status");
 }
 
