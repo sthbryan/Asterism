@@ -12,14 +12,15 @@ import {
   Star,
   WarningCircle,
 } from "@phosphor-icons/react";
-import { BarChart } from "../components/Charts";
+import { AreaChart, BarChart } from "../components/Charts";
 import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { ListSkeleton } from "../components/Skeleton";
 import { fmtFetched, fmtNum } from "../lib/format";
 import { langColor } from "../lib/langcolors";
-import type { TrackedRepo } from "../lib/types";
+import { aggregateHistory, delta } from "../lib/series";
+import type { RepoHistory, TrackedRepo } from "../lib/types";
 
 const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
 
@@ -28,6 +29,7 @@ type SortKey = "fullName" | "stars" | "forks" | "downloads";
 export function ListView({
   login,
   repos,
+  history,
   refreshing,
   fetchedAt,
   banner,
@@ -37,6 +39,7 @@ export function ListView({
 }: {
   login: string | null;
   repos: TrackedRepo[];
+  history: Record<string, RepoHistory>;
   refreshing: boolean;
   fetchedAt: number | null;
   banner: string | null;
@@ -54,6 +57,12 @@ export function ListView({
   const stars = repos.reduce((sum, repo) => sum + repo.stars, 0);
   const forks = repos.reduce((sum, repo) => sum + repo.forks, 0);
   const downloads = repos.reduce((sum, repo) => sum + repo.downloads, 0);
+
+  const names = repos.map((repo) => repo.fullName);
+  const starSeries = aggregateHistory(history, names, "stars");
+  const downloadSeries = aggregateHistory(history, names, "downloads");
+  const starDelta = delta(starSeries);
+  const downloadDelta = delta(downloadSeries);
 
   const byDownloads = [...repos].sort((a, b) => b.downloads - a.downloads);
   const chartItems = byDownloads.slice(0, 6).map((repo) => ({
@@ -158,6 +167,53 @@ export function ListView({
               hero
             />
           </div>
+
+          {repos.length > 0 ? (
+            <div className="mt-3 grid gap-3 lg:grid-cols-2">
+              <div className="card p-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="text-[13px] font-semibold">Stars over time</div>
+                  {starDelta != null ? (
+                    <span className="font-mono text-[11.5px] text-faint tabular">
+                      {starDelta >= 0 ? "+" : ""}
+                      {fmtNum(starDelta)} in range
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-[11.5px] leading-snug text-faint">
+                  Reconstructed from GitHub stargazers, then updated on each refresh.
+                </p>
+                <div className="mt-3">
+                  <AreaChart
+                    points={starSeries}
+                    tone="paper"
+                    empty="Open a repository or refresh to reconstruct star history from GitHub."
+                  />
+                </div>
+              </div>
+              <div className="card p-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="text-[13px] font-semibold">Downloads over time</div>
+                  {downloadDelta != null ? (
+                    <span className="font-mono text-[11.5px] text-faint tabular">
+                      {downloadDelta >= 0 ? "+" : ""}
+                      {fmtNum(downloadDelta)} in range
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-1 text-[11.5px] leading-snug text-faint">
+                  GitHub does not publish download history. Asterism records a snapshot each refresh.
+                </p>
+                <div className="mt-3">
+                  <AreaChart
+                    points={downloadSeries}
+                    tone="accent"
+                    empty="This chart fills in from the next refresh onward."
+                  />
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {repos.length === 0 ? (
             <div className="card mt-3 flex min-h-[240px] flex-col items-center justify-center px-8 text-center">

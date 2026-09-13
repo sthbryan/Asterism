@@ -13,6 +13,14 @@ export function ListSkeleton() {
           </div>
         ))}
       </div>
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="card p-4">
+            <Bone className="h-3 w-28" />
+            <Bone className="mt-4 h-24 w-full" />
+          </div>
+        ))}
+      </div>
       <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
         <div className="flex min-w-0 flex-col gap-3">
           <div className="card p-4">
@@ -102,6 +110,15 @@ export function DetailSkeleton() {
           <div key={i} className="card p-4">
             <Bone className="h-2.5 w-16" />
             <Bone className="mt-3 h-6 w-14" />
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div key={i} className="card p-4">
+            <Bone className="h-3 w-28" />
+            <Bone className="mt-2 h-2.5 w-48" />
+            <Bone className="mt-4 h-24 w-full" />
           </div>
         ))}
       </div>

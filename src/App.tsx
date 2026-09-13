@@ -9,7 +9,7 @@ import {
   refreshTracked,
   saveConfig,
 } from "./lib/api";
-import type { CatalogRepo, RepoDetail, Status, TrackedRepo } from "./lib/types";
+import type { CatalogRepo, RepoDetail, RepoHistory, Status, TrackedRepo } from "./lib/types";
 import { Chrome } from "./components/Chrome";
 import { ListSkeleton } from "./components/Skeleton";
 import { DetailView } from "./views/DetailView";
@@ -23,6 +23,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>("boot");
   const [status, setStatus] = useState<Status | null>(null);
   const [tracked, setTracked] = useState<TrackedRepo[]>([]);
+  const [history, setHistory] = useState<Record<string, RepoHistory>>({});
   const [selectedNames, setSelectedNames] = useState<string[]>([]);
   const [fetchedAt, setFetchedAt] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -54,6 +55,7 @@ export default function App() {
         if (cache) {
           setTracked(cache.repos);
           setFetchedAt(cache.fetchedAt);
+          setHistory(cache.history ?? {});
         }
         setScreen("list");
         void loadCatalog();
@@ -108,6 +110,7 @@ export default function App() {
       const cache = await refreshTracked();
       setTracked(cache.repos);
       setFetchedAt(cache.fetchedAt);
+      setHistory(cache.history ?? {});
     } catch (err) {
       setBanner(String(err));
     } finally {
@@ -152,6 +155,7 @@ export default function App() {
         if (cfg.repos.length === 0) {
           setTracked([]);
           setFetchedAt(null);
+          setHistory({});
           return;
         }
         void runRefresh();
@@ -171,6 +175,14 @@ export default function App() {
       try {
         const next = await getRepoDetail(fullName);
         setDetail(next);
+        setHistory((prev) => ({
+          ...prev,
+          [fullName]: {
+            stars: next.starHistory ?? [],
+            downloads: next.downloadHistory ?? [],
+            forks: prev[fullName]?.forks ?? [],
+          },
+        }));
       } catch (err) {
         setDetailError(String(err));
       } finally {
@@ -225,6 +237,7 @@ export default function App() {
     <ListView
       login={login}
       repos={tracked}
+      history={history}
       refreshing={refreshing}
       fetchedAt={fetchedAt}
       banner={banner}

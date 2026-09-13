@@ -12,6 +12,7 @@ import {
   WarningCircle,
 } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { AreaChart, BarChart, ColumnChart } from "../components/Charts";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { DetailSkeleton } from "../components/Skeleton";
@@ -24,6 +25,7 @@ import {
   hrefFromMaybeUrl,
 } from "../lib/format";
 import { langColor } from "../lib/langcolors";
+import { fillTrafficDays } from "../lib/series";
 import type { RepoDetail } from "../lib/types";
 
 export function DetailView({
@@ -151,6 +153,35 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         <div className="card p-4">
+          <div className="text-[13px] font-semibold">Stars over time</div>
+          <p className="mt-1 text-[11.5px] leading-snug text-faint">
+            Reconstructed from GitHub stargazers, then kept in sync on each refresh.
+          </p>
+          <div className="mt-3">
+            <AreaChart
+              points={detail.starHistory ?? []}
+              tone="paper"
+              empty="No stars yet, so there is nothing to plot."
+            />
+          </div>
+        </div>
+        <div className="card p-4">
+          <div className="text-[13px] font-semibold">Downloads over time</div>
+          <p className="mt-1 text-[11.5px] leading-snug text-faint">
+            GitHub only reports current totals. Asterism snapshots them so the series grows from here.
+          </p>
+          <div className="mt-3">
+            <AreaChart
+              points={detail.downloadHistory ?? []}
+              tone="accent"
+              empty="No download snapshots yet. Refresh to take the first point."
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="card p-4">
           <div className="flex items-baseline justify-between gap-3">
             <div className="text-[13px] font-semibold">Traffic · 14 days</div>
             <span className="text-[11px] text-faint">GitHub only exposes the last 14 days</span>
@@ -160,14 +191,40 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
               Views and clones require push access. {detail.trafficError}
             </p>
           ) : (
-            <div className="mt-3 grid grid-cols-2 gap-4">
-              <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
-              <TrafficBlock
-                label="Clones"
-                icon={<DownloadSimple size={14} />}
-                traffic={detail.clones}
-                unique="unique"
-              />
+            <div className="mt-3 grid grid-cols-2 gap-5">
+              <div>
+                <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
+                <div className="mt-3">
+                  <ColumnChart
+                    tone="paper"
+                    items={fillTrafficDays(detail.views?.days).map((day) => ({
+                      ts: day.ts,
+                      value: day.count,
+                      hint: `${fmtNum(day.uniques)} unique`,
+                    }))}
+                    empty="No view samples."
+                  />
+                </div>
+              </div>
+              <div>
+                <TrafficBlock
+                  label="Clones"
+                  icon={<DownloadSimple size={14} />}
+                  traffic={detail.clones}
+                  unique="unique"
+                />
+                <div className="mt-3">
+                  <ColumnChart
+                    tone="accent"
+                    items={fillTrafficDays(detail.clones?.days).map((day) => ({
+                      ts: day.ts,
+                      value: day.count,
+                      hint: `${fmtNum(day.uniques)} unique`,
+                    }))}
+                    empty="No clone samples."
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -238,6 +295,19 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
             {fmtNum(detail.releases.length)}
           </span>
         </div>
+        {detail.releases.some((release) => release.downloads > 0) ? (
+          <div className="border-b border-hairline px-4 py-3">
+            <BarChart
+              items={[...detail.releases]
+                .sort((a, b) => b.downloads - a.downloads)
+                .slice(0, 8)
+                .map((release) => ({
+                  label: release.tag,
+                  value: release.downloads,
+                }))}
+            />
+          </div>
+        ) : null}
         {detail.releases.length === 0 ? (
           <p className="px-5 py-6 text-center text-[13px] text-faint">No releases published.</p>
         ) : (
