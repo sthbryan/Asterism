@@ -1,17 +1,21 @@
 import type { ReactNode } from "react";
-import { fmtCompact } from "../lib/format";
+import { fmtCompact, fmtSigned } from "../lib/format";
 
 export function KpiCard({
   label,
   value,
   icon,
   sub,
+  delta,
+  deltaHint,
   hero = false,
 }: {
   label: string;
   value: number;
   icon?: ReactNode;
   sub?: string;
+  delta?: number | null;
+  deltaHint?: string;
   hero?: boolean;
 }) {
   return (
@@ -27,7 +31,18 @@ export function KpiCard({
       >
         {fmtCompact(value)}
       </div>
-      {sub ? <div className="mt-1.5 text-[11.5px] leading-none text-faint">{sub}</div> : null}
+      {delta != null ? (
+        <div
+          className={`mt-1.5 font-mono text-[11.5px] leading-none tabular ${
+            delta > 0 ? "text-ok" : delta < 0 ? "text-accent-soft" : "text-faint"
+          }`}
+        >
+          {fmtSigned(delta)}
+          {deltaHint ? ` · ${deltaHint}` : ""}
+        </div>
+      ) : sub ? (
+        <div className="mt-1.5 text-[11.5px] leading-none text-faint">{sub}</div>
+      ) : null}
     </div>
   );
 }

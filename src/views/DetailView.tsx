@@ -25,7 +25,8 @@ import {
   hrefFromMaybeUrl,
 } from "../lib/format";
 import { langColor } from "../lib/langcolors";
-import { fillTrafficDays } from "../lib/series";
+import { platformItems, shortPath } from "../lib/platform";
+import { fillTrafficDays, pickKpiDelta, windowDelta } from "../lib/series";
 import type { RepoDetail } from "../lib/types";
 
 export function DetailView({
@@ -104,6 +105,13 @@ export function DetailView({
 function DetailBody({ detail }: { detail: RepoDetail }) {
   const [openTag, setOpenTag] = useState<string | null>(detail.releases[0]?.tag ?? null);
   const langTotal = detail.languages.reduce((sum, lang) => sum + lang.bytes, 0) || 1;
+  const starKpi = pickKpiDelta(windowDelta(detail.starHistory ?? [], 7), null);
+  const downloadKpi = pickKpiDelta(windowDelta(detail.downloadHistory ?? [], 7), null);
+  const platformBars = platformItems(
+    detail.platforms ?? { macos: 0, windows: 0, linux: 0, other: 0 },
+  );
+  const referrers = [...(detail.referrers ?? [])].slice(0, 8);
+  const paths = [...(detail.paths ?? [])].slice(0, 8);
   const facts: [string, ReactNode][] = [
     ["Language", detail.language ?? "—"],
     ["License", detail.license ?? "—"],
@@ -145,10 +153,25 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
       ) : null}
 
       <div className="mt-5 grid grid-cols-4 gap-3">
-        <KpiCard label="Stars" value={detail.stars} icon={<Star size={15} />} sub="total" />
+        <KpiCard
+          label="Stars"
+          value={detail.stars}
+          icon={<Star size={15} />}
+          sub="total"
+          delta={starKpi?.delta}
+          deltaHint={starKpi?.hint}
+        />
         <KpiCard label="Forks" value={detail.forks} icon={<GitFork size={15} />} sub="total" />
         <KpiCard label="Watchers" value={detail.watchers} icon={<Eye size={15} />} sub="total" />
-        <KpiCard label="Downloads" value={detail.downloads} icon={<DownloadSimple size={15} />} sub="release assets" hero />
+        <KpiCard
+          label="Downloads"
+          value={detail.downloads}
+          icon={<DownloadSimple size={15} />}
+          sub="release assets"
+          hero
+          delta={downloadKpi?.delta}
+          deltaHint={downloadKpi?.hint}
+        />
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
@@ -180,8 +203,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         </div>
       </div>
 
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <div className="card p-4">
+      <div className="card mt-3 p-4">
           <div className="flex items-baseline justify-between gap-3">
             <div className="text-[13px] font-semibold">Traffic · 14 days</div>
             <span className="text-[11px] text-faint">GitHub only exposes the last 14 days</span>
@@ -227,8 +249,68 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
               </div>
             </div>
           )}
-        </div>
+      </div>
 
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="card p-4">
+          <div className="text-[13px] font-semibold">Referrers · 14 days</div>
+          {referrers.length === 0 ? (
+            <p className="mt-3 text-[13px] text-faint">
+              {detail.trafficError && !detail.views
+                ? "Referrers need push access, same as views."
+                : "No referrers in the last 14 days."}
+            </p>
+          ) : (
+            <div className="mt-3">
+              <BarChart
+                items={referrers.map((row) => ({
+                  label: row.referrer,
+                  value: row.count,
+                }))}
+              />
+            </div>
+          )}
+        </div>
+        <div className="card p-4">
+          <div className="text-[13px] font-semibold">Popular paths · 14 days</div>
+          {paths.length === 0 ? (
+            <p className="mt-3 text-[13px] text-faint">
+              {detail.trafficError && !detail.views
+                ? "Paths need push access, same as views."
+                : "No popular paths in the last 14 days."}
+            </p>
+          ) : (
+            <div className="mt-3">
+              <BarChart
+                items={paths.map((row) => ({
+                  label: shortPath(row.path, detail.fullName),
+                  value: row.count,
+                }))}
+                onSelect={(label) => {
+                  const match = paths.find(
+                    (row) => shortPath(row.path, detail.fullName) === label,
+                  );
+                  if (match) void openUrl(`https://github.com${match.path}`);
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="card p-4">
+          <div className="text-[13px] font-semibold">Downloads by platform</div>
+          {platformBars.length === 0 ? (
+            <p className="mt-3 text-[13px] text-faint">
+              No release assets with a recognizable platform.
+            </p>
+          ) : (
+            <div className="mt-3">
+              <BarChart items={platformBars} />
+            </div>
+          )}
+        </div>
         <div className="card p-4">
           <div className="text-[13px] font-semibold">Languages</div>
           {detail.languages.length === 0 ? (

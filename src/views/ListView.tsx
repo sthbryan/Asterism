@@ -4,6 +4,7 @@ import {
   CaretDown,
   CaretRight,
   Code,
+  Desktop,
   DownloadSimple,
   FolderSimple,
   GitFork,
@@ -17,9 +18,10 @@ import { Button } from "../components/Button";
 import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { ListSkeleton } from "../components/Skeleton";
-import { fmtFetched, fmtNum } from "../lib/format";
+import { fmtFetched, fmtNum, fmtSigned } from "../lib/format";
 import { langColor } from "../lib/langcolors";
-import { aggregateHistory, delta } from "../lib/series";
+import { platformItems, sumPlatforms } from "../lib/platform";
+import { aggregateHistory, delta, pickKpiDelta, sumDeltas, windowDelta } from "../lib/series";
 import type { RepoHistory, TrackedRepo } from "../lib/types";
 
 const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
@@ -63,6 +65,13 @@ export function ListView({
   const downloadSeries = aggregateHistory(history, names, "downloads");
   const starDelta = delta(starSeries);
   const downloadDelta = delta(downloadSeries);
+  const starKpi = pickKpiDelta(windowDelta(starSeries, 7), sumDeltas(repos.map((repo) => repo.starsDelta)));
+  const forkKpi = pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta)));
+  const downloadKpi = pickKpiDelta(
+    windowDelta(downloadSeries, 7),
+    sumDeltas(repos.map((repo) => repo.downloadsDelta)),
+  );
+  const platformBars = platformItems(sumPlatforms(repos.map((repo) => repo.platforms)));
 
   const byDownloads = [...repos].sort((a, b) => b.downloads - a.downloads);
   const chartItems = byDownloads.slice(0, 6).map((repo) => ({
@@ -157,14 +166,30 @@ export function ListView({
               icon={<FolderSimple size={15} />}
               sub="tracked"
             />
-            <KpiCard label="Stars" value={stars} icon={<Star size={15} />} sub="total" />
-            <KpiCard label="Forks" value={forks} icon={<GitFork size={15} />} sub="total" />
+            <KpiCard
+              label="Stars"
+              value={stars}
+              icon={<Star size={15} />}
+              sub="total"
+              delta={starKpi?.delta}
+              deltaHint={starKpi?.hint}
+            />
+            <KpiCard
+              label="Forks"
+              value={forks}
+              icon={<GitFork size={15} />}
+              sub="total"
+              delta={forkKpi?.delta}
+              deltaHint={forkKpi?.hint}
+            />
             <KpiCard
               label="Downloads"
               value={downloads}
               icon={<DownloadSimple size={15} />}
               sub="release assets"
               hero
+              delta={downloadKpi?.delta}
+              deltaHint={downloadKpi?.hint}
             />
           </div>
 
@@ -297,9 +322,9 @@ export function ListView({
                             ) : null}
                             {repo.private ? <Chip>Private</Chip> : null}
                           </span>
-                          <NumCell value={repo.stars} strong={false} />
-                          <NumCell value={repo.forks} strong={false} />
-                          <NumCell value={repo.downloads} strong />
+                          <NumCell value={repo.stars} delta={repo.starsDelta} strong={false} />
+                          <NumCell value={repo.forks} delta={repo.forksDelta} strong={false} />
+                          <NumCell value={repo.downloads} delta={repo.downloadsDelta} strong />
                           <CaretRight
                             size={12}
                             className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
@@ -356,6 +381,18 @@ export function ListView({
                       {share}% of total downloads
                     </p>
                   </button>
+                ) : null}
+
+                {platformBars.length > 0 ? (
+                  <div className="card p-4">
+                    <div className="flex items-center gap-2 text-mist">
+                      <Desktop size={14} className="text-faint" />
+                      <span className="kpi-label">Downloads by platform</span>
+                    </div>
+                    <div className="mt-3">
+                      <BarChart items={platformBars} />
+                    </div>
+                  </div>
                 ) : null}
 
                 {languages.length > 0 ? (
@@ -470,14 +507,33 @@ function SortHead({
   );
 }
 
-function NumCell({ value, strong }: { value: number; strong: boolean }) {
+function NumCell({
+  value,
+  delta,
+  strong,
+}: {
+  value: number;
+  delta?: number | null;
+  strong: boolean;
+}) {
   return (
-    <span
-      className={`text-right text-[12.5px] tabular ${
-        value > 0 ? (strong ? "font-medium" : "") : "text-faint"
-      }`}
-    >
-      {fmtNum(value)}
+    <span className="text-right">
+      <span
+        className={`block text-[12.5px] tabular ${
+          value > 0 ? (strong ? "font-medium" : "") : "text-faint"
+        }`}
+      >
+        {fmtNum(value)}
+      </span>
+      {delta != null && delta !== 0 ? (
+        <span
+          className={`block font-mono text-[10px] leading-tight tabular ${
+            delta > 0 ? "text-ok" : "text-accent-soft"
+          }`}
+        >
+          {fmtSigned(delta)}
+        </span>
+      ) : null}
     </span>
   );
 }
