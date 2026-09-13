@@ -20,6 +20,8 @@
         "resizable": true,
         "hiddenTitle": true,
         "titleBarStyle": "Overlay",
+        "transparent": true,
+        "shadow": true,
         "trafficLightPosition": {
           "x": 14,
           "y": 18
@@ -27,6 +29,7 @@
         "backgroundColor": "#111111"
       }
     ],
+    "macOSPrivateApi": true,
     "security": {
       "csp": null
     }
