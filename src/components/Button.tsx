@@ -6,8 +6,8 @@ const styles: Record<Variant, string> = {
   primary:
     "bg-accent text-white hover:bg-accent-hover active:bg-accent-press disabled:opacity-40",
   ghost:
-    "border border-line bg-white/[0.02] text-paper hover:bg-white/[0.06] disabled:text-faint disabled:opacity-50",
-  quiet: "text-mist hover:bg-white/[0.06] hover:text-paper disabled:opacity-40",
+    "border border-line bg-wash text-paper hover:bg-fill disabled:text-faint disabled:opacity-50",
+  quiet: "text-mist hover:bg-fill hover:text-paper disabled:opacity-40",
 };
 
 export function Button({

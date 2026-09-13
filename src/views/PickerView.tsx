@@ -1,10 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, MagnifyingGlass, Star } from "@phosphor-icons/react";
 import { Button } from "../components/Button";
-import { Chrome } from "../components/Chrome";
 import { PickerSkeleton } from "../components/Skeleton";
 import { fmtNum } from "../lib/format";
 import type { CatalogRepo } from "../lib/types";
+
+export function PickerTrailing({
+  dirty,
+  loading,
+  onCancel,
+  onSave,
+}: {
+  dirty: boolean;
+  loading: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  return (
+    <>
+      <Button variant="quiet" onClick={onCancel}>
+        Cancel
+      </Button>
+      {dirty ? (
+        <Button variant="primary" onClick={onSave} disabled={loading}>
+          Save changes
+        </Button>
+      ) : null}
+    </>
+  );
+}
 
 export function PickerView({
   login,
@@ -14,6 +38,7 @@ export function PickerView({
   initialSelected,
   onCancel,
   onSave,
+  onDirtyChange,
 }: {
   login: string | null;
   catalog: CatalogRepo[];
@@ -22,6 +47,7 @@ export function PickerView({
   initialSelected: string[];
   onCancel: () => void;
   onSave: (repos: string[]) => void;
+  onDirtyChange?: (dirty: boolean, save: () => void) => void;
 }) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelected));
@@ -65,6 +91,12 @@ export function PickerView({
     });
   }, [catalog, ownerFilter, query]);
 
+  const onDirtyChangeRef = useRef(onDirtyChange);
+  onDirtyChangeRef.current = onDirtyChange;
+  useEffect(() => {
+    onDirtyChangeRef.current?.(dirty, () => onSave([...selected]));
+  }, [dirty, onSave, selected]);
+
   function toggle(fullName: string) {
     setSelected((prev) => {
       const copy = new Set(prev);
@@ -75,30 +107,9 @@ export function PickerView({
   }
 
   return (
-    <Chrome
-      login={login}
-      nav="repos"
-      onNav={(id) => {
-        if (id === "overview") onCancel();
-      }}
-      trackedCount={selected.size}
-      title={<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Select repositories</h1>}
-      trailing={
-        <>
-          <Button variant="quiet" onClick={onCancel}>
-            Cancel
-          </Button>
-          {dirty ? (
-            <Button variant="primary" onClick={() => onSave([...selected])} disabled={loading}>
-              Save changes
-            </Button>
-          ) : null}
-        </>
-      }
-    >
       <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex h-8 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-hairline bg-white/[0.02] px-2.5 transition-colors focus-within:border-line">
+          <label className="flex h-8 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-hairline bg-wash px-2.5 transition-colors focus-within:border-line">
             <MagnifyingGlass size={13} className="shrink-0 text-faint" />
             <input
               value={query}
@@ -108,7 +119,7 @@ export function PickerView({
               className="h-full w-full bg-transparent text-[12.5px] leading-none outline-none placeholder:text-faint"
             />
           </label>
-          <div className="inline-flex gap-0.5 rounded-lg border border-hairline bg-white/[0.02] p-[3px]">
+          <div className="inline-flex gap-0.5 rounded-lg border border-hairline bg-wash p-[3px]">
             <SegTab label="All" count={catalog.length} active={ownerFilter === null} onClick={() => setOwnerFilter(null)} />
             {owners.map((owner) => (
               <SegTab
@@ -153,7 +164,7 @@ export function PickerView({
                         }
                       }}
                       className={`flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                        on ? "bg-accent/[0.07] hover:bg-accent/[0.1]" : "hover:bg-white/[0.03]"
+                        on ? "bg-accent/[0.07] hover:bg-accent/[0.1]" : "hover:bg-hover"
                       }`}
                     >
                       <span
@@ -191,7 +202,6 @@ export function PickerView({
           )}
         </div>
       </div>
-    </Chrome>
   );
 }
 

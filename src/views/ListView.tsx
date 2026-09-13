@@ -13,9 +13,9 @@ import {
   Star,
   WarningCircle,
 } from "@phosphor-icons/react";
+import { Banner } from "../components/Banner";
 import { AreaChart, BarChart } from "../components/Charts";
 import { Button } from "../components/Button";
-import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { ListSkeleton } from "../components/Skeleton";
 import { fmtFetched, fmtNum, fmtSigned } from "../lib/format";
@@ -28,24 +28,54 @@ const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
 
 type SortKey = "fullName" | "stars" | "forks" | "downloads";
 
+export function ListTrailing({
+  refreshing,
+  fetchedAt,
+  onRefresh,
+}: {
+  refreshing: boolean;
+  fetchedAt: number | null;
+  onRefresh: () => void;
+}) {
+  const fetched = fmtFetched(fetchedAt);
+  return (
+    <div className="flex items-center gap-1">
+      {refreshing ? (
+        <span className="t-shimmer font-mono text-[12px] leading-none" data-text="Refreshing…">
+          Refreshing…
+        </span>
+      ) : fetched ? (
+        <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
+          <span className="h-[7px] w-[7px] rounded-full bg-ok" />
+          Updated {fetched}
+        </span>
+      ) : null}
+      <button
+        type="button"
+        onClick={onRefresh}
+        disabled={refreshing}
+        aria-label="Refresh"
+        title="Refresh"
+        className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        <ArrowClockwise size={14} className={refreshing ? "animate-spin" : ""} />
+      </button>
+    </div>
+  );
+}
+
 export function ListView({
-  login,
   repos,
   history,
   refreshing,
-  fetchedAt,
   banner,
-  onRefresh,
   onOpenPicker,
   onOpenRepo,
 }: {
-  login: string | null;
   repos: TrackedRepo[];
   history: Record<string, RepoHistory>;
   refreshing: boolean;
-  fetchedAt: number | null;
   banner: string | null;
-  onRefresh: () => void;
   onOpenPicker: () => void;
   onOpenRepo: (fullName: string) => void;
 }) {
@@ -55,7 +85,6 @@ export function ListView({
     dir: -1,
   });
 
-  const fetched = fmtFetched(fetchedAt);
   const stars = repos.reduce((sum, repo) => sum + repo.stars, 0);
   const forks = repos.reduce((sum, repo) => sum + repo.forks, 0);
   const downloads = repos.reduce((sum, repo) => sum + repo.downloads, 0);
@@ -116,48 +145,11 @@ export function ListView({
 
   const showSkeleton = refreshing && repos.length === 0;
 
-  return (
-    <Chrome
-      login={login}
-      nav="overview"
-      onNav={(id) => {
-        if (id === "repos") onOpenPicker();
-      }}
-      trackedCount={repos.length}
-      title={<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>}
-      trailing={
-        <div className="flex items-center gap-1">
-          {refreshing ? (
-            <span className="font-mono text-[12px] leading-none text-faint">Refreshing…</span>
-          ) : fetched ? (
-            <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
-              <span className="h-[7px] w-[7px] rounded-full bg-ok" />
-              Updated {fetched}
-            </span>
-          ) : null}
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={refreshing}
-            aria-label="Refresh"
-            title="Refresh"
-            className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-white/[0.06] hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            <ArrowClockwise size={14} className={refreshing ? "animate-spin" : ""} />
-          </button>
-        </div>
-      }
-    >
-      {showSkeleton ? (
-        <ListSkeleton />
-      ) : (
+  return showSkeleton ? (
+    <ListSkeleton />
+  ) : (
         <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
-          {banner ? (
-            <div className="mb-3 flex items-center gap-2 rounded-lg border border-accent/30 bg-accent/[0.06] px-3 py-2 text-[12.5px] text-accent-soft">
-              <WarningCircle size={14} className="shrink-0" />
-              <span className="truncate">{banner}</span>
-            </div>
-          ) : null}
+          <Banner message={banner} />
 
           <div className="grid grid-cols-4 gap-3">
             <KpiCard
@@ -272,7 +264,7 @@ export function ListView({
                 <div className="card min-w-0 overflow-hidden">
                   <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
                     <span className="text-[13px] font-semibold">Repositories</span>
-                    <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-white/[0.02] px-2 transition-colors focus-within:border-line">
+                    <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line">
                       <MagnifyingGlass size={12} className="shrink-0 text-faint" />
                       <input
                         value={query}
@@ -302,7 +294,7 @@ export function ListView({
                         <button
                           type="button"
                           onClick={() => onOpenRepo(repo.fullName)}
-                          className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-white/[0.03]`}
+                          className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
                         >
                           <span className="flex min-w-0 items-center gap-2">
                             <span
@@ -348,7 +340,7 @@ export function ListView({
                   <button
                     type="button"
                     onClick={() => onOpenRepo(top.fullName)}
-                    className="card w-full p-4 text-left transition-colors hover:bg-white/[0.03]"
+                    className="card w-full p-4 text-left transition-colors hover:bg-hover"
                   >
                     <div className="flex items-center gap-2 text-mist">
                       <Star size={14} className="text-faint" />
@@ -471,8 +463,6 @@ export function ListView({
             </div>
           )}
         </div>
-      )}
-    </Chrome>
   );
 }
 

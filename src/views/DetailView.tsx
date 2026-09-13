@@ -13,7 +13,6 @@ import {
 } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { AreaChart, BarChart, ColumnChart } from "../components/Charts";
-import { Chrome } from "../components/Chrome";
 import { KpiCard } from "../components/KpiCard";
 import { DetailSkeleton } from "../components/Skeleton";
 import {
@@ -29,64 +28,57 @@ import { platformItems, shortPath } from "../lib/platform";
 import { fillTrafficDays, pickKpiDelta, windowDelta } from "../lib/series";
 import type { RepoDetail } from "../lib/types";
 
+export function DetailTitle({
+  fullName,
+  onBack,
+}: {
+  fullName?: string;
+  onBack: () => void;
+}) {
+  return (
+    <nav className="flex items-center gap-2 text-[13px]">
+      <button
+        type="button"
+        onClick={onBack}
+        className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-mist transition-colors hover:bg-hover hover:text-paper"
+      >
+        <CaretLeft size={13} />
+        Overview
+      </button>
+      <span className="text-faint">/</span>
+      <span className="font-mono text-[13px] font-semibold">{fullName ?? "…"}</span>
+    </nav>
+  );
+}
+
+export function DetailTrailing({ fullName }: { fullName?: string }) {
+  if (!fullName) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void openUrl(`https://github.com/${fullName}`);
+      }}
+      className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-medium text-mist transition-colors hover:bg-fill hover:text-paper"
+    >
+      GitHub
+      <ArrowSquareOut size={12} />
+    </button>
+  );
+}
+
 export function DetailView({
-  login,
   loading,
   error,
   detail,
-  trackedCount,
-  onBack,
-  onOpenPicker,
 }: {
-  login: string | null;
   loading: boolean;
   error: string | null;
   detail: RepoDetail | null;
-  trackedCount?: number;
-  onBack: () => void;
-  onOpenPicker: () => void;
 }) {
-  return (
-    <Chrome
-      login={login}
-      nav="overview"
-      onNav={(id) => {
-        if (id === "overview") onBack();
-        if (id === "repos") onOpenPicker();
-      }}
-      trackedCount={trackedCount}
-      title={
-        <nav className="flex items-center gap-2 text-[13px]">
-          <button
-            type="button"
-            onClick={onBack}
-            className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-mist transition-colors hover:bg-white/[0.04] hover:text-paper"
-          >
-            <CaretLeft size={13} />
-            Overview
-          </button>
-          <span className="text-faint">/</span>
-          <span className="font-mono text-[13px] font-semibold">{detail?.fullName ?? "…"}</span>
-        </nav>
-      }
-      trailing={
-        detail ? (
-          <button
-            type="button"
-            onClick={() => {
-              void openUrl(`https://github.com/${detail.fullName}`);
-            }}
-            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12.5px] font-medium text-mist transition-colors hover:bg-white/[0.06] hover:text-paper"
-          >
-            GitHub
-            <ArrowSquareOut size={12} />
-          </button>
-        ) : null
-      }
-    >
-      {loading ? (
-        <DetailSkeleton />
-      ) : (
+  return loading ? (
+    <DetailSkeleton />
+  ) : (
         <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
           {error ? (
             <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
@@ -97,8 +89,6 @@ export function DetailView({
             <DetailBody detail={detail} />
           ) : null}
         </div>
-      )}
-    </Chrome>
   );
 }
 
@@ -144,7 +134,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
           {detail.topics.map((topic) => (
             <span
               key={topic}
-              className="rounded-md border border-hairline bg-white/[0.02] px-1.5 py-0.5 font-mono text-[11px] text-mist"
+              className="rounded-md border border-hairline bg-wash px-1.5 py-0.5 font-mono text-[11px] text-mist"
             >
               #{topic}
             </span>
@@ -401,7 +391,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
                   <button
                     type="button"
                     onClick={() => setOpenTag(open ? null : release.tag)}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/[0.03]"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-hover"
                   >
                     <CaretDown
                       size={12}

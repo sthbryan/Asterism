@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { fmtCompact, fmtSigned } from "../lib/format";
+import { PopNumber } from "./PopNumber";
 
 export function KpiCard({
   label,
@@ -29,7 +30,7 @@ export function KpiCard({
           hero ? "text-accent-soft" : value === 0 ? "text-faint" : ""
         }`}
       >
-        {fmtCompact(value)}
+        <PopNumber value={fmtCompact(value)} />
       </div>
       {delta != null ? (
         <div

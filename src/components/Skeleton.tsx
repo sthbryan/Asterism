@@ -1,5 +1,5 @@
 export function Bone({ className = "" }: { className?: string }) {
-  return <div className={`animate-pulse rounded-sm bg-white/[0.06] ${className}`} />;
+  return <div className={`rounded-sm bg-fill ${className}`} />;
 }
 
 export function ListSkeleton() {

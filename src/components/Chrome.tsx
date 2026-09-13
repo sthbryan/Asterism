@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChartBar, FolderSimple } from "@phosphor-icons/react";
+import { AppearanceControls } from "./AppearanceControls";
 import { Mark } from "./Mark";
 
 export type NavId = "overview" | "repos";
@@ -55,9 +56,10 @@ export function Chrome({
           />
         </nav>
         <div className="flex-1" data-tauri-drag-region />
+        <AppearanceControls />
         {login ? (
           <div className="m-2.5 flex items-center gap-2 rounded-lg border border-hairline p-2">
-            <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/[0.07] font-mono text-[10px] font-semibold">
+            <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-fill font-mono text-[10px] font-semibold">
               {initials(login)}
               <span className="ring-night absolute right-0 bottom-0 h-2 w-2 rounded-full bg-ok ring-2" />
             </span>
@@ -101,7 +103,7 @@ function NavButton({
       type="button"
       onClick={onClick}
       className={`relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md px-2.5 text-left text-[13px] font-medium transition-colors ${
-        active ? "bg-white/[0.06] text-paper" : "text-mist hover:bg-white/[0.03] hover:text-paper"
+        active ? "bg-fill text-paper" : "text-mist hover:bg-hover hover:text-paper"
       }`}
     >
       {active ? (
@@ -114,7 +116,7 @@ function NavButton({
       {badge != null ? (
         <span
           className={`ml-auto rounded-full px-1.5 py-0.5 font-mono text-[10.5px] leading-none ${
-            active ? "bg-accent/15 text-accent-soft" : "bg-white/[0.07] text-mist"
+            active ? "bg-accent/15 text-accent-soft" : "bg-fill text-mist"
           }`}
         >
           {badge}

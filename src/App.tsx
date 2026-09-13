@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   getCache,
   getConfig,
@@ -9,13 +9,14 @@ import {
   refreshTracked,
   saveConfig,
 } from "./lib/api";
-import type { CatalogRepo, RepoDetail, RepoHistory, Status, TrackedRepo } from "./lib/types";
-import { Chrome } from "./components/Chrome";
-import { ListSkeleton } from "./components/Skeleton";
-import { DetailView } from "./views/DetailView";
+import type { CatalogRepo, RepoDetail, RepoHistory, Status, ThemePref, TrackedRepo } from "./lib/types";
+import { AppearanceProvider } from "./components/Appearance";
+import { Chrome, type NavId } from "./components/Chrome";
+import { DetailSkeleton, ListSkeleton } from "./components/Skeleton";
+import { DetailTitle, DetailTrailing, DetailView } from "./views/DetailView";
 import { ErrorScreen } from "./views/ErrorScreen";
-import { ListView } from "./views/ListView";
-import { PickerView } from "./views/PickerView";
+import { ListTrailing, ListView } from "./views/ListView";
+import { PickerTrailing, PickerView } from "./views/PickerView";
 
 type Screen = "boot" | "error" | "list" | "picker" | "detail";
 
@@ -28,6 +29,8 @@ export default function App() {
   const [fetchedAt, setFetchedAt] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
+  const [theme, setTheme] = useState<ThemePref>("dark");
+  const [transparency, setTransparency] = useState(false);
 
   const [catalog, setCatalog] = useState<CatalogRepo[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(false);
@@ -37,6 +40,13 @@ export default function App() {
   const [detail, setDetail] = useState<RepoDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [page2, setPage2] = useState<"picker" | "detail">("detail");
+  const [pickerDirty, setPickerDirty] = useState(false);
+  const pickerSave = useRef<() => void>(() => undefined);
+
+  useEffect(() => {
+    if (screen === "picker" || screen === "detail") setPage2(screen);
+  }, [screen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +62,8 @@ export default function App() {
         const [cfg, cache] = await Promise.all([getConfig(), getCache()]);
         if (cancelled) return;
         setSelectedNames(cfg.repos);
+        if (cfg.theme) setTheme(cfg.theme);
+        setTransparency(Boolean(cfg.transparency));
         if (cache) {
           setTracked(cache.repos);
           setFetchedAt(cache.fetchedAt);
@@ -62,8 +74,6 @@ export default function App() {
         if (cfg.repos.length > 0) {
           void runRefresh();
         }
-        // Mock / screenshot mode: allow deep-linking for screenshots,
-        // e.g. ?mock&screen=picker or ?mock&screen=detail&repo=sthbryan/hyperion
         if (isMockMode()) {
           const params = new URLSearchParams(window.location.search);
           const screenParam = params.get("screen");
@@ -76,9 +86,9 @@ export default function App() {
             setDetailError(null);
             setDetailLoading(true);
             try {
-              const next = await getRepoDetail(fullName);
+              const nextDetail = await getRepoDetail(fullName);
               if (cancelled) return;
-              setDetail(next);
+              setDetail(nextDetail);
             } catch (err) {
               if (cancelled) return;
               setDetailError(String(err));
@@ -191,61 +201,102 @@ export default function App() {
     })();
   }
 
-  if (screen === "boot") {
-      return (
-        <Chrome login={null} nav="overview" onNav={() => undefined} title="Overview">
-          <ListSkeleton />
-        </Chrome>
-      );
-  }
-
-  if (screen === "error" && status) {
-    return <ErrorScreen status={status} />;
-  }
-
   const login = status?.login ?? null;
+  const page = screen === "picker" || screen === "detail" ? "2" : "1";
+  const nav: NavId = screen === "picker" ? "repos" : "overview";
+  const listReady = screen !== "boot";
 
-  if (screen === "picker") {
-    return (
-      <PickerView
-        login={login}
-        catalog={catalog}
-        loading={catalogLoading && catalog.length === 0}
-        error={catalogError}
-        initialSelected={selectedNames}
-        onCancel={() => setScreen("list")}
-        onSave={persistSelection}
-      />
-    );
-  }
-
-  if (screen === "detail") {
-    return (
-      <DetailView
-        login={login}
-        loading={detailLoading}
-        error={detailError}
-        detail={detail}
-        trackedCount={selectedNames.length}
-        onBack={() => setScreen("list")}
-        onOpenPicker={openPicker}
-      />
-    );
-  }
-
-  return (
-    <ListView
-      login={login}
-      repos={tracked}
-      history={history}
+  let title: ReactNode = <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>;
+  let trailing: ReactNode = (
+    <ListTrailing
       refreshing={refreshing}
       fetchedAt={fetchedAt}
-      banner={banner}
       onRefresh={() => {
         void runRefresh();
       }}
-      onOpenPicker={openPicker}
-      onOpenRepo={openDetail}
     />
+  );
+  if (screen === "picker") {
+    title = <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Select repositories</h1>;
+    trailing = (
+      <PickerTrailing
+        dirty={pickerDirty}
+        loading={catalogLoading}
+        onCancel={() => setScreen("list")}
+        onSave={() => pickerSave.current()}
+      />
+    );
+  } else if (screen === "detail") {
+    title = <DetailTitle fullName={detail?.fullName} onBack={() => setScreen("list")} />;
+    trailing = <DetailTrailing fullName={detail?.fullName} />;
+  } else if (screen === "error") {
+    title = "Setup";
+    trailing = null;
+  }
+
+  return (
+    <AppearanceProvider theme={theme} transparency={transparency}>
+      <Chrome
+        login={login}
+        nav={nav}
+        onNav={(id) => {
+          if (id === "overview") setScreen("list");
+          if (id === "repos") openPicker();
+        }}
+        trackedCount={selectedNames.length}
+        title={title}
+        trailing={trailing}
+      >
+        {screen === "error" && status ? (
+          <ErrorScreen status={status} />
+        ) : (
+          <div className="t-page-slide" data-page={page}>
+            <section className="t-page" data-page-id="1">
+              <div className={`t-skel h-full ${listReady ? "is-revealed" : ""}`}>
+                <div className="t-skel-skeleton is-pulsing">
+                  <ListSkeleton />
+                </div>
+                <div className="t-skel-content">
+                  <ListView
+                    repos={tracked}
+                    history={history}
+                    refreshing={refreshing}
+                    banner={banner}
+                    onOpenPicker={openPicker}
+                    onOpenRepo={openDetail}
+                  />
+                </div>
+              </div>
+            </section>
+            <section className="t-page" data-page-id="2">
+              {page2 === "picker" ? (
+                <PickerView
+                  login={login}
+                  catalog={catalog}
+                  loading={catalogLoading && catalog.length === 0}
+                  error={catalogError}
+                  initialSelected={selectedNames}
+                  onCancel={() => setScreen("list")}
+                  onSave={persistSelection}
+                  onDirtyChange={(dirty, save) => {
+                    setPickerDirty(dirty);
+                    pickerSave.current = save;
+                  }}
+                />
+              ) : (
+                <div className={`t-skel h-full ${detailLoading ? "" : "is-revealed"}`}>
+                  <div className="t-skel-skeleton is-pulsing">
+                    <DetailSkeleton />
+                  </div>
+                  <div className="t-skel-content">
+                    <DetailView loading={false} error={detailError} detail={detail} />
+                  </div>
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </Chrome>
+    </AppearanceProvider>
   );
 }
