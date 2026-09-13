@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ChartBar, FolderSimple } from "@phosphor-icons/react";
+import { dragWindow } from "../lib/drag";
 import { AppearanceControls } from "./AppearanceControls";
 import { Mark } from "./Mark";
 
@@ -30,9 +31,17 @@ export function Chrome({
 }) {
   return (
     <div className="flex h-full min-h-0 bg-void text-paper">
-      <aside className="flex w-[212px] shrink-0 flex-col border-r border-hairline bg-night">
-        <div className="h-12 shrink-0" data-tauri-drag-region />
-        <div className="flex h-12 items-center gap-2.5 px-4" data-tauri-drag-region>
+      <aside className="relative flex w-[212px] shrink-0 flex-col border-r border-hairline bg-night pt-12">
+        <div
+          className="absolute inset-x-0 top-0 h-12"
+          data-tauri-drag-region
+          onMouseDown={dragWindow}
+        />
+        <div
+          className="flex h-12 items-center gap-2.5 px-4"
+          data-tauri-drag-region
+          onMouseDown={dragWindow}
+        >
           <span className="grid h-[26px] w-[26px] place-items-center rounded-md bg-gradient-to-br from-accent-hover to-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
             <Mark className="h-3.5 w-3.5" />
           </span>
@@ -56,7 +65,7 @@ export function Chrome({
             badge={trackedCount}
           />
         </nav>
-        <div className="flex-1" data-tauri-drag-region />
+        <div className="flex-1" data-tauri-drag-region onMouseDown={dragWindow} />
         <AppearanceControls />
         {login ? (
           <div className="m-2.5 flex items-center gap-2 rounded-lg border border-hairline p-2">
@@ -71,15 +80,14 @@ export function Chrome({
           </div>
         ) : null}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col bg-void">
+      <div className="flex min-w-0 flex-1 flex-col">
         <header
           data-tauri-drag-region
-          className="relative z-10 flex h-12 shrink-0 items-center gap-3 border-b border-hairline bg-void px-6"
+          onMouseDown={dragWindow}
+          className="flex h-12 shrink-0 items-center gap-3 border-b border-hairline px-6"
         >
-          <div className="min-w-0 truncate" data-tauri-drag-region>
-            {title}
-          </div>
-          <div className="h-full min-w-8 flex-1" data-tauri-drag-region />
+          <div className="min-w-0 truncate">{title}</div>
+          <div className="flex-1" />
           {trailing ? (
             <div className="flex shrink-0 items-center gap-2.5" data-no-drag>
               {trailing}
