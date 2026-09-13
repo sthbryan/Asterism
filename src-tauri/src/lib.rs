@@ -6,7 +6,10 @@ mod platform;
 
 use std::collections::{HashMap, HashSet};
 
-use models::{Cache, CatalogRepo, Config, RepoDetail, Status, ThemePref, TrackedRepo};
+use models::{
+    Cache, CatalogRepo, Config, CreateOptions, CreateRepoInput, CreatedRepo, RepoDetail, Status,
+    ThemePref, TrackedRepo,
+};
 
 async fn offload<T, F>(f: F) -> Result<T, String>
 where
@@ -106,6 +109,16 @@ async fn refresh_tracked() -> Result<Cache, String> {
 }
 
 #[tauri::command]
+async fn list_create_options() -> Result<CreateOptions, String> {
+    offload(gh::list_create_options).await?
+}
+
+#[tauri::command]
+async fn create_repo(input: CreateRepoInput) -> Result<CreatedRepo, String> {
+    offload(move || gh::create_repo(input)).await?
+}
+
+#[tauri::command]
 async fn get_repo_detail(full_name: String) -> Result<RepoDetail, String> {
     offload(move || {
         let mut detail = gh::repo_detail(full_name.clone())?;
@@ -158,6 +171,8 @@ pub fn run() {
             save_appearance,
             get_cache,
             list_catalog,
+            list_create_options,
+            create_repo,
             refresh_tracked,
             get_repo_detail
         ])

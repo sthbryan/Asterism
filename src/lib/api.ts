@@ -1,11 +1,23 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Cache, CatalogRepo, Config, RepoDetail, Status, ThemePref } from "./types";
+import type {
+  Cache,
+  CatalogRepo,
+  Config,
+  CreateOptions,
+  CreateRepoInput,
+  CreatedRepo,
+  RepoDetail,
+  Status,
+  ThemePref,
+} from "./types";
 import { readStoredTheme, readStoredTransparency } from "./appearance";
 import {
   MOCK_CACHE,
   MOCK_CATALOG,
   MOCK_CONFIG,
+  MOCK_CREATE_OPTIONS,
   MOCK_STATUS,
+  mockCreateRepo,
   mockDetail,
 } from "./mock";
 
@@ -72,6 +84,16 @@ export function getCache() {
 export function listCatalog() {
   if (isMockMode()) return delay<CatalogRepo[]>([...MOCK_CATALOG], 400);
   return invoke<CatalogRepo[]>("list_catalog");
+}
+
+export function listCreateOptions() {
+  if (isMockMode()) return delay<CreateOptions>({ ...MOCK_CREATE_OPTIONS }, 280);
+  return invoke<CreateOptions>("list_create_options");
+}
+
+export function createRepo(input: CreateRepoInput) {
+  if (isMockMode()) return delay<CreatedRepo>(mockCreateRepo(input), 500);
+  return invoke<CreatedRepo>("create_repo", { input });
 }
 
 export function refreshTracked() {

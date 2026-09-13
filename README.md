@@ -44,6 +44,10 @@ The picker lists your user and org repositories. Toggles persist. Unmarked repos
 **List first, detail when you need it**  
 Overview: stars, forks, total release downloads. Detail: watchers, issues, last push, 14-day views and clones, languages, and every release with per-asset counts.
 
+**Create repositories**
+
+The Create repository tab supports personal or organization ownership, private/public visibility, a README, a gitignore template, and a license. New repositories are private by default. Choose whether to track them immediately. Organization policies and account permissions still apply.
+
 **`gh` is the client**  
 No extra GitHub token in the app. Asterism shells out to `gh` with the account already configured on the machine.
 

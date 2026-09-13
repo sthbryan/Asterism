@@ -9,7 +9,7 @@ import {
   refreshTracked,
   saveConfig,
 } from "./lib/api";
-import type { CatalogRepo, RepoDetail, RepoHistory, Status, ThemePref, TrackedRepo } from "./lib/types";
+import type { CatalogRepo, CreatedRepo, RepoDetail, RepoHistory, Status, ThemePref, TrackedRepo } from "./lib/types";
 import { AppearanceProvider } from "./components/Appearance";
 import { Chrome, type NavId } from "./components/Chrome";
 import { DetailSkeleton, ListSkeleton } from "./components/Skeleton";
@@ -18,9 +18,12 @@ import { ErrorScreen } from "./views/ErrorScreen";
 import { ListTrailing, ListView } from "./views/ListView";
 import { PickerTrailing, PickerView } from "./views/PickerView";
 
-type Screen = "boot" | "error" | "list" | "picker" | "detail";
+import { CreateView } from "./views/CreateView";
+
+type Screen = "create" | "boot" | "error" | "list" | "picker" | "detail";
 
 export default function App() {
+  const [createVisited, setCreateVisited] = useState(false);
   const [screen, setScreen] = useState<Screen>("boot");
   const [status, setStatus] = useState<Status | null>(null);
   const [tracked, setTracked] = useState<TrackedRepo[]>([]);
@@ -77,7 +80,10 @@ export default function App() {
         if (isMockMode()) {
           const params = new URLSearchParams(window.location.search);
           const screenParam = params.get("screen");
-          if (screenParam === "picker") {
+          if (screenParam === "create") {
+            setCreateVisited(true);
+            setScreen("create");
+          } else if (screenParam === "picker") {
             setScreen("picker");
           } else if (screenParam === "detail") {
             const fullName = params.get("repo") ?? "sthbryan/hyperion";
@@ -201,9 +207,18 @@ export default function App() {
     })();
   }
 
+  async function handleCreated(repo: CreatedRepo, track: boolean) {
+    void loadCatalog();
+    if (track) {
+      const cfg = await saveConfig([...new Set([...selectedNames, repo.fullName])]);
+      setSelectedNames(cfg.repos);
+      await runRefresh();
+    }
+  }
+
   const login = status?.login ?? null;
   const page = screen === "picker" || screen === "detail" ? "2" : "1";
-  const nav: NavId = screen === "picker" ? "repos" : "overview";
+  const nav: NavId = screen === "create" ? "create" : screen === "picker" ? "repos" : "overview";
   const listReady = screen !== "boot";
 
   let title: ReactNode = <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>;
@@ -216,7 +231,10 @@ export default function App() {
       }}
     />
   );
-  if (screen === "picker") {
+  if (screen === "create") {
+    title = <h1 className="text-[15px] font-semibold">Create repository</h1>;
+    trailing = null;
+  } else if (screen === "picker") {
     title = <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Select repositories</h1>;
     trailing = (
       <PickerTrailing
@@ -240,6 +258,7 @@ export default function App() {
         login={login}
         nav={nav}
         onNav={(id) => {
+          if (id === "create") { setCreateVisited(true); setScreen("create"); }
           if (id === "overview") setScreen("list");
           if (id === "repos") openPicker();
         }}
@@ -247,9 +266,10 @@ export default function App() {
         title={title}
         trailing={trailing}
       >
+        {createVisited && status?.ok && <div className="h-full" hidden={screen !== "create"}><CreateView login={login} onCreated={handleCreated} onOverview={() => setScreen("list")} /></div>}
         {screen === "error" && status ? (
           <ErrorScreen status={status} />
-        ) : (
+        ) : screen === "create" ? null : (
           <div className="t-page-slide" data-page={page}>
             <section className="t-page" data-page-id="1">
               <div className={`t-skel h-full ${listReady ? "is-revealed" : ""}`}>

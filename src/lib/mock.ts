@@ -3,6 +3,9 @@ import type {
   Cache,
   CatalogRepo,
   Config,
+  CreateOptions,
+  CreateRepoInput,
+  CreatedRepo,
   PlatformDownloads,
   RepoDetail,
   RepoHistory,
@@ -445,4 +448,46 @@ export const MOCK_DETAILS: Record<string, RepoDetail> = Object.fromEntries(
 
 export function mockDetail(fullName: string): RepoDetail {
   return MOCK_DETAILS[fullName] ?? detailFor(fullName);
+}
+
+export const MOCK_CREATE_OPTIONS: CreateOptions = {
+  owners: [MOCK_LOGIN, "dsi135"],
+  gitignores: ["Node", "Python", "Rust", "Go", "Swift", "Kotlin", "Java", "C++"],
+  licenses: [
+    { key: "mit", name: "MIT License" },
+    { key: "apache-2.0", name: "Apache License 2.0" },
+    { key: "gpl-3.0", name: "GNU General Public License v3.0" },
+    { key: "bsd-3-clause", name: "BSD 3-Clause License" },
+    { key: "unlicense", name: "The Unlicense" },
+  ],
+};
+
+export function mockCreateRepo(input: CreateRepoInput): CreatedRepo {
+  const owner = input.owner.trim() || MOCK_LOGIN;
+  const name = input.name.trim();
+  if (!name) throw new Error("Repository name is required.");
+  if (MOCK_CATALOG.some((repo) => repo.name.toLowerCase() === name.toLowerCase() && repo.owner === owner)) {
+    throw new Error(`Name already exists on this account: ${owner}/${name}`);
+  }
+  const fullName = `${owner}/${name}`;
+  MOCK_CACHE.repos.unshift({ fullName, description: input.description, private: input.private,
+    language: null, stars: 0, forks: 0, downloads: 0, error: null });
+  MOCK_CATALOG.unshift({
+    fullName,
+    owner,
+    name,
+    description: input.description,
+    private: input.private,
+    language: null,
+    archived: false,
+    fork: false,
+    pushedAt: new Date().toISOString(),
+    stars: 0,
+    forks: 0,
+  });
+  return {
+    fullName,
+    htmlUrl: `https://github.com/${fullName}`,
+    private: input.private,
+  };
 }

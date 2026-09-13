@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
-import { ChartBar, FolderSimple } from "@phosphor-icons/react";
+import { ChartBar, FolderSimple, Plus } from "@phosphor-icons/react";
 import { dragWindow } from "../lib/drag";
 import { AppearanceControls } from "./AppearanceControls";
 import { Mark } from "./Mark";
 
-export type NavId = "overview" | "repos";
+export type NavId = "overview" | "repos" | "create";
 
 function initials(login: string | null | undefined) {
   if (!login) return "··";
@@ -64,6 +64,7 @@ export function Chrome({
             onClick={() => onNav("repos")}
             badge={trackedCount}
           />
+          <NavButton active={nav === "create"} icon={<Plus size={16} />} label="Create repository" onClick={() => onNav("create")} />
         </nav>
         <div className="flex-1" data-tauri-drag-region onMouseDown={dragWindow} />
         <AppearanceControls />
@@ -117,6 +118,7 @@ function NavButton({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={`relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md px-2.5 text-left text-[13px] font-medium transition-colors ${
         active ? "bg-fill text-paper" : "text-mist hover:bg-hover hover:text-paper"
       }`}
