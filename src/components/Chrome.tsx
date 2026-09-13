@@ -30,7 +30,8 @@ export function Chrome({
 }) {
   return (
     <div className="flex h-full min-h-0 bg-void text-paper">
-      <aside className="flex w-[212px] shrink-0 flex-col border-r border-hairline bg-night pt-12">
+      <aside className="flex w-[212px] shrink-0 flex-col border-r border-hairline bg-night">
+        <div className="h-12 shrink-0" data-tauri-drag-region />
         <div className="flex h-12 items-center gap-2.5 px-4" data-tauri-drag-region>
           <span className="grid h-[26px] w-[26px] place-items-center rounded-md bg-gradient-to-br from-accent-hover to-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
             <Mark className="h-3.5 w-3.5" />
@@ -70,14 +71,20 @@ export function Chrome({
           </div>
         ) : null}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-void">
         <header
           data-tauri-drag-region
-          className="flex h-12 shrink-0 items-center gap-3 border-b border-hairline px-6"
+          className="relative z-10 flex h-12 shrink-0 items-center gap-3 border-b border-hairline bg-void px-6"
         >
-          <div className="min-w-0 truncate">{title}</div>
-          <div className="flex-1" data-tauri-drag-region />
-          {trailing ? <div className="flex shrink-0 items-center gap-2.5">{trailing}</div> : null}
+          <div className="min-w-0 truncate" data-tauri-drag-region>
+            {title}
+          </div>
+          <div className="h-full min-w-8 flex-1" data-tauri-drag-region />
+          {trailing ? (
+            <div className="flex shrink-0 items-center gap-2.5" data-no-drag>
+              {trailing}
+            </div>
+          ) : null}
         </header>
         <div className="min-h-0 flex-1">{children}</div>
       </div>
