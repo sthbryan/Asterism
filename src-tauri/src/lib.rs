@@ -2,10 +2,11 @@ mod config;
 mod gh;
 mod history;
 mod models;
+mod platform;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
-use models::{Cache, CatalogRepo, Config, RepoDetail, Status};
+use models::{Cache, CatalogRepo, Config, RepoDetail, Status, TrackedRepo};
 
 async fn offload<T, F>(f: F) -> Result<T, String>
 where
@@ -53,13 +54,29 @@ async fn refresh_tracked() -> Result<Cache, String> {
             .filter(|name| history::needs_star_seed(&store, name))
             .cloned()
             .collect();
+        let previous = config::load_cache().ok().flatten();
+        let prev: HashMap<String, TrackedRepo> = previous
+            .map(|cache| {
+                cache
+                    .repos
+                    .into_iter()
+                    .map(|repo| (repo.full_name.clone(), repo))
+                    .collect()
+            })
+            .unwrap_or_default();
         let fetches = gh::refresh_tracked(cfg.repos, seed_for);
         let now = history::now_secs();
         let repos = fetches
             .iter()
             .map(|fetch| {
                 history::apply_fetch(&mut store, &fetch.repo, fetch.star_seed.clone(), now);
-                fetch.repo.clone()
+                let mut repo = fetch.repo.clone();
+                if let Some(old) = prev.get(&repo.full_name) {
+                    repo.stars_delta = Some(repo.stars as i64 - old.stars as i64);
+                    repo.forks_delta = Some(repo.forks as i64 - old.forks as i64);
+                    repo.downloads_delta = Some(repo.downloads as i64 - old.downloads as i64);
+                }
+                repo
             })
             .collect();
         config::save_history(&store)?;
@@ -93,6 +110,10 @@ async fn get_repo_detail(full_name: String) -> Result<RepoDetail, String> {
             stars: detail.stars,
             forks: detail.forks,
             downloads: detail.downloads,
+            platforms: detail.platforms.clone(),
+            stars_delta: None,
+            forks_delta: None,
+            downloads_delta: None,
             error: None,
         };
         history::apply_fetch(&mut store, &snapshot, None, now);

@@ -7,8 +7,8 @@ use serde_json::Value;
 
 use crate::history::{collapse_days, day_bucket, now_secs, parse_iso_unix};
 use crate::models::{
-    Asset, CatalogRepo, LanguageShare, Release, RepoDetail, SeriesPoint, Status, TrackedRepo,
-    Traffic, TrafficDay,
+    Asset, CatalogRepo, LanguageShare, PlatformDownloads, PopularPath, Referrer, Release,
+    RepoDetail, SeriesPoint, Status, TrackedRepo, Traffic, TrafficDay,
 };
 
 pub struct TrackedFetch {
@@ -189,6 +189,16 @@ fn parse_assets(value: &Value) -> (Vec<Asset>, u64) {
     (assets, total)
 }
 
+fn platforms_from_releases(releases: &[Release]) -> PlatformDownloads {
+    let mut platforms = PlatformDownloads::default();
+    for release in releases {
+        for asset in &release.assets {
+            platforms.add(&asset.name, asset.download_count);
+        }
+    }
+    platforms
+}
+
 fn parse_releases(json: &Value) -> Vec<Release> {
     let mut releases = Vec::new();
     let arr = match json.as_array() {
@@ -223,7 +233,12 @@ fn release_downloads(full_name: &str) -> Result<(Vec<Release>, u64), String> {
     Ok((releases, total))
 }
 
-fn parse_tracked(full_name: &str, repo: &Value, downloads: u64) -> TrackedRepo {
+fn parse_tracked(
+    full_name: &str,
+    repo: &Value,
+    downloads: u64,
+    platforms: PlatformDownloads,
+) -> TrackedRepo {
     TrackedRepo {
         full_name: as_string(repo, "full_name").unwrap_or_else(|| full_name.to_string()),
         description: as_string(repo, "description"),
@@ -232,6 +247,10 @@ fn parse_tracked(full_name: &str, repo: &Value, downloads: u64) -> TrackedRepo {
         stars: as_u64(repo, "stargazers_count"),
         forks: as_u64(repo, "forks_count"),
         downloads,
+        platforms,
+        stars_delta: None,
+        forks_delta: None,
+        downloads_delta: None,
         error: None,
     }
 }
@@ -240,9 +259,15 @@ fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
     match run_gh_json(&["api", &format!("/repos/{full_name}")]) {
         Ok(repo) => {
             let row = match release_downloads(&full_name) {
-                Ok((_, downloads)) => parse_tracked(&full_name, &repo, downloads),
+                Ok((releases, downloads)) => parse_tracked(
+                    &full_name,
+                    &repo,
+                    downloads,
+                    platforms_from_releases(&releases),
+                ),
                 Err(err) => {
-                    let mut row = parse_tracked(&full_name, &repo, 0);
+                    let mut row =
+                        parse_tracked(&full_name, &repo, 0, PlatformDownloads::default());
                     row.error = Some(err);
                     row
                 }
@@ -267,6 +292,10 @@ fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
                 stars: 0,
                 forks: 0,
                 downloads: 0,
+                platforms: PlatformDownloads::default(),
+                stars_delta: None,
+                forks_delta: None,
+                downloads_delta: None,
                 error: Some(err),
             },
             star_seed: None,
@@ -362,6 +391,45 @@ fn parse_traffic(json: &Value, series_key: &str) -> Traffic {
         uniques: as_u64(json, "uniques"),
         days: parse_traffic_days(json, series_key),
     }
+}
+
+fn parse_referrers(json: &Value) -> Vec<Referrer> {
+    let Some(arr) = json.as_array() else {
+        return Vec::new();
+    };
+    let mut rows: Vec<Referrer> = arr
+        .iter()
+        .filter_map(|item| {
+            let referrer = as_string(item, "referrer")?;
+            Some(Referrer {
+                referrer,
+                count: as_u64(item, "count"),
+                uniques: as_u64(item, "uniques"),
+            })
+        })
+        .collect();
+    rows.sort_by(|a, b| b.count.cmp(&a.count));
+    rows
+}
+
+fn parse_paths(json: &Value) -> Vec<PopularPath> {
+    let Some(arr) = json.as_array() else {
+        return Vec::new();
+    };
+    let mut rows: Vec<PopularPath> = arr
+        .iter()
+        .filter_map(|item| {
+            let path = as_string(item, "path")?;
+            Some(PopularPath {
+                path,
+                title: as_string(item, "title"),
+                count: as_u64(item, "count"),
+                uniques: as_u64(item, "uniques"),
+            })
+        })
+        .collect();
+    rows.sort_by(|a, b| b.count.cmp(&a.count));
+    rows
 }
 
 pub fn star_series(
@@ -500,6 +568,7 @@ fn license_name(value: &Value) -> Option<String> {
 pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
     let repo = run_gh_json(&["api", &format!("/repos/{full_name}")])?;
     let (releases, downloads) = release_downloads(&full_name)?;
+    let platforms = platforms_from_releases(&releases);
 
     let languages = match run_gh_json(&["api", &format!("/repos/{full_name}/languages")]) {
         Ok(json) => parse_languages(&json),
@@ -522,6 +591,20 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
             }
             None
         }
+    };
+    let referrers = match run_gh_json(&[
+        "api",
+        &format!("/repos/{full_name}/traffic/popular/referrers"),
+    ]) {
+        Ok(json) => parse_referrers(&json),
+        Err(_) => Vec::new(),
+    };
+    let paths = match run_gh_json(&[
+        "api",
+        &format!("/repos/{full_name}/traffic/popular/paths"),
+    ]) {
+        Ok(json) => parse_paths(&json),
+        Err(_) => Vec::new(),
     };
 
     Ok(RepoDetail {
@@ -551,6 +634,9 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         clones,
         traffic_error,
         releases,
+        platforms,
+        referrers,
+        paths,
         star_history: Vec::new(),
         download_history: Vec::new(),
     })
