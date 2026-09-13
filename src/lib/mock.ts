@@ -1,7 +1,9 @@
+import { platformsFromAssets } from "./platform";
 import type {
   Cache,
   CatalogRepo,
   Config,
+  PlatformDownloads,
   RepoDetail,
   RepoHistory,
   SeriesPoint,
@@ -21,6 +23,19 @@ export const MOCK_STATUS: Status = {
 
 const NOW = Date.now();
 
+function splitPlatforms(downloads: number): PlatformDownloads {
+  if (downloads <= 0) return { macos: 0, windows: 0, linux: 0, other: 0 };
+  const macos = Math.round(downloads * 0.54);
+  const windows = Math.round(downloads * 0.28);
+  const linux = Math.round(downloads * 0.15);
+  return {
+    macos,
+    windows,
+    linux,
+    other: Math.max(0, downloads - macos - windows - linux),
+  };
+}
+
 export const MOCK_TRACKED: TrackedRepo[] = [
   {
     fullName: "sthbryan/asterism",
@@ -30,6 +45,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 128,
     forks: 12,
     downloads: 48210,
+    platforms: splitPlatforms(48210),
+    starsDelta: 4,
+    forksDelta: 0,
+    downloadsDelta: 186,
     error: null,
   },
   {
@@ -40,6 +59,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 342,
     forks: 28,
     downloads: 156230,
+    platforms: splitPlatforms(156230),
+    starsDelta: 11,
+    forksDelta: 1,
+    downloadsDelta: 940,
     error: null,
   },
   {
@@ -50,6 +73,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 45,
     forks: 3,
     downloads: 0,
+    platforms: splitPlatforms(0),
+    starsDelta: 1,
+    forksDelta: 0,
+    downloadsDelta: 0,
     error: null,
   },
   {
@@ -60,6 +87,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 18,
     forks: 6,
     downloads: 89312,
+    platforms: splitPlatforms(89312),
+    starsDelta: 0,
+    forksDelta: 0,
+    downloadsDelta: 412,
     error: null,
   },
   {
@@ -70,6 +101,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 24,
     forks: 9,
     downloads: 31204,
+    platforms: splitPlatforms(31204),
+    starsDelta: 2,
+    forksDelta: 0,
+    downloadsDelta: 88,
     error: null,
   },
   {
@@ -80,6 +115,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 86,
     forks: 11,
     downloads: 1240,
+    platforms: splitPlatforms(1240),
+    starsDelta: 0,
+    forksDelta: 0,
+    downloadsDelta: 6,
     error: null,
   },
   {
@@ -90,6 +129,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 12,
     forks: 1,
     downloads: 0,
+    platforms: splitPlatforms(0),
+    starsDelta: 0,
+    forksDelta: 0,
+    downloadsDelta: 0,
     error: null,
   },
   {
@@ -100,6 +143,10 @@ export const MOCK_TRACKED: TrackedRepo[] = [
     stars: 7,
     forks: 0,
     downloads: 312,
+    platforms: splitPlatforms(312),
+    starsDelta: 0,
+    forksDelta: 0,
+    downloadsDelta: 0,
     error: "rate limited — will retry on next refresh",
   },
 ];
@@ -291,6 +338,18 @@ function detailFor(
     views: { count: 1284, uniques: 842, days: trafficDays(1284, 842) },
     clones: { count: 312, uniques: 148, days: trafficDays(312, 148) },
     trafficError: null,
+    referrers: [
+      { referrer: "github.com", count: 612, uniques: 408 },
+      { referrer: "reddit.com", count: 214, uniques: 176 },
+      { referrer: "news.ycombinator.com", count: 148, uniques: 121 },
+      { referrer: "x.com", count: 96, uniques: 81 },
+    ],
+    paths: [
+      { path: `/${fullName}`, title: "Overview", count: 840, uniques: 510 },
+      { path: `/${fullName}/releases`, title: "Releases", count: 312, uniques: 204 },
+      { path: `/${fullName}/releases/tag/v0.3.0`, title: "/releases/tag/v0.3.0", count: 188, uniques: 142 },
+      { path: `/${fullName}/blob/main/README.md`, title: "README.md", count: 64, uniques: 51 },
+    ],
     releases: [
       {
         tag: "v0.3.0",
@@ -352,6 +411,22 @@ function detailFor(
         assets: [],
       },
     ],
+    platforms:
+      tracked?.platforms ??
+      platformsFromAssets([
+        {
+          name: `${name}-0.3.0-macos-arm64.dmg`,
+          downloadCount: Math.round((tracked?.downloads ?? 1200) * 0.5),
+        },
+        {
+          name: `${name}-0.3.0-windows-x64.msi`,
+          downloadCount: Math.round((tracked?.downloads ?? 1200) * 0.3),
+        },
+        {
+          name: `${name}-0.3.0-linux-amd64.AppImage`,
+          downloadCount: Math.round((tracked?.downloads ?? 1200) * 0.2),
+        },
+      ]),
     starHistory:
       MOCK_HISTORY[fullName]?.stars ??
       curve(90, Math.max(0, Math.round((tracked?.stars ?? 42) * 0.2)), tracked?.stars ?? 42),

@@ -52,3 +52,45 @@ export function delta(points: SeriesPoint[]) {
   if (points.length < 2) return null;
   return points[points.length - 1].value - points[0].value;
 }
+
+export type WindowDelta = {
+  value: number;
+  spanDays: number;
+  partial: boolean;
+};
+
+export function windowDelta(points: SeriesPoint[], days: number): WindowDelta | null {
+  if (points.length < 2) return null;
+  const series = [...points].sort((a, b) => a.ts - b.ts);
+  const last = series[series.length - 1];
+  const first = series[0];
+  const cutoff = last.ts - days * DAY;
+  const partial = first.ts > cutoff;
+  const before = valueAt(series, cutoff);
+  const startValue = partial ? first.value : before;
+  const spanDays = Math.max(1, Math.round((last.ts - (partial ? first.ts : cutoff)) / DAY));
+  return {
+    value: last.value - startValue,
+    spanDays,
+    partial,
+  };
+}
+
+export function pickKpiDelta(
+  window: WindowDelta | null,
+  fallback: number | null | undefined,
+): { delta: number; hint: string } | null {
+  if (window && window.value !== 0) {
+    return { delta: window.value, hint: window.partial ? `${window.spanDays}d` : "7d" };
+  }
+  if (fallback != null && fallback !== 0) {
+    return { delta: fallback, hint: "sync" };
+  }
+  return null;
+}
+
+export function sumDeltas(values: Array<number | null | undefined>) {
+  const present = values.filter((value): value is number => value != null);
+  if (present.length === 0) return null;
+  return present.reduce((sum, value) => sum + value, 0);
+}

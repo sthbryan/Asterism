@@ -24,6 +24,13 @@ export type CatalogRepo = {
   forks: number;
 };
 
+export type PlatformDownloads = {
+  macos: number;
+  windows: number;
+  linux: number;
+  other: number;
+};
+
 export type TrackedRepo = {
   fullName: string;
   description: string | null;
@@ -32,6 +39,10 @@ export type TrackedRepo = {
   stars: number;
   forks: number;
   downloads: number;
+  platforms?: PlatformDownloads;
+  starsDelta?: number | null;
+  forksDelta?: number | null;
+  downloadsDelta?: number | null;
   error: string | null;
 };
 
@@ -62,6 +73,19 @@ export type Traffic = {
   count: number;
   uniques: number;
   days?: TrafficDay[];
+};
+
+export type Referrer = {
+  referrer: string;
+  count: number;
+  uniques: number;
+};
+
+export type PopularPath = {
+  path: string;
+  title: string | null;
+  count: number;
+  uniques: number;
 };
 
 export type LanguageShare = {
@@ -113,6 +137,9 @@ export type RepoDetail = {
   clones: Traffic | null;
   trafficError: string | null;
   releases: Release[];
+  platforms?: PlatformDownloads;
+  referrers?: Referrer[];
+  paths?: PopularPath[];
   starHistory: SeriesPoint[];
   downloadHistory: SeriesPoint[];
 };

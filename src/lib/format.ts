@@ -3,6 +3,12 @@ export function fmtNum(n: number | null | undefined) {
   return new Intl.NumberFormat("en-US").format(n);
 }
 
+export function fmtSigned(n: number) {
+  if (n > 0) return `+${fmtNum(n)}`;
+  if (n < 0) return fmtNum(n);
+  return "0";
+}
+
 export function fmtCompact(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
   if (n >= 1_000_000) {
