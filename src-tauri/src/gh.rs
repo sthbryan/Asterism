@@ -5,9 +5,16 @@ use std::thread;
 
 use serde_json::Value;
 
+use crate::history::{collapse_days, day_bucket, now_secs, parse_iso_unix};
 use crate::models::{
-    Asset, CatalogRepo, LanguageShare, Release, RepoDetail, Status, TrackedRepo, Traffic,
+    Asset, CatalogRepo, LanguageShare, Release, RepoDetail, SeriesPoint, Status, TrackedRepo,
+    Traffic, TrafficDay,
 };
+
+pub struct TrackedFetch {
+    pub repo: TrackedRepo,
+    pub star_seed: Option<Vec<SeriesPoint>>,
+}
 
 fn augmented_path() -> String {
     let extra = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin";
@@ -229,25 +236,40 @@ fn parse_tracked(full_name: &str, repo: &Value, downloads: u64) -> TrackedRepo {
     }
 }
 
-fn fetch_tracked(full_name: String) -> TrackedRepo {
+fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
     match run_gh_json(&["api", &format!("/repos/{full_name}")]) {
-        Ok(repo) => match release_downloads(&full_name) {
-            Ok((_, downloads)) => parse_tracked(&full_name, &repo, downloads),
-            Err(err) => {
-                let mut row = parse_tracked(&full_name, &repo, 0);
-                row.error = Some(err);
-                row
+        Ok(repo) => {
+            let row = match release_downloads(&full_name) {
+                Ok((_, downloads)) => parse_tracked(&full_name, &repo, downloads),
+                Err(err) => {
+                    let mut row = parse_tracked(&full_name, &repo, 0);
+                    row.error = Some(err);
+                    row
+                }
+            };
+            let created_at = as_string(&repo, "created_at");
+            let star_seed = if seed_stars && row.stars > 0 {
+                star_series(&full_name, row.stars, created_at.as_deref()).ok()
+            } else {
+                None
+            };
+            TrackedFetch {
+                repo: row,
+                star_seed,
             }
-        },
-        Err(err) => TrackedRepo {
-            full_name,
-            description: None,
-            private: false,
-            language: None,
-            stars: 0,
-            forks: 0,
-            downloads: 0,
-            error: Some(err),
+        }
+        Err(err) => TrackedFetch {
+            repo: TrackedRepo {
+                full_name,
+                description: None,
+                private: false,
+                language: None,
+                stars: 0,
+                forks: 0,
+                downloads: 0,
+                error: Some(err),
+            },
+            star_seed: None,
         },
     }
 }
@@ -298,15 +320,143 @@ where
     slots.into_iter().flatten().collect()
 }
 
-pub fn refresh_tracked(full_names: Vec<String>) -> Vec<TrackedRepo> {
-    map_limited(full_names, 4, fetch_tracked)
+pub fn refresh_tracked(
+    full_names: Vec<String>,
+    seed_stars_for: std::collections::HashSet<String>,
+) -> Vec<TrackedFetch> {
+    let seed = std::sync::Arc::new(seed_stars_for);
+    map_limited(full_names, 4, move |name| {
+        let do_seed = seed.contains(&name);
+        fetch_tracked(name, do_seed)
+    })
 }
 
-fn parse_traffic(json: &Value) -> Traffic {
+fn parse_traffic_days(json: &Value, key: &str) -> Vec<TrafficDay> {
+    let Some(arr) = json.get(key).and_then(|v| v.as_array()) else {
+        return Vec::new();
+    };
+    let mut days = Vec::new();
+    for item in arr {
+        let ts = item
+            .get("timestamp")
+            .and_then(|v| v.as_str())
+            .and_then(parse_iso_unix)
+            .map(day_bucket)
+            .unwrap_or(0);
+        if ts == 0 {
+            continue;
+        }
+        days.push(TrafficDay {
+            ts,
+            count: as_u64(item, "count"),
+            uniques: as_u64(item, "uniques"),
+        });
+    }
+    days.sort_by_key(|d| d.ts);
+    days
+}
+
+fn parse_traffic(json: &Value, series_key: &str) -> Traffic {
     Traffic {
         count: as_u64(json, "count"),
         uniques: as_u64(json, "uniques"),
+        days: parse_traffic_days(json, series_key),
     }
+}
+
+pub fn star_series(
+    full_name: &str,
+    current_stars: u64,
+    created_at: Option<&str>,
+) -> Result<Vec<SeriesPoint>, String> {
+    if current_stars == 0 {
+        return Ok(Vec::new());
+    }
+
+    let page_size = 100u64;
+    let total_pages = current_stars.div_ceil(page_size).max(1);
+    let max_requests = 12u64;
+    let mut pages: Vec<u64> = if total_pages <= max_requests {
+        (1..=total_pages).collect()
+    } else {
+        (0..max_requests)
+            .map(|i| 1 + (i * (total_pages - 1) + (max_requests - 1) / 2) / (max_requests - 1))
+            .collect()
+    };
+    pages.sort();
+    pages.dedup();
+    let fetched_all = pages.len() as u64 == total_pages;
+
+    let mut sampled: Vec<SeriesPoint> = Vec::new();
+    for page in &pages {
+        let json = run_gh_json(&[
+            "api",
+            "-H",
+            "Accept: application/vnd.github.star+json",
+            &format!("/repos/{full_name}/stargazers?per_page={page_size}&page={page}"),
+        ])?;
+        let Some(arr) = json.as_array() else {
+            break;
+        };
+        if arr.is_empty() {
+            break;
+        }
+        for (i, item) in arr.iter().enumerate() {
+            let Some(ts) = as_string(item, "starred_at")
+                .as_deref()
+                .and_then(parse_iso_unix)
+            else {
+                continue;
+            };
+            let value = if fetched_all {
+                sampled.len() as u64 + 1
+            } else {
+                (page - 1) * page_size + i as u64 + 1
+            };
+            sampled.push(SeriesPoint { ts, value });
+        }
+        if arr.len() < page_size as usize {
+            break;
+        }
+    }
+
+    if fetched_all {
+        sampled.sort_by_key(|p| p.ts);
+        for (i, point) in sampled.iter_mut().enumerate() {
+            point.value = i as u64 + 1;
+        }
+    }
+
+    let mut series = collapse_days(sampled);
+    if let Some(created) = created_at.and_then(parse_iso_unix) {
+        let created_day = day_bucket(created);
+        if series.first().map(|p| p.ts > created_day).unwrap_or(true) {
+            series.insert(
+                0,
+                SeriesPoint {
+                    ts: created_day,
+                    value: 0,
+                },
+            );
+        }
+    }
+    let today = day_bucket(now_secs());
+    if let Some(last) = series.last_mut() {
+        if day_bucket(last.ts) == today {
+            last.value = current_stars;
+        } else {
+            series.push(SeriesPoint {
+                ts: today,
+                value: current_stars,
+            });
+        }
+    } else {
+        series.push(SeriesPoint {
+            ts: today,
+            value: current_stars,
+        });
+    }
+    Ok(series)
 }
 
 fn parse_languages(json: &Value) -> Vec<LanguageShare> {
@@ -358,14 +508,14 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
 
     let mut traffic_error = None;
     let views = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
-        Ok(json) => Some(parse_traffic(&json)),
+        Ok(json) => Some(parse_traffic(&json, "views")),
         Err(err) => {
             traffic_error = Some(err);
             None
         }
     };
     let clones = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]) {
-        Ok(json) => Some(parse_traffic(&json)),
+        Ok(json) => Some(parse_traffic(&json, "clones")),
         Err(err) => {
             if traffic_error.is_none() {
                 traffic_error = Some(err);
@@ -401,5 +551,7 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         clones,
         traffic_error,
         releases,
+        star_history: Vec::new(),
+        download_history: Vec::new(),
     })
 }

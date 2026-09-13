@@ -1,8 +1,11 @@
 mod config;
 mod gh;
+mod history;
 mod models;
 
-use models::{Cache, CatalogRepo, Config, RepoDetail, Status, TrackedRepo};
+use std::collections::HashSet;
+
+use models::{Cache, CatalogRepo, Config, RepoDetail, Status};
 
 async fn offload<T, F>(f: F) -> Result<T, String>
 where
@@ -43,15 +46,64 @@ async fn list_catalog() -> Result<Vec<CatalogRepo>, String> {
 async fn refresh_tracked() -> Result<Cache, String> {
     offload(|| {
         let cfg = config::load_config()?;
-        let repos: Vec<TrackedRepo> = gh::refresh_tracked(cfg.repos);
-        config::save_cache(repos)
+        let mut store = config::load_history()?;
+        let seed_for: HashSet<String> = cfg
+            .repos
+            .iter()
+            .filter(|name| history::needs_star_seed(&store, name))
+            .cloned()
+            .collect();
+        let fetches = gh::refresh_tracked(cfg.repos, seed_for);
+        let now = history::now_secs();
+        let repos = fetches
+            .iter()
+            .map(|fetch| {
+                history::apply_fetch(&mut store, &fetch.repo, fetch.star_seed.clone(), now);
+                fetch.repo.clone()
+            })
+            .collect();
+        config::save_history(&store)?;
+        config::save_cache(repos, store.repos)
     })
     .await?
 }
 
 #[tauri::command]
 async fn get_repo_detail(full_name: String) -> Result<RepoDetail, String> {
-    offload(move || gh::repo_detail(full_name)).await?
+    offload(move || {
+        let mut detail = gh::repo_detail(full_name.clone())?;
+        let mut store = config::load_history()?;
+        let now = history::now_secs();
+        if history::needs_star_seed(&store, &full_name) && detail.stars > 0 {
+            if let Ok(seed) =
+                gh::star_series(&full_name, detail.stars, detail.created_at.as_deref())
+            {
+                store
+                    .repos
+                    .entry(full_name.clone())
+                    .or_default()
+                    .stars = seed;
+            }
+        }
+        let snapshot = models::TrackedRepo {
+            full_name: detail.full_name.clone(),
+            description: detail.description.clone(),
+            private: detail.private,
+            language: detail.language.clone(),
+            stars: detail.stars,
+            forks: detail.forks,
+            downloads: detail.downloads,
+            error: None,
+        };
+        history::apply_fetch(&mut store, &snapshot, None, now);
+        let _ = config::save_history(&store);
+        if let Some(entry) = store.repos.get(&full_name) {
+            detail.star_history = entry.stars.clone();
+            detail.download_history = entry.downloads.clone();
+        }
+        Ok(detail)
+    })
+    .await?
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

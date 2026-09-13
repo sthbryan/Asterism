@@ -55,9 +55,45 @@ pub struct TrackedRepo {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct SeriesPoint {
+    pub ts: u64,
+    pub value: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct RepoHistory {
+    #[serde(default)]
+    pub stars: Vec<SeriesPoint>,
+    #[serde(default)]
+    pub downloads: Vec<SeriesPoint>,
+    #[serde(default)]
+    pub forks: Vec<SeriesPoint>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct HistoryStore {
+    pub version: u32,
+    #[serde(default)]
+    pub repos: std::collections::BTreeMap<String, RepoHistory>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Cache {
     pub fetched_at: u64,
     pub repos: Vec<TrackedRepo>,
+    #[serde(default)]
+    pub history: std::collections::BTreeMap<String, RepoHistory>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrafficDay {
+    pub ts: u64,
+    pub count: u64,
+    pub uniques: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +101,8 @@ pub struct Cache {
 pub struct Traffic {
     pub count: u64,
     pub uniques: u64,
+    #[serde(default)]
+    pub days: Vec<TrafficDay>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -124,4 +162,8 @@ pub struct RepoDetail {
     pub clones: Option<Traffic>,
     pub traffic_error: Option<String>,
     pub releases: Vec<Release>,
+    #[serde(default)]
+    pub star_history: Vec<SeriesPoint>,
+    #[serde(default)]
+    pub download_history: Vec<SeriesPoint>,
 }

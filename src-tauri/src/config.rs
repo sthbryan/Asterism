@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::models::{Cache, Config};
+use crate::history;
+use crate::models::{Cache, Config, HistoryStore};
 
 fn home_dir() -> Result<PathBuf, String> {
     std::env::var_os("HOME")
@@ -23,6 +23,13 @@ pub fn cache_path() -> Result<PathBuf, String> {
         .join(".cache")
         .join("asterism")
         .join("cache.json"))
+}
+
+pub fn history_path() -> Result<PathBuf, String> {
+    Ok(home_dir()?
+        .join(".cache")
+        .join("asterism")
+        .join("history.json"))
 }
 
 fn ensure_parent(path: &PathBuf) -> Result<(), String> {
@@ -63,6 +70,39 @@ pub fn save_config(mut cfg: Config) -> Result<Config, String> {
     Ok(cfg)
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CacheFile {
+    fetched_at: u64,
+    repos: Vec<crate::models::TrackedRepo>,
+}
+
+pub fn load_history() -> Result<HistoryStore, String> {
+    let path = history_path()?;
+    if !path.exists() {
+        return Ok(HistoryStore {
+            version: 1,
+            repos: Default::default(),
+        });
+    }
+    let raw =
+        fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {e}", path.display()))?;
+    let mut store: HistoryStore = serde_json::from_str(&raw)
+        .map_err(|e| format!("Invalid history at {}: {e}", path.display()))?;
+    if store.version == 0 {
+        store.version = 1;
+    }
+    Ok(store)
+}
+
+pub fn save_history(store: &HistoryStore) -> Result<(), String> {
+    let path = history_path()?;
+    ensure_parent(&path)?;
+    let body = serde_json::to_string_pretty(store).map_err(|e| e.to_string())?;
+    fs::write(&path, body).map_err(|e| format!("Could not write {}: {e}", path.display()))?;
+    Ok(())
+}
+
 pub fn load_cache() -> Result<Option<Cache>, String> {
     let path = cache_path()?;
     if !path.exists() {
@@ -70,22 +110,32 @@ pub fn load_cache() -> Result<Option<Cache>, String> {
     }
     let raw =
         fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {e}", path.display()))?;
-    let cache = serde_json::from_str(&raw)
+    let file: CacheFile = serde_json::from_str(&raw)
         .map_err(|e| format!("Invalid cache at {}: {e}", path.display()))?;
-    Ok(Some(cache))
+    let history = load_history()?.repos;
+    Ok(Some(Cache {
+        fetched_at: file.fetched_at,
+        repos: file.repos,
+        history,
+    }))
 }
 
-pub fn save_cache(repos: Vec<crate::models::TrackedRepo>) -> Result<Cache, String> {
+pub fn save_cache(
+    repos: Vec<crate::models::TrackedRepo>,
+    history: std::collections::BTreeMap<String, crate::models::RepoHistory>,
+) -> Result<Cache, String> {
     let cache = Cache {
-        fetched_at: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map(|d| d.as_secs())
-            .unwrap_or(0),
+        fetched_at: history::now_secs(),
         repos,
+        history,
+    };
+    let file = CacheFile {
+        fetched_at: cache.fetched_at,
+        repos: cache.repos.clone(),
     };
     let path = cache_path()?;
     ensure_parent(&path)?;
-    let body = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
+    let body = serde_json::to_string_pretty(&file).map_err(|e| e.to_string())?;
     fs::write(&path, body).map_err(|e| format!("Could not write {}: {e}", path.display()))?;
     Ok(cache)
 }
