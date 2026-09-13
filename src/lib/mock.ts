@@ -3,8 +3,11 @@ import type {
   CatalogRepo,
   Config,
   RepoDetail,
+  RepoHistory,
+  SeriesPoint,
   Status,
   TrackedRepo,
+  TrafficDay,
 } from "./types";
 
 export const MOCK_LOGIN = "sthbryan";
@@ -106,9 +109,58 @@ export const MOCK_CONFIG: Config = {
   repos: MOCK_TRACKED.map((r) => r.fullName),
 };
 
+const DAY = 86_400;
+
+function curve(days: number, start: number, end: number): SeriesPoint[] {
+  const today = Math.floor(NOW / 1000 / DAY) * DAY;
+  const out: SeriesPoint[] = [];
+  for (let i = days; i >= 0; i--) {
+    const progress = 1 - i / days;
+    const eased = progress * progress;
+    const wobble = Math.sin(i * 0.7) * Math.max(1, (end - start) * 0.012);
+    out.push({
+      ts: today - i * DAY,
+      value: Math.max(0, Math.round(start + (end - start) * eased + wobble)),
+    });
+  }
+  out[out.length - 1].value = end;
+  return out;
+}
+
+function trafficDays(total: number, uniques: number): TrafficDay[] {
+  const today = Math.floor(NOW / 1000 / DAY) * DAY;
+  const days: TrafficDay[] = [];
+  let remaining = total;
+  let remainingU = uniques;
+  for (let i = 13; i >= 0; i--) {
+    const share = 0.04 + ((13 - i) / 13) * 0.08 + (i % 3 === 0 ? 0.03 : 0);
+    const count = i === 0 ? remaining : Math.max(0, Math.round(total * share));
+    const uniq = Math.min(
+      count,
+      i === 0 ? remainingU : Math.max(0, Math.round(uniques * share * 0.7)),
+    );
+    remaining = Math.max(0, remaining - count);
+    remainingU = Math.max(0, remainingU - uniq);
+    days.push({ ts: today - i * DAY, count, uniques: uniq });
+  }
+  return days;
+}
+
+export const MOCK_HISTORY: Record<string, RepoHistory> = Object.fromEntries(
+  MOCK_TRACKED.map((repo) => [
+    repo.fullName,
+    {
+      stars: curve(90, Math.max(0, Math.round(repo.stars * 0.15)), repo.stars),
+      downloads: curve(60, Math.max(0, Math.round(repo.downloads * 0.08)), repo.downloads),
+      forks: curve(90, Math.max(0, Math.round(repo.forks * 0.2)), repo.forks),
+    },
+  ]),
+);
+
 export const MOCK_CACHE: Cache = {
-  fetchedAt: NOW - 1000 * 60 * 14,
+  fetchedAt: Math.floor((NOW - 1000 * 60 * 14) / 1000),
   repos: MOCK_TRACKED,
+  history: MOCK_HISTORY,
 };
 
 export const MOCK_CATALOG: CatalogRepo[] = [
@@ -236,8 +288,8 @@ function detailFor(
     updatedAt: new Date(NOW - 1000 * 60 * 60 * 5).toISOString(),
     pushedAt: new Date(NOW - 1000 * 60 * 60 * 2).toISOString(),
     downloads: tracked?.downloads ?? 1200,
-    views: { count: 1284, uniques: 842 },
-    clones: { count: 312, uniques: 148 },
+    views: { count: 1284, uniques: 842, days: trafficDays(1284, 842) },
+    clones: { count: 312, uniques: 148, days: trafficDays(312, 148) },
     trafficError: null,
     releases: [
       {
@@ -300,6 +352,12 @@ function detailFor(
         assets: [],
       },
     ],
+    starHistory:
+      MOCK_HISTORY[fullName]?.stars ??
+      curve(90, Math.max(0, Math.round((tracked?.stars ?? 42) * 0.2)), tracked?.stars ?? 42),
+    downloadHistory:
+      MOCK_HISTORY[fullName]?.downloads ??
+      curve(60, Math.max(0, Math.round((tracked?.downloads ?? 1200) * 0.1)), tracked?.downloads ?? 1200),
     ...overrides,
   };
 }

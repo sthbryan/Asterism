@@ -46,9 +46,14 @@ export function saveConfig(repos: string[]) {
 
 export function getCache() {
   if (isMockMode()) {
+    const repos = MOCK_CACHE.repos.filter((r) => mockRepos.includes(r.fullName));
+    const history = Object.fromEntries(
+      repos.map((repo) => [repo.fullName, MOCK_CACHE.history[repo.fullName]]).filter(([, h]) => h),
+    );
     return delay<Cache | null>({
       fetchedAt: MOCK_CACHE.fetchedAt,
-      repos: MOCK_CACHE.repos.filter((r) => mockRepos.includes(r.fullName)),
+      repos,
+      history,
     });
   }
   return invoke<Cache | null>("get_cache");
@@ -61,10 +66,15 @@ export function listCatalog() {
 
 export function refreshTracked() {
   if (isMockMode()) {
+    const repos = MOCK_CACHE.repos.filter((r) => mockRepos.includes(r.fullName));
+    const history = Object.fromEntries(
+      repos.map((repo) => [repo.fullName, MOCK_CACHE.history[repo.fullName]]).filter(([, h]) => h),
+    );
     return delay<Cache>(
       {
-        fetchedAt: Date.now(),
-        repos: MOCK_CACHE.repos.filter((r) => mockRepos.includes(r.fullName)),
+        fetchedAt: Math.floor(Date.now() / 1000),
+        repos,
+        history,
       },
       600,
     );

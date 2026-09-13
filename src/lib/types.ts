@@ -35,14 +35,33 @@ export type TrackedRepo = {
   error: string | null;
 };
 
+export type SeriesPoint = {
+  ts: number;
+  value: number;
+};
+
+export type RepoHistory = {
+  stars: SeriesPoint[];
+  downloads: SeriesPoint[];
+  forks: SeriesPoint[];
+};
+
 export type Cache = {
   fetchedAt: number;
   repos: TrackedRepo[];
+  history: Record<string, RepoHistory>;
+};
+
+export type TrafficDay = {
+  ts: number;
+  count: number;
+  uniques: number;
 };
 
 export type Traffic = {
   count: number;
   uniques: number;
+  days?: TrafficDay[];
 };
 
 export type LanguageShare = {
@@ -94,4 +113,6 @@ export type RepoDetail = {
   clones: Traffic | null;
   trafficError: string | null;
   releases: Release[];
+  starHistory: SeriesPoint[];
+  downloadHistory: SeriesPoint[];
 };
