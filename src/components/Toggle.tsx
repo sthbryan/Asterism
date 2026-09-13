@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 export function Toggle({
   on,
   onChange,
@@ -7,22 +9,22 @@ export function Toggle({
   onChange: (next: boolean) => void;
   label: string;
 }) {
+  const [ready, setReady] = useState(false);
+
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={label}
-      onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-        on ? "bg-accent" : "bg-line"
-      }`}
+      data-on={on ? "true" : "false"}
+      onClick={() => {
+        setReady(true);
+        onChange(!on);
+      }}
+      className={`t-toggle ${ready ? "is-init" : ""}`}
     >
-      <span
-        className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-paper transition-transform ${
-          on ? "translate-x-4" : ""
-        }`}
-      />
+      <span className="t-toggle-thumb" />
     </button>
   );
 }
