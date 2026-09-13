@@ -1,25 +1,96 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
 @import "tailwindcss";
+@import "./styles/transitions-root.css";
+@import "./styles/transitions.css";
 
 @theme {
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
-  --color-void: #111111;
-  --color-night: #191919;
-  --color-panel: #1c1c1c;
-  --color-raised: #232323;
-  --color-overlay: #2a2a2a;
-  --color-line: #2e2e2e;
-  --color-hairline: #242424;
-  --color-mist: #a3a3a3;
-  --color-faint: #8a8a8a;
-  --color-paper: #ececec;
-  --color-accent: #d71921;
-  --color-accent-hover: #ea343c;
-  --color-accent-press: #b9151c;
-  --color-accent-soft: #ef4444;
-  --color-ok: #28c840;
+  --color-void: var(--void);
+  --color-night: var(--night);
+  --color-panel: var(--panel);
+  --color-raised: var(--raised);
+  --color-overlay: var(--overlay);
+  --color-line: var(--line);
+  --color-hairline: var(--hairline);
+  --color-mist: var(--mist);
+  --color-faint: var(--faint);
+  --color-paper: var(--paper);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-press: var(--accent-press);
+  --color-accent-soft: var(--accent-soft);
+  --color-ok: var(--ok);
+  --color-hover: var(--hover);
+  --color-fill: var(--fill);
+  --color-wash: var(--wash);
+  --color-thumb: var(--thumb);
+}
+
+html {
+  --void-base: #111111;
+  --night-base: #191919;
+  --panel-base: #1c1c1c;
+  --raised-base: #232323;
+  --overlay-base: #2a2a2a;
+  --line-base: #2e2e2e;
+  --hairline-base: #242424;
+  --void: var(--void-base);
+  --night: var(--night-base);
+  --panel: var(--panel-base);
+  --raised: var(--raised-base);
+  --overlay: var(--overlay-base);
+  --line: var(--line-base);
+  --hairline: var(--hairline-base);
+  --mist: #a3a3a3;
+  --faint: #8a8a8a;
+  --paper: #ececec;
+  --accent: #d71921;
+  --accent-hover: #ea343c;
+  --accent-press: #b9151c;
+  --accent-soft: #ef4444;
+  --ok: #28c840;
+  --hover: rgb(255 255 255 / 0.03);
+  --fill: rgb(255 255 255 / 0.06);
+  --wash: rgb(255 255 255 / 0.02);
+  --thumb: #3a3a3a;
+  --switch-track: #3f3f3f;
+  --toggle-travel: 16px;
+  --pulse-count: infinite;
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  --void-base: #f3f3f3;
+  --night-base: #ececec;
+  --panel-base: #ffffff;
+  --raised-base: #f6f6f6;
+  --overlay-base: #e8e8e8;
+  --line-base: #dcdcdc;
+  --hairline-base: #e4e4e4;
+  --mist: #5c5c5c;
+  --faint: #6e6e6e;
+  --paper: #161616;
+  --accent: #d71921;
+  --accent-hover: #c1161d;
+  --accent-press: #a51319;
+  --accent-soft: #c1161d;
+  --ok: #188a2c;
+  --hover: rgb(0 0 0 / 0.045);
+  --fill: rgb(0 0 0 / 0.06);
+  --wash: rgb(0 0 0 / 0.03);
+  --thumb: #c4c4c4;
+  --switch-track: #d0d0d0;
+  color-scheme: light;
+}
+
+html[data-transparency="on"] {
+  --void: color-mix(in srgb, var(--void-base) 42%, transparent);
+  --night: color-mix(in srgb, var(--night-base) 26%, transparent);
+  --panel: color-mix(in srgb, var(--panel-base) 70%, transparent);
+  --raised: color-mix(in srgb, var(--raised-base) 74%, transparent);
+  --overlay: color-mix(in srgb, var(--overlay-base) 82%, transparent);
 }
 
 html,
@@ -30,8 +101,8 @@ body,
 
 body {
   margin: 0;
-  background: var(--color-void);
-  color: var(--color-paper);
+  background: var(--void);
+  color: var(--paper);
   font-family: var(--font-sans);
   font-size: 13px;
   font-feature-settings: "ss01" on, "cv11" on;
@@ -39,13 +110,18 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+html[data-transparency="on"],
+html[data-transparency="on"] body {
+  background: transparent;
+}
+
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
-  color: var(--color-paper);
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--paper);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -68,7 +144,7 @@ textarea {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #3a3a3a transparent;
+  scrollbar-color: var(--thumb) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -77,14 +153,14 @@ textarea {
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #3a3a3a;
+  background: var(--thumb);
   border-radius: 99px;
-  border: 2px solid var(--color-void);
+  border: 2px solid var(--void);
 }
 
 @utility card {
-  background-color: var(--color-panel);
-  border: 1px solid var(--color-hairline);
+  background-color: var(--panel);
+  border: 1px solid var(--hairline);
   border-radius: 0.75rem;
 }
 
