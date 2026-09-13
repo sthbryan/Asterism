@@ -154,6 +154,8 @@ export const MOCK_TRACKED: TrackedRepo[] = [
 export const MOCK_CONFIG: Config = {
   version: 1,
   repos: MOCK_TRACKED.map((r) => r.fullName),
+  theme: "dark",
+  transparency: false,
 };
 
 const DAY = 86_400;

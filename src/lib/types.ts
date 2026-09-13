@@ -5,9 +5,13 @@ export type Status = {
   hint: string | null;
 };
 
+export type ThemePref = "dark" | "light" | "system";
+
 export type Config = {
   version: number;
   repos: string[];
+  theme?: ThemePref;
+  transparency?: boolean;
 };
 
 export type CatalogRepo = {

@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Cache, CatalogRepo, Config, RepoDetail, Status } from "./types";
+import type { Cache, CatalogRepo, Config, RepoDetail, Status, ThemePref } from "./types";
+import { readStoredTheme, readStoredTransparency } from "./appearance";
 import {
   MOCK_CACHE,
   MOCK_CATALOG,
@@ -31,15 +32,24 @@ export function getStatus() {
   return invoke<Status>("get_status");
 }
 
+function mockAppearance(): { theme: ThemePref; transparency: boolean } {
+  return {
+    theme: readStoredTheme(),
+    transparency: readStoredTransparency(),
+  };
+}
+
 export function getConfig() {
-  if (isMockMode()) return delay<Config>({ version: 1, repos: [...mockRepos] });
+  if (isMockMode()) {
+    return delay<Config>({ version: 1, repos: [...mockRepos], ...mockAppearance() });
+  }
   return invoke<Config>("get_config");
 }
 
 export function saveConfig(repos: string[]) {
   if (isMockMode()) {
     mockRepos = [...repos];
-    return delay<Config>({ version: 1, repos: [...mockRepos] });
+    return delay<Config>({ version: 1, repos: [...mockRepos], ...mockAppearance() });
   }
   return invoke<Config>("save_config", { repos });
 }
