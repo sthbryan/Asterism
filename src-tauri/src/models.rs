@@ -9,10 +9,24 @@ pub struct Status {
     pub hint: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum ThemePref {
+    #[default]
+    Dark,
+    Light,
+    System,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Config {
     pub version: u32,
     pub repos: Vec<String>,
+    #[serde(default)]
+    pub theme: ThemePref,
+    #[serde(default)]
+    pub transparency: bool,
 }
 
 impl Default for Config {
@@ -20,6 +34,8 @@ impl Default for Config {
         Self {
             version: 1,
             repos: Vec::new(),
+            theme: ThemePref::Dark,
+            transparency: false,
         }
     }
 }

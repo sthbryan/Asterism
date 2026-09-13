@@ -6,7 +6,7 @@ mod platform;
 
 use std::collections::{HashMap, HashSet};
 
-use models::{Cache, CatalogRepo, Config, RepoDetail, Status, TrackedRepo};
+use models::{Cache, CatalogRepo, Config, RepoDetail, Status, ThemePref, TrackedRepo};
 
 async fn offload<T, F>(f: F) -> Result<T, String>
 where
@@ -30,7 +30,27 @@ async fn get_config() -> Result<Config, String> {
 
 #[tauri::command]
 async fn save_config(repos: Vec<String>) -> Result<Config, String> {
-    offload(move || config::save_config(Config { version: 1, repos })).await?
+    offload(move || {
+        let mut cfg = config::load_config()?;
+        cfg.repos = repos;
+        config::save_config(cfg)
+    })
+    .await?
+}
+
+#[tauri::command]
+async fn save_appearance(theme: String, transparency: bool) -> Result<Config, String> {
+    offload(move || {
+        let mut cfg = config::load_config()?;
+        cfg.theme = match theme.as_str() {
+            "light" => ThemePref::Light,
+            "system" => ThemePref::System,
+            _ => ThemePref::Dark,
+        };
+        cfg.transparency = transparency;
+        config::save_config(cfg)
+    })
+    .await?
 }
 
 #[tauri::command]
@@ -135,6 +155,7 @@ pub fn run() {
             get_status,
             get_config,
             save_config,
+            save_appearance,
             get_cache,
             list_catalog,
             refresh_tracked,
