@@ -1,8 +1,8 @@
 import { Button } from "../../components/Button";
+import { Input } from "../../components/Input";
 import { Select } from "../../components/Select";
 import { isMockMode } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
-import { fieldClass } from "./fields";
 import { SetupSection } from "./SetupSection";
 import type { CreateFormApi } from "./useCreateForm";
 import { VisibilitySection } from "./VisibilitySection";
@@ -82,17 +82,20 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
               }
             />
           </label>
-          <label className="text-[13px] font-medium">
+          <label
+            htmlFor="create-repository-name"
+            className="text-[13px] font-medium"
+          >
             {t("Repository name")}
-            <input
+            <Input
+              id="create-repository-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className={fieldClass}
               maxLength={100}
               required
               autoComplete="off"
               placeholder={t("my-project")}
-              aria-invalid={Boolean(invalidName)}
+              invalid={Boolean(invalidName)}
               aria-describedby="name-help"
             />
           </label>
@@ -104,14 +107,17 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
               )
             : `${owner || t("owner")}/${cleanName || t("my-project")}`}
         </p>
-        <label className="block text-[13px] font-medium">
+        <label
+          htmlFor="create-description"
+          className="block text-[13px] font-medium"
+        >
           {t("Description")}{" "}
           <span className="font-normal text-mist">{t("(optional)")}</span>
-          <input
+          <Input
+            id="create-description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={350}
-            className={fieldClass}
             placeholder={t("What does this project do?")}
           />
         </label>

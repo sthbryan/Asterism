@@ -17,6 +17,7 @@ import { VList } from "virtua";
 import { Banner } from "../components/Banner";
 import { Button } from "../components/Button";
 import { AreaChart, BarChart } from "../components/Charts";
+import { Input } from "../components/Input";
 import { KpiCard } from "../components/KpiCard";
 import { ListSkeleton } from "../components/Skeleton";
 import { fmtFetched, fmtNum, fmtSigned } from "../lib/format";
@@ -337,14 +338,18 @@ export function ListView({
                 <span className="text-[13px] font-semibold">
                   {t("Repositories")}
                 </span>
-                <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line">
+                <label
+                  htmlFor="repository-filter"
+                  className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line"
+                >
                   <MagnifyingGlass size={12} className="shrink-0 text-faint" />
-                  <input
+                  <Input
+                    id="repository-filter"
+                    variant="compact"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder={t("Filter…")}
                     aria-label={t("Filter repositories")}
-                    className="w-full bg-transparent text-[12px] leading-none outline-none placeholder:text-faint"
                   />
                 </label>
               </div>
