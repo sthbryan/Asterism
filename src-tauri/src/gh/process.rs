@@ -19,6 +19,8 @@ pub(crate) fn run_gh_env(args: &[&str], extra_env: &[(&str, &str)]) -> Result<St
     let mut cmd = Command::new("gh");
     cmd.args(args)
         .env("PATH", augmented_path())
+        .env("GH_HOST", super::host())
+        .env("GH_PROMPT_DISABLED", "1")
         .env("GH_PAGER", "cat")
         .env("NO_COLOR", "1")
         .env("CLICOLOR", "0")

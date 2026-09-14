@@ -9,7 +9,16 @@ mod platform;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
+        .setup(|app| {
+            config::init(app.handle().clone());
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
+            commands::get_local_state,
+            commands::use_legacy_data,
+            commands::import_legacy_data,
+            commands::clear_local_cache,
             commands::get_status,
             commands::get_config,
             commands::save_config,

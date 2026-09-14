@@ -43,6 +43,8 @@ impl PlatformDownloads {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TrackedRepo {
+    #[serde(default)]
+    pub fetched_at: Option<u64>,
     pub full_name: String,
     pub description: Option<String>,
     pub private: bool,

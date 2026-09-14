@@ -49,6 +49,14 @@ fn owner_login(value: &Value) -> String {
         .to_string()
 }
 
+pub fn host() -> String {
+    std::env::var("GH_HOST")
+        .ok()
+        .filter(|h| !h.is_empty())
+        .unwrap_or("github.com".into())
+        .to_lowercase()
+}
+
 pub fn status() -> Status {
     match run_gh_json(&["api", "user"]) {
         Ok(json) => {
@@ -197,6 +205,7 @@ fn parse_tracked(
     platforms: PlatformDownloads,
 ) -> TrackedRepo {
     TrackedRepo {
+        fetched_at: None,
         full_name: as_string(repo, "full_name").unwrap_or_else(|| full_name.to_string()),
         description: as_string(repo, "description"),
         private: as_bool(repo, "private"),
@@ -244,6 +253,7 @@ fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
         }
         Err(err) => TrackedFetch {
             repo: TrackedRepo {
+                fetched_at: None,
                 full_name,
                 description: None,
                 private: false,
@@ -565,12 +575,15 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
     let (releases, downloads) = release_downloads(&full_name)?;
     let platforms = platforms_from_releases(&releases);
 
+    let mut traffic_error = None;
     let languages = match run_gh_json(&["api", &format!("/repos/{full_name}/languages")]) {
         Ok(json) => parse_languages(&json),
-        Err(_) => Vec::new(),
+        Err(err) => {
+            traffic_error = Some(err);
+            Vec::new()
+        }
     };
 
-    let mut traffic_error = None;
     let views = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
         Ok(json) => Some(parse_traffic(&json, "views")),
         Err(err) => {
@@ -592,11 +605,17 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         &format!("/repos/{full_name}/traffic/popular/referrers"),
     ]) {
         Ok(json) => parse_referrers(&json),
-        Err(_) => Vec::new(),
+        Err(err) => {
+            traffic_error = Some(err);
+            Vec::new()
+        }
     };
     let paths = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/popular/paths")]) {
         Ok(json) => parse_paths(&json),
-        Err(_) => Vec::new(),
+        Err(err) => {
+            traffic_error = Some(err);
+            Vec::new()
+        }
     };
 
     Ok(RepoDetail {
