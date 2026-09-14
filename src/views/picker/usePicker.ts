@@ -2,6 +2,13 @@ import { useMemo, useState } from "react";
 import type { CatalogRepo } from "../../lib/types";
 import type { OwnerEntry } from "./OwnerFilter";
 
+export type PickerSort = "selected" | "name" | "stars";
+
+export interface PickerGroup {
+  owner: string;
+  repos: CatalogRepo[];
+}
+
 export function usePicker({
   login,
   catalog,
@@ -16,6 +23,7 @@ export function usePicker({
     () => new Set(initialSelected),
   );
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
+  const [sort, setSort] = useState<PickerSort>("selected");
 
   const initial = useMemo(() => new Set(initialSelected), [initialSelected]);
   const dirty =
@@ -48,6 +56,49 @@ export function usePicker({
     });
   }, [catalog, ownerFilter, query]);
 
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    switch (sort) {
+      case "name":
+        arr.sort((a, b) => a.fullName.localeCompare(b.fullName));
+        break;
+      case "stars":
+        arr.sort(
+          (a, b) => b.stars - a.stars || a.fullName.localeCompare(b.fullName),
+        );
+        break;
+      case "selected":
+      default:
+        arr.sort((a, b) => {
+          const sa = selected.has(a.fullName) ? 0 : 1;
+          const sb = selected.has(b.fullName) ? 0 : 1;
+          return sa - sb || a.fullName.localeCompare(b.fullName);
+        });
+        break;
+    }
+    return arr;
+  }, [filtered, selected, sort]);
+
+  const groups: PickerGroup[] | null = useMemo(() => {
+    if (ownerFilter || owners.length < 2) return null;
+    const order = owners.map((o) => o.name);
+    const buckets = new Map<string, CatalogRepo[]>();
+    for (const repo of sorted) {
+      const list = buckets.get(repo.owner);
+      if (list) list.push(repo);
+      else buckets.set(repo.owner, [repo]);
+    }
+    const result: PickerGroup[] = [];
+    for (const name of order) {
+      const repos = buckets.get(name);
+      if (repos && repos.length > 0) result.push({ owner: name, repos });
+    }
+    for (const [name, repos] of buckets) {
+      if (!order.includes(name)) result.push({ owner: name, repos });
+    }
+    return result;
+  }, [ownerFilter, owners, sorted]);
+
   function toggle(fullName: string) {
     setSelected((prev) => {
       const copy = new Set(prev);
@@ -66,6 +117,10 @@ export function usePicker({
     setOwnerFilter,
     owners,
     filtered,
+    sorted,
+    groups,
+    sort,
+    setSort,
     dirty,
   };
 }

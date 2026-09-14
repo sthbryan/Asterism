@@ -5,6 +5,7 @@ import { OwnerFilter } from "./picker/OwnerFilter";
 import { PickerTrailing } from "./picker/PickerTrailing";
 import { RepoRow } from "./picker/RepoRow";
 import { SearchBar } from "./picker/SearchBar";
+import { SortControl } from "./picker/SortControl";
 import { usePicker } from "./picker/usePicker";
 
 export { PickerTrailing };
@@ -37,6 +38,10 @@ export function PickerView({
     setOwnerFilter,
     owners,
     filtered,
+    sorted,
+    groups,
+    sort,
+    setSort,
     dirty,
   } = usePicker({ login, catalog, initialSelected });
 
@@ -58,6 +63,7 @@ export function PickerView({
     <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
       <div className="flex flex-wrap items-center gap-3">
         <SearchBar value={query} onChange={setQuery} />
+        <SortControl value={sort} onChange={setSort} />
         <OwnerFilter
           total={catalog.length}
           owners={owners}
@@ -75,9 +81,32 @@ export function PickerView({
           <p className="px-5 py-6 text-center text-[12.5px] text-faint">
             No repositories match that filter.
           </p>
+        ) : groups ? (
+          <ul>
+            {groups.map((group) => (
+              <li key={group.owner}>
+                <div className="sticky top-0 flex items-center gap-2 border-b border-hairline bg-wash px-4 py-1.5 text-[11px] font-semibold tracking-wide text-mist uppercase">
+                  {group.owner}
+                  <span className="font-mono text-[10.5px] font-normal text-faint tabular">
+                    {group.repos.length}
+                  </span>
+                </div>
+                <ul>
+                  {group.repos.map((repo) => (
+                    <RepoRow
+                      key={repo.fullName}
+                      repo={repo}
+                      selected={selected.has(repo.fullName)}
+                      onToggle={toggle}
+                    />
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
         ) : (
           <ul>
-            {filtered.map((repo) => (
+            {sorted.map((repo) => (
               <RepoRow
                 key={repo.fullName}
                 repo={repo}
