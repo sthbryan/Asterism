@@ -32,11 +32,13 @@ export function Chrome({
   return (
     <div className="flex h-full min-h-0 gap-3 bg-transparent p-3 text-paper">
       <aside className="relative flex w-[212px] shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-night pt-12 shadow-dock">
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <div
           className="absolute inset-x-0 top-0 h-12"
           data-tauri-drag-region
           onMouseDown={dragWindow}
         />
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <div
           className="flex h-12 items-center gap-2.5 px-4"
           data-tauri-drag-region
@@ -73,6 +75,7 @@ export function Chrome({
             onClick={() => onNav("create")}
           />
         </nav>
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <div
           className="flex-1"
           data-tauri-drag-region
@@ -97,6 +100,7 @@ export function Chrome({
         ) : null}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hairline bg-void shadow-dock-sm">
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <header
           data-tauri-drag-region
           onMouseDown={dragWindow}
