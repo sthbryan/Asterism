@@ -149,13 +149,10 @@ function NavButton({
       aria-current={active ? "page" : undefined}
       className={`relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md px-2.5 text-left text-[13px] font-medium transition-colors ${
         active
-          ? "bg-fill text-paper"
+          ? "bg-accent/10 text-paper"
           : "text-mist hover:bg-hover hover:text-paper"
       }`}
     >
-      {active ? (
-        <span className="absolute inset-y-0 left-0 w-[3px] bg-accent-soft" />
-      ) : null}
       <span
         className={`grid w-4 place-items-center ${active ? "text-accent-soft" : ""}`}
       >
