@@ -64,7 +64,7 @@ function BootShell() {
         />
       }
     >
-      <div className="t-page-slide" data-page="1">
+      <div className="t-vt-content t-page-slide" data-page="1">
         <ListPage revealed={false} />
       </div>
     </Chrome>
@@ -177,11 +177,11 @@ function MainShell() {
       trailing={trailing}
     >
       {view === "create" ? (
-        <div className="h-full">
+        <div className="t-vt-content h-full">
           <CreateBody />
         </div>
       ) : (
-        <div className="t-page-slide" data-page={page}>
+        <div className="t-vt-content t-page-slide" data-page={page}>
           <ListPage revealed />
           {view === "picker" || view === "detail" ? (
             <section className="t-page" data-page-id="2">

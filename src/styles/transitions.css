@@ -358,21 +358,28 @@ html[data-theme="light"] {
 /* View Transitions — progressive enhancement for route changes.
    Only applies where document.startViewTransition exists (Chromium);
    elsewhere the .t-page-slide CSS animation above remains the fallback.
-   Opacity-only on the root snapshot: the sidebar must stay put, and the
-   inner .t-page-slide animation is paused while the transition runs
+   Scoped to the content pane (.t-vt-content): the sidebar is excluded
+   from the snapshot so it never flashes. The root snapshot is disabled.
+   The inner .t-page-slide animation is paused while the transition runs
    (html.vt-active, set by useTransitionNavigate) to avoid double motion. */
+.t-vt-content {
+  view-transition-name: content;
+}
 html.vt-active .t-page-slide .t-page {
   transition: none;
 }
 ::view-transition-old(root),
 ::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-group(content) {
   animation-duration: 140ms;
   animation-timing-function: ease-out;
 }
-::view-transition-old(root) {
+::view-transition-old(content) {
   animation-name: t-vt-out;
 }
-::view-transition-new(root) {
+::view-transition-new(content) {
   animation-name: t-vt-in;
 }
 @keyframes t-vt-out {
