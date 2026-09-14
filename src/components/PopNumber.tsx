@@ -10,6 +10,7 @@ export function PopNumber({
   const ref = useRef<HTMLSpanElement>(null);
   const chars = [...value];
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: value is an intentional re-animation signal; the effect only touches the DOM node.
   useLayoutEffect(() => {
     const group = ref.current;
     if (!group) return;
@@ -22,6 +23,7 @@ export function PopNumber({
     <span ref={ref} className={`t-digit-group is-animating ${className}`}>
       {chars.map((ch, i) => (
         <span
+          // biome-ignore lint/suspicious/noArrayIndexKey: digits have no stable id; index+char key is fine for a stateless animation rerun.
           key={`${i}-${ch}`}
           className="t-digit"
           data-stagger={

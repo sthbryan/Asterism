@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noArrayIndexKey: static skeleton placeholders with fixed counts; never reordered, no state.
 import { Bone } from "./Bone";
 
 export function ListSkeleton() {
