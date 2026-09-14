@@ -16,8 +16,8 @@ export function BarChart({
           ? (item.label.split("/")[1] ?? item.label)
           : item.label;
         const top = index === 0 && item.value > 0;
-        const rowClass = `grid w-full grid-cols-[minmax(0,140px)_1fr_56px] items-center gap-3 py-2 text-left ${
-          onSelect ? "rounded-md transition-colors hover:bg-hover" : ""
+        const rowClass = `grid w-full grid-cols-[minmax(0,140px)_1fr_56px] items-center gap-3 py-2 text-left px-1 ${
+          onSelect ? "transition-colors hover:bg-hover" : ""
         }`;
         const body = (
           <>
