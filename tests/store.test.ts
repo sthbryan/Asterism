@@ -87,7 +87,7 @@ describe("store (Zustand)", () => {
     expect(state.status?.error).toBe("auth failure");
   });
 
-  test("retryBoot increments attempt and resets booted/status", () => {
+  test("retryBoot keeps local content visible while reconnecting", () => {
     useStore.setState({
       bootAttempt: 1,
       booted: true,
@@ -97,7 +97,8 @@ describe("store (Zustand)", () => {
 
     const state = useStore.getState();
     expect(state.bootAttempt).toBe(2);
-    expect(state.booted).toBe(false);
+    expect(state.booted).toBe(true);
+    expect(state.connecting).toBe(true);
     expect(state.status).toBeNull();
   });
 

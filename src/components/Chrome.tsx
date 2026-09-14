@@ -15,6 +15,7 @@ function initials(login: string | null | undefined) {
 
 export function Chrome({
   login,
+  online,
   nav,
   onNav,
   title,
@@ -23,6 +24,7 @@ export function Chrome({
   children,
 }: {
   login?: string | null;
+  online: boolean;
   nav: NavId;
   onNav: (id: NavId) => void;
   title: ReactNode;
@@ -33,7 +35,7 @@ export function Chrome({
   const { t } = useI18n();
   return (
     <div className="flex h-full min-h-0 gap-3 bg-transparent p-3 text-paper">
-      <aside className="relative flex w-[212px] shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-night pt-12 shadow-dock">
+      <aside className="relative flex w-[212px] shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-night pt-12 shadow-md">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <div
           className="absolute inset-x-0 top-0 h-12"
@@ -95,20 +97,22 @@ export function Chrome({
           <div className="m-2.5 flex items-center gap-2 rounded-lg border border-hairline p-2">
             <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-fill font-mono text-[10px] font-semibold">
               {initials(login)}
-              <span className="ring-night absolute right-0 bottom-0 h-2 w-2 rounded-full bg-ok ring-2" />
+              <span
+                className={`ring-night absolute right-0 bottom-0 h-2 w-2 rounded-full ${online ? "bg-ok" : "bg-faint"} ring-2`}
+              />
             </span>
             <div className="min-w-0">
               <div className="truncate text-[12px] leading-tight font-semibold">
                 {login}
               </div>
               <div className="text-[10.5px] leading-tight text-faint">
-                {t("GitHub · connected")}
+                {t(online ? "offline.connected" : "offline.badge")}
               </div>
             </div>
           </div>
         ) : null}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hairline bg-void shadow-dock-sm">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hairline bg-void shadow-md">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <header
           data-tauri-drag-region

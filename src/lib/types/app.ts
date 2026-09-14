@@ -1,4 +1,5 @@
 export type Status = {
+  kind?: "storage";
   ok: boolean;
   login: string | null;
   error: string | null;
@@ -25,4 +26,14 @@ export type Diagnostics = {
   configPath: string;
   cachePath: string;
   historyPath: string;
+};
+
+export type Saved<T> = { fetchedAt: number; data: T; warning: string | null };
+export type LocalState = {
+  account: string | null;
+  config: Config;
+  cache: import("./repository").Cache | null;
+  catalog: Saved<import("./repository").CatalogRepo[]> | null;
+  legacyAvailable: boolean;
+  dataPath: string;
 };

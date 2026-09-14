@@ -2,6 +2,7 @@ import { WarningCircle } from "@phosphor-icons/react";
 import { useRoute } from "wouter";
 import { useDetail, useI18n } from "@/app/hooks";
 import { decodeDetailParam } from "@/app/routes";
+import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { DetailSkeleton } from "@/components/Skeleton";
@@ -62,7 +63,7 @@ function DetailContent({
         <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
           <WarningCircle size={16} />
           <div role="alert">
-            <p>{t("errors.request")}</p>
+            <p>{t("offline.noDetail")}</p>
             <p className="mt-1 break-words">{error}</p>
           </div>
         </div>
@@ -74,8 +75,30 @@ function DetailContent({
 }
 
 function DetailBody({ detail }: { detail: RepoDetail }) {
+  const { t, locale } = useI18n();
+  const fetchedAt = useStore((s) => s.detailFetchedAt);
+  const warning = useStore((s) => s.detailWarning);
   return (
     <div>
+      {fetchedAt && (
+        <p className="mb-3 text-xs text-mist">
+          {t("offline.fetched", {
+            date: new Intl.DateTimeFormat(locale, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(fetchedAt * 1000),
+          })}
+        </p>
+      )}
+      {warning && (
+        <div role="status" className="mb-4 text-sm text-mist">
+          <p>{t("offline.partial")}</p>
+          <details>
+            <summary>{t("Connection details")}</summary>
+            <p className="mt-2 break-words">{warning}</p>
+          </details>
+        </div>
+      )}
       <RepoIntro detail={detail} />
       <Kpis detail={detail} />
       <HistoryCharts detail={detail} />

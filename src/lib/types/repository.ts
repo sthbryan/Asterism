@@ -23,6 +23,7 @@ export type CatalogRepo = {
 };
 
 export type TrackedRepo = {
+  fetchedAt?: number | null;
   fullName: string;
   description: string | null;
   private: boolean;

@@ -1,13 +1,23 @@
 import { DownloadSimple, Eye } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
+import { useStore } from "@/app/store";
 import { ColumnChart } from "@/components/Charts";
 import { fmtCompact } from "@/lib/format";
-import { fillTrafficDays } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
 export function TrafficSection({ detail }: { detail: RepoDetail }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const fetchedAt = useStore((s) => s.detailFetchedAt);
+  const days = [
+    ...(detail.views?.days ?? []),
+    ...(detail.clones?.days ?? []),
+  ].map((d) => d.ts);
+  const fmt = (ts: number) =>
+    new Intl.DateTimeFormat(locale, {
+      dateStyle: "medium",
+      timeZone: "UTC",
+    }).format(ts * 1000);
   return (
     <div className="card mt-3 p-4">
       <div className="flex items-baseline justify-between gap-3">
@@ -15,9 +25,19 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
           {t("Traffic · 14 days")}
         </div>
         <span className="text-[11px] text-faint">
-          {t("GitHub only exposes the last 14 days")}
+          {days.length > 0
+            ? t("offline.period", {
+                from: fmt(Math.min(...days)),
+                to: fmt(Math.max(...days)),
+              })
+            : fetchedAt
+              ? t("offline.fetched", { date: fmt(fetchedAt) })
+              : t("Unavailable")}
         </span>
       </div>
+      <p className="mt-2 text-xs leading-relaxed text-mist">
+        {t("offline.traffic")}
+      </p>
       {detail.trafficError && !detail.views && !detail.clones ? (
         <p className="mt-3 text-[13px] leading-relaxed text-mist">
           {t("Views and clones require push access.")} {detail.trafficError}
@@ -33,7 +53,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
             <div className="mt-3">
               <ColumnChart
                 tone="paper"
-                items={fillTrafficDays(detail.views?.days).map((day) => ({
+                items={(detail.views?.days ?? []).map((day) => ({
                   ts: day.ts,
                   value: day.count,
                   hint: t("common.unique", { count: day.uniques }),
@@ -51,7 +71,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
             <div className="mt-3">
               <ColumnChart
                 tone="accent"
-                items={fillTrafficDays(detail.clones?.days).map((day) => ({
+                items={(detail.clones?.days ?? []).map((day) => ({
                   ts: day.ts,
                   value: day.count,
                   hint: t("common.unique", { count: day.uniques }),

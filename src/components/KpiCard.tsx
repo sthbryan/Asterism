@@ -13,7 +13,7 @@ export function KpiCard({
   hero = false,
 }: {
   label: string;
-  value: number;
+  value: number | null;
   icon?: ReactNode;
   sub?: string;
   delta?: number | null;

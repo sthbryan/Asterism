@@ -13,7 +13,13 @@ import {
   mockCreateRepo,
   mockDetail,
 } from "@/lib/mock";
-import type { Cache, Config, Diagnostics, Locale } from "@/lib/types";
+import type {
+  Cache,
+  Config,
+  Diagnostics,
+  Locale,
+  LocalState,
+} from "@/lib/types";
 import type { ApiClient } from "./types";
 
 function delay<T>(value: T, ms = 250): Promise<T> {
@@ -47,12 +53,41 @@ const MOCK_DIAGNOSTICS: Diagnostics = {
   ghError: null,
   gitVersion: "git version 2.49.0 (mock)",
   gitError: null,
-  configPath: "~/.config/asterism/config.json",
-  cachePath: "~/.cache/asterism/cache.json",
-  historyPath: "~/.cache/asterism/history.json",
+  configPath:
+    "~/Library/Application Support/com.sthbryan.asterism/preferences.json",
+  cachePath:
+    "~/Library/Application Support/com.sthbryan.asterism/accounts/demo/cache.json",
+  historyPath:
+    "~/Library/Application Support/com.sthbryan.asterism/accounts/demo/history.json",
 };
 
+let cleared = false;
+function localState(): LocalState {
+  const empty = new URLSearchParams(window.location.search).has("empty");
+  return {
+    account: empty ? null : "github.com/sthbryan",
+    config: { version: 1, repos: empty ? [] : [...mockRepos], ...appearance() },
+    cache: empty || cleared ? null : cacheFor(mockRepos, MOCK_CACHE.fetchedAt),
+    catalog:
+      empty || cleared
+        ? null
+        : {
+            fetchedAt: MOCK_CACHE.fetchedAt,
+            data: [...MOCK_CATALOG],
+            warning: null,
+          },
+    legacyAvailable: new URLSearchParams(window.location.search).has("legacy"),
+    dataPath: "~/Library/Application Support/com.sthbryan.asterism",
+  };
+}
 export const mockClient: ApiClient = {
+  getLocalState: () => delay(localState(), 25),
+  useLegacyData: () => delay({ ...localState(), account: "legacy" }),
+  importLegacyData: () => delay({ ...localState(), legacyAvailable: false }),
+  clearLocalCache: () => {
+    cleared = true;
+    return delay(localState());
+  },
   getStatus: () => {
     const setup = new URLSearchParams(window.location.search).get("setup");
     if (setup === "missing" || setup === "auth" || setup === "network") {
@@ -82,7 +117,23 @@ export const mockClient: ApiClient = {
   createRepo: (input) => delay(mockCreateRepo(input), 500),
   refreshTracked: () =>
     delay(cacheFor(mockRepos, Math.floor(Date.now() / 1000)), 600),
-  getRepoDetail: (fullName) => delay(mockDetail(fullName), 350),
+  getRepoDetail: (fullName, offline) => {
+    if (
+      offline &&
+      (cleared || new URLSearchParams(window.location.search).has("empty"))
+    )
+      return Promise.reject("This detail has not been saved.");
+    return delay(
+      {
+        data: mockDetail(fullName),
+        fetchedAt: offline
+          ? MOCK_CACHE.fetchedAt
+          : Math.floor(Date.now() / 1000),
+        warning: null,
+      },
+      350,
+    );
+  },
   saveLocale: (locale: Locale) => {
     persistLocale(locale);
     return delay({

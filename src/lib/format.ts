@@ -59,6 +59,7 @@ export function fmtAxisDate(unix: number) {
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(currentLocale(), {
     day: "numeric",
+    timeZone: "UTC",
     month: "short",
   });
 }
@@ -68,6 +69,7 @@ export function fmtAxisDateLong(unix: number) {
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(currentLocale(), {
     day: "numeric",
+    timeZone: "UTC",
     month: "short",
     year: "numeric",
   });

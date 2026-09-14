@@ -12,12 +12,12 @@ export function Kpis({ detail }: { detail: RepoDetail }) {
     null,
   );
   return (
-    <div className="mt-5 grid grid-cols-4 gap-3">
+    <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
       <KpiCard
         label={t("Stars")}
         value={detail.stars}
         icon={<Star size={15} />}
-        sub={t("total")}
+        sub={t("common.total")}
         delta={starKpi?.delta}
         deltaHint={starKpi?.hint}
       />
@@ -25,13 +25,13 @@ export function Kpis({ detail }: { detail: RepoDetail }) {
         label={t("Forks")}
         value={detail.forks}
         icon={<GitFork size={15} />}
-        sub={t("total")}
+        sub={t("common.total")}
       />
       <KpiCard
         label={t("Watchers")}
         value={detail.watchers}
         icon={<Eye size={15} />}
-        sub={t("total")}
+        sub={t("common.total")}
       />
       <KpiCard
         label={t("Downloads")}

@@ -49,7 +49,8 @@ export function ListTrailing({
   fetchedAt: number | null;
   onRefresh: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const online = useStore((s) => s.status?.ok && !s.connecting);
   const fetched = fmtFetched(fetchedAt);
   return (
     <div className="flex items-center gap-1">
@@ -62,14 +63,23 @@ export function ListTrailing({
         </span>
       ) : fetched ? (
         <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
-          <span className="h-[7px] w-[7px] rounded-full bg-ok" />
-          {t("list.updated", { value: fetched })}
+          <span
+            className={`h-[7px] w-[7px] rounded-full ${online ? "bg-ok" : "bg-faint"}`}
+          />
+          {t("list.updated", {
+            value: fetchedAt
+              ? new Intl.DateTimeFormat(locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(fetchedAt * 1000)
+              : fetched,
+          })}
         </span>
       ) : null}
       <button
         type="button"
         onClick={onRefresh}
-        disabled={refreshing}
+        disabled={refreshing || !online}
         aria-label={t("Refresh")}
         title={t("Refresh")}
         className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
@@ -87,6 +97,7 @@ export function ListView() {
   const { t } = useI18n();
   const navigate = useTransitionNavigate();
 
+  const selectedNames = useStore((s) => s.selectedNames);
   const repos = useStore((s) => s.tracked);
   const history = useStore((s) => s.history);
   const refreshing = useStore((s) => s.refreshing);
@@ -233,32 +244,38 @@ export function ListView() {
               message={banner ? `${t("errors.request")} ${banner}` : null}
             />
 
-            <div className="grid grid-cols-4 gap-3">
+            {(repos.some((r) => r.error) ||
+              selectedNames.length > repos.length) && (
+              <p role="status" className="mb-3 text-sm text-mist">
+                {t("offline.partial")}
+              </p>
+            )}
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               <KpiCard
                 label={t("Repositories")}
-                value={repos.length}
+                value={selectedNames.length}
                 icon={<FolderSimple size={15} />}
                 sub={t("tracked")}
               />
               <KpiCard
                 label={t("Stars")}
-                value={stars}
+                value={repos.length ? stars : null}
                 icon={<Star size={15} />}
-                sub={t("total")}
+                sub={t("common.total")}
                 delta={starKpi?.delta}
                 deltaHint={starKpi?.hint}
               />
               <KpiCard
                 label={t("Forks")}
-                value={forks}
+                value={repos.length ? forks : null}
                 icon={<GitFork size={15} />}
-                sub={t("total")}
+                sub={t("common.total")}
                 delta={forkKpi?.delta}
                 deltaHint={forkKpi?.hint}
               />
               <KpiCard
                 label={t("Downloads")}
-                value={downloads}
+                value={repos.length ? downloads : null}
                 icon={<DownloadSimple size={15} />}
                 sub={t("release assets")}
                 hero
@@ -455,10 +472,15 @@ export function ListView() {
                                     </span>
                                   </span>
                                   {repo.error ? (
-                                    <WarningCircleIcon
-                                      size={13}
-                                      className="shrink-0 text-accent-soft"
-                                    />
+                                    <span
+                                      title={`${repo.error}${repo.fetchedAt ? ` · ${new Date(repo.fetchedAt * 1000).toLocaleString()}` : ""}`}
+                                    >
+                                      <WarningCircleIcon
+                                        size={13}
+                                        aria-label={t("offline.partial")}
+                                        className="shrink-0 text-accent-soft"
+                                      />
+                                    </span>
                                   ) : null}
                                   {repo.private ? (
                                     <Chip>{t("Private")}</Chip>

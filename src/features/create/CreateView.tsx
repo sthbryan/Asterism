@@ -7,6 +7,25 @@ import { ResultCard } from "./ResultCard";
 import { useCreateForm } from "./useCreateForm";
 
 export function CreateView() {
+  const online = useStore((s) => s.status?.ok && !s.connecting);
+  const { t } = useI18n();
+  if (!online)
+    return (
+      <>
+        <PageHeader
+          title={
+            <h1 className="text-[15px] font-semibold">
+              {t("Create repository")}
+            </h1>
+          }
+        />
+        <p className="px-6 py-7 text-sm text-mist">{t("offline.create")}</p>
+      </>
+    );
+  return <OnlineCreateView />;
+}
+
+function OnlineCreateView() {
   const { t } = useI18n();
   const navigate = useTransitionNavigate();
   const login = useStore((s) => s.status?.login ?? null);

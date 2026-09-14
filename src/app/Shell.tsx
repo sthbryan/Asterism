@@ -1,6 +1,7 @@
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { AppearanceProvider } from "@/components/Appearance";
 import { Chrome, type NavId } from "@/components/Chrome";
+import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { HeaderProvider, useHeader } from "@/components/PageHeader";
 import { useBoot } from "./hooks";
 import { getNavForPath, ROUTES } from "./routes";
@@ -27,7 +28,8 @@ function AppLayout() {
   const { header } = useHeader();
   const status = useStore((s) => s.status);
   const selectedNames = useStore((s) => s.selectedNames);
-  const login = status?.login ?? null;
+  const account = useStore((s) => s.account);
+  const login = status?.login ?? account?.split("/").pop() ?? null;
 
   const nav = getNavForPath(location);
 
@@ -36,7 +38,7 @@ function AppLayout() {
       navigate("/settings");
       return;
     }
-    if (status && !status.ok) return;
+
     if (id === "create") navigate("/create");
     if (id === "overview") navigate("/");
     if (id === "repos") navigate("/repos");
@@ -45,28 +47,32 @@ function AppLayout() {
   return (
     <Chrome
       login={login}
+      online={Boolean(status?.ok)}
       nav={nav}
       onNav={handleNav}
       trackedCount={selectedNames.length}
       title={header.title}
       trailing={header.trailing}
     >
-      <div className="t-vt-content h-full min-h-0">
-        <Switch>
-          {ROUTES.map((route) => (
-            <Route
-              key={route.path}
-              path={route.path}
-              component={route.component}
-            />
-          ))}
-          <Route path="/boot">
-            <Redirect to="/" />
-          </Route>
-          <Route>
-            <Redirect to="/" />
-          </Route>
-        </Switch>
+      <div className="t-vt-content flex h-full min-h-0 flex-col">
+        <ConnectionNotice />
+        <div className="min-h-0 flex-1">
+          <Switch>
+            {ROUTES.map((route) => (
+              <Route
+                key={`${route.path}:${account ?? "none"}`}
+                path={route.path}
+                component={route.component}
+              />
+            ))}
+            <Route path="/boot">
+              <Redirect to="/" />
+            </Route>
+            <Route>
+              <Redirect to="/" />
+            </Route>
+          </Switch>
+        </div>
       </div>
     </Chrome>
   );

@@ -4,6 +4,7 @@ import type {
   Config,
   CreatedRepo,
   Locale,
+  LocalState,
   RepoDetail,
   RepoHistory,
   Status,
@@ -12,6 +13,14 @@ import type {
 } from "@/lib/types";
 
 export type StoreState = {
+  account: string | null;
+  dataPath: string;
+  legacyAvailable: boolean;
+  connecting: boolean;
+  dataRevision: number;
+  catalogFetchedAt: number | null;
+  detailFetchedAt: number | null;
+  detailWarning: string | null;
   bootAttempt: number;
   booted: boolean;
   status: Status | null;
@@ -34,6 +43,8 @@ export type StoreState = {
 };
 
 export type StoreActions = {
+  hydrateLocal: (local: LocalState) => void;
+  setConnecting: (value: boolean) => void;
   setPreferences: (config: Config) => void;
   setPreferenceError: (error: string | null) => void;
   bootStart: () => void;

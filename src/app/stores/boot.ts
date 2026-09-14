@@ -11,6 +11,13 @@ import type { AppStore } from "./types";
 
 export type BootSlice = Pick<
   AppStore,
+  | "account"
+  | "dataPath"
+  | "legacyAvailable"
+  | "connecting"
+  | "dataRevision"
+  | "hydrateLocal"
+  | "setConnecting"
   | "bootAttempt"
   | "booted"
   | "status"
@@ -30,6 +37,35 @@ export type BootSlice = Pick<
 export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
   set,
 ) => ({
+  account: null,
+  dataPath: "",
+  legacyAvailable: false,
+  connecting: true,
+  dataRevision: 0,
+  hydrateLocal: (local) =>
+    set((state) => ({
+      account: local.account,
+      dataPath: local.dataPath,
+      legacyAvailable: local.legacyAvailable,
+      booted: true,
+      selectedNames: local.config.repos,
+      tracked: local.cache?.repos ?? [],
+      history: local.cache?.history ?? {},
+      fetchedAt: local.cache?.fetchedAt ?? null,
+      catalog: local.catalog?.data ?? [],
+      catalogFetchedAt: local.catalog?.fetchedAt ?? null,
+      catalogError: null,
+      catalogLoading: false,
+      detail: null,
+      detailError: null,
+      detailWarning: null,
+      detailFetchedAt: null,
+      detailLoading: false,
+      refreshing: false,
+      dataRevision: state.dataRevision + 1,
+      banner: null,
+    })),
+  setConnecting: (connecting) => set({ connecting }),
   bootAttempt: 0,
   booted: false,
   status: null,
@@ -69,14 +105,15 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
   },
 
   bootFail: (status) => {
-    set({ booted: true, status });
+    set({ booted: true, status, connecting: false });
   },
 
   retryBoot: () => {
     set((state) => ({
       bootAttempt: state.bootAttempt + 1,
-      booted: false,
+      connecting: true,
       status: null,
+      dataRevision: state.dataRevision + 1,
     }));
   },
 

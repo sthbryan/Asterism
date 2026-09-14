@@ -9,6 +9,8 @@ import { Toggle } from "@/components/Toggle";
 import type { Diagnostics, Locale, ThemePref } from "@/lib/types";
 import { getDiagnostics, isMockMode } from "@/services/api";
 
+import { LocalDataSection } from "./LocalDataSection";
+
 export function SettingsView() {
   const { t, locale, setLocale } = useI18n();
   const {
@@ -146,6 +148,7 @@ export function SettingsView() {
               <Button onClick={retryBoot}>{t("Check connection")}</Button>
             </div>
           </section>
+          <LocalDataSection />
           <section
             aria-labelledby="diagnostics-heading"
             className="border-t border-hairline pt-5"
