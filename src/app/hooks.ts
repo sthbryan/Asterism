@@ -7,19 +7,10 @@ import {
   readStoredLocale,
 } from "../lib/i18n/locale";
 import type { Status } from "../lib/types";
+import { decodeDetailParam, detailPath } from "./routes";
 import { useStore } from "./store";
 
-export function detailPath(fullName: string): string {
-  return `/repo/${encodeURIComponent(fullName)}`;
-}
-
-export function decodeDetailParam(param: string | undefined): string {
-  try {
-    return decodeURIComponent(param ?? "");
-  } catch {
-    return param ?? "";
-  }
-}
+export { decodeDetailParam, detailPath };
 
 function resolveInitialRoute(current: string): string {
   if (isMockMode()) {
@@ -48,11 +39,16 @@ function bootErrorStatus(err: unknown): Status {
 
 /** Load preferences before connecting, then cache, route and GitHub data. */
 export function useBoot() {
-  const { state, dispatch, runRefresh, loadCatalog } = useStore();
+  const bootAttempt = useStore((s) => s.bootAttempt);
+  const setPreferences = useStore((s) => s.setPreferences);
+  const bootOk = useStore((s) => s.bootOk);
+  const bootFail = useStore((s) => s.bootFail);
+  const runRefresh = useStore((s) => s.runRefresh);
+  const loadCatalog = useStore((s) => s.loadCatalog);
+
   const [path, navigate] = useLocation();
   const pathRef = useRef(path);
   pathRef.current = path;
-  const bootAttempt = state.bootAttempt;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: bootAttempt is an intentional re-run signal for boot retry; it is read via bootAttempt dep, not inside the effect.
   useEffect(() => {
@@ -62,18 +58,18 @@ export function useBoot() {
         const cfg = await getConfig();
         if (cancelled) return;
         applyDocumentLocale(cfg.locale ?? readStoredLocale() ?? detectLocale());
-        dispatch({ type: "preferences", config: cfg });
+        setPreferences(cfg);
         const next = await getStatus();
         if (cancelled) return;
         if (!next.ok) {
-          dispatch({ type: "bootFail", status: next });
+          bootFail(next);
           if (pathRef.current !== "/settings")
             navigate("/setup", { replace: true });
           return;
         }
         const cache = await getCache();
         if (cancelled) return;
-        dispatch({ type: "bootOk", status: next, config: cfg, cache });
+        bootOk(next, cfg, cache);
         navigate(resolveInitialRoute(pathRef.current), { replace: true });
         void loadCatalog();
         if (cfg.repos.length > 0) {
@@ -81,50 +77,60 @@ export function useBoot() {
         }
       } catch (err) {
         if (cancelled) return;
-        dispatch({ type: "bootFail", status: bootErrorStatus(err) });
+        bootFail(bootErrorStatus(err));
         navigate("/setup", { replace: true });
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [bootAttempt, dispatch, loadCatalog, navigate, runRefresh]);
+  }, [
+    bootAttempt,
+    setPreferences,
+    bootOk,
+    bootFail,
+    loadCatalog,
+    navigate,
+    runRefresh,
+  ]);
 }
 
 /** Ensure the repo catalog is loaded (picker entry point). */
 export function useCatalog() {
-  const { state, loadCatalog } = useStore();
+  const catalog = useStore((s) => s.catalog);
+  const catalogLoading = useStore((s) => s.catalogLoading);
+  const catalogError = useStore((s) => s.catalogError);
+  const loadCatalog = useStore((s) => s.loadCatalog);
+
   useEffect(() => {
-    if (
-      state.catalog.length === 0 &&
-      !state.catalogLoading &&
-      !state.catalogError
-    ) {
+    if (catalog.length === 0 && !catalogLoading && !catalogError) {
       void loadCatalog();
     }
-  }, [
-    state.catalog.length,
-    state.catalogLoading,
-    state.catalogError,
-    loadCatalog,
-  ]);
+  }, [catalog.length, catalogLoading, catalogError, loadCatalog]);
 }
 
 /** Load repo detail for fullName and merge star/download history into the store. */
 export function useDetail(fullName: string) {
-  const { state, dispatch, fetchDetail } = useStore();
+  const detail = useStore((s) => s.detail);
+  const loading = useStore((s) => s.detailLoading);
+  const error = useStore((s) => s.detailError);
+  const fetchDetail = useStore((s) => s.fetchDetail);
+  const clearDetail = useStore((s) => s.clearDetail);
+
   useEffect(() => {
     if (!fullName) return;
     void fetchDetail(fullName);
   }, [fullName, fetchDetail]);
+
   useEffect(() => {
     return () => {
-      dispatch({ type: "detailClear" });
+      clearDetail();
     };
-  }, [dispatch]);
+  }, [clearDetail]);
+
   return {
-    detail: state.detail,
-    loading: state.detailLoading,
-    error: state.detailError,
+    detail,
+    loading,
+    error,
   };
 }
