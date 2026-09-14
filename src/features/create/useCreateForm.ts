@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useI18n } from "../../app/hooks";
-import { createRepo, listCreateOptions } from "../../lib/api";
 import type { CreatedRepo, CreateOptions } from "../../lib/types";
+import { createRepo, listCreateOptions } from "../../services/api";
 
 export function isInvalidName(cleanName: string): boolean {
   return Boolean(

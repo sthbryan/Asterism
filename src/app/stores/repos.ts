@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import { refreshTracked, saveConfig } from "../../lib/api";
+import { refreshTracked, saveConfig } from "../../services/api";
 import type { AppStore } from "./types";
 
 export type ReposSlice = Pick<

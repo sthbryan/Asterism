@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import { getRepoDetail } from "../../lib/api";
+import { getRepoDetail } from "../../services/api";
 import type { AppStore } from "./types";
 
 export type DetailSlice = Pick<

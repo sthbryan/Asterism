@@ -6,8 +6,8 @@ import { Button } from "../../components/Button";
 import { PageHeader } from "../../components/PageHeader";
 import { Select } from "../../components/Select";
 import { Toggle } from "../../components/Toggle";
-import { getDiagnostics, isMockMode } from "../../lib/api";
 import type { Diagnostics, Locale, ThemePref } from "../../lib/types";
+import { getDiagnostics, isMockMode } from "../../services/api";
 
 export function SettingsView() {
   const { t, locale, setLocale } = useI18n();

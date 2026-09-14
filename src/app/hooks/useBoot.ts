@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { getCache, getConfig, getStatus, isMockMode } from "../../lib/api";
 import {
   applyDocumentLocale,
   detectLocale,
   readStoredLocale,
 } from "../../lib/i18n/locale";
 import type { Status } from "../../lib/types";
+import { getCache, getConfig, getStatus, isMockMode } from "../../services/api";
 import { detailPath } from "../routes";
 import { useStore } from "../store";
 

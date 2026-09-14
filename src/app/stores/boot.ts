@@ -1,5 +1,4 @@
 import type { StateCreator } from "zustand";
-import { saveLocale } from "../../lib/api";
 import { readStoredTheme, readStoredTransparency } from "../../lib/appearance";
 import {
   applyDocumentLocale,
@@ -7,6 +6,7 @@ import {
   normalizeLocale,
   readStoredLocale,
 } from "../../lib/i18n/locale";
+import { saveLocale } from "../../services/api";
 import type { AppStore } from "./types";
 
 export type BootSlice = Pick<

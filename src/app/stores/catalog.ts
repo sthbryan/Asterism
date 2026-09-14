@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import { listCatalog } from "../../lib/api";
+import { listCatalog } from "../../services/api";
 import type { AppStore } from "./types";
 
 export type CatalogSlice = Pick<
