@@ -14,7 +14,8 @@
     "release": "bun scripts/release.mjs",
     "check": "biome check .",
     "format": "biome format --write . && biome check --write --only=assist/source/organizeImports .",
-    "format:check": "biome format . && biome check --only=assist/source/organizeImports ."
+    "format:check": "biome format . && biome check --only=assist/source/organizeImports .",
+    "prepare": "lefthook install"
   },
   "dependencies": {
     "@fontsource-variable/geist": "5.3.0",
@@ -35,6 +36,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
+    "lefthook": "^2.1.12",
     "typescript": "~7.0.2",
     "vite": "8.3.0"
   }
