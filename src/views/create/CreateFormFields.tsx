@@ -1,4 +1,5 @@
 import { Button } from "../../components/Button";
+import { Select } from "../../components/Select";
 import { isMockMode } from "../../lib/api";
 import { useI18n } from "../../lib/i18n";
 import { fieldClass } from "./fields";
@@ -63,18 +64,23 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
         className="mt-7 space-y-6 disabled:opacity-60"
       >
         <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-          <label className="text-[13px] font-medium">
+          <label
+            id="create-owner-label"
+            htmlFor="create-owner"
+            className="text-[13px] font-medium"
+          >
             {t("Owner")}
-            <select
+            <Select
+              id="create-owner"
               value={owner}
-              onChange={(event) => setOwner(event.target.value)}
-              className={fieldClass}
-              required
-            >
-              {options?.owners.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+              onChange={setOwner}
+              className="mt-2"
+              ariaLabelledBy="create-owner-label"
+              options={
+                options?.owners.map((item) => ({ value: item, label: item })) ??
+                []
+              }
+            />
           </label>
           <label className="text-[13px] font-medium">
             {t("Repository name")}

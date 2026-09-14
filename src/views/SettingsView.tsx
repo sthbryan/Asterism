@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { useStore } from "../app/store";
 import { useAppearance } from "../components/Appearance";
 import { Button } from "../components/Button";
+import { Select } from "../components/Select";
 import { Toggle } from "../components/Toggle";
 import { getDiagnostics, isMockMode } from "../lib/api";
 import { useI18n } from "../lib/i18n";
 import type { Diagnostics, Locale, ThemePref } from "../lib/types";
-
-const selectClass =
-  "h-9 min-w-40 rounded-md border border-hairline bg-night px-3 text-sm text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
 export function SettingsView() {
   const { t, locale, setLocale } = useI18n();
@@ -52,37 +50,45 @@ export function SettingsView() {
           </h2>
           <p className="mt-1 text-sm text-mist">{t("settings.saved")}</p>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <label htmlFor="app-language" className="text-sm font-medium">
+            <label
+              id="app-language-label"
+              htmlFor="app-language"
+              className="text-sm font-medium"
+            >
               {t("settings.language")}
             </label>
-            <select
+            <Select
               id="app-language"
-              className={selectClass}
               value={locale}
-              onChange={(e) => setLocale(e.target.value as Locale)}
-            >
-              <option value="es" lang="es">
-                Español
-              </option>
-              <option value="en" lang="en">
-                English
-              </option>
-            </select>
+              className="min-w-40"
+              ariaLabelledBy="app-language-label"
+              options={[
+                { value: "es", label: "Español" },
+                { value: "en", label: "English" },
+              ]}
+              onChange={(value) => setLocale(value as Locale)}
+            />
           </div>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <label htmlFor="app-theme" className="text-sm font-medium">
+            <label
+              id="app-theme-label"
+              htmlFor="app-theme"
+              className="text-sm font-medium"
+            >
               {t("settings.theme")}
             </label>
-            <select
+            <Select
               id="app-theme"
-              className={selectClass}
               value={theme}
-              onChange={(e) => setTheme(e.target.value as ThemePref)}
-            >
-              <option value="light">{t("settings.light")}</option>
-              <option value="dark">{t("settings.dark")}</option>
-              <option value="system">{t("settings.system")}</option>
-            </select>
+              className="min-w-40"
+              ariaLabelledBy="app-theme-label"
+              options={[
+                { value: "light", label: t("settings.light") },
+                { value: "dark", label: t("settings.dark") },
+                { value: "system", label: t("settings.system") },
+              ]}
+              onChange={(value) => setTheme(value as ThemePref)}
+            />
           </div>
           <div className="mt-5 flex items-center justify-between gap-6">
             <div>
