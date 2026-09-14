@@ -35,14 +35,20 @@ export function KpiCard({
       {delta != null ? (
         <div
           className={`mt-1.5 font-mono text-[11.5px] leading-none tabular ${
-            delta > 0 ? "text-ok" : delta < 0 ? "text-accent-soft" : "text-faint"
+            delta > 0
+              ? "text-ok"
+              : delta < 0
+                ? "text-accent-soft"
+                : "text-faint"
           }`}
         >
           {fmtSigned(delta)}
           {deltaHint ? ` · ${deltaHint}` : ""}
         </div>
       ) : sub ? (
-        <div className="mt-1.5 text-[11.5px] leading-none text-faint">{sub}</div>
+        <div className="mt-1.5 text-[11.5px] leading-none text-faint">
+          {sub}
+        </div>
       ) : null}
     </div>
   );

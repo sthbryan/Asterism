@@ -37,7 +37,10 @@ export function aggregateHistory(
   }));
 }
 
-export function fillTrafficDays(days: TrafficDay[] | undefined, n = 14): TrafficDay[] {
+export function fillTrafficDays(
+  days: TrafficDay[] | undefined,
+  n = 14,
+): TrafficDay[] {
   const today = dayBucket(Math.floor(Date.now() / 1000));
   const start = today - (n - 1) * DAY;
   const byDay = new Map((days ?? []).map((day) => [dayBucket(day.ts), day]));
@@ -59,7 +62,10 @@ export type WindowDelta = {
   partial: boolean;
 };
 
-export function windowDelta(points: SeriesPoint[], days: number): WindowDelta | null {
+export function windowDelta(
+  points: SeriesPoint[],
+  days: number,
+): WindowDelta | null {
   if (points.length < 2) return null;
   const series = [...points].sort((a, b) => a.ts - b.ts);
   const last = series[series.length - 1];
@@ -68,7 +74,10 @@ export function windowDelta(points: SeriesPoint[], days: number): WindowDelta | 
   const partial = first.ts > cutoff;
   const before = valueAt(series, cutoff);
   const startValue = partial ? first.value : before;
-  const spanDays = Math.max(1, Math.round((last.ts - (partial ? first.ts : cutoff)) / DAY));
+  const spanDays = Math.max(
+    1,
+    Math.round((last.ts - (partial ? first.ts : cutoff)) / DAY),
+  );
   return {
     value: last.value - startValue,
     spanDays,
@@ -81,7 +90,10 @@ export function pickKpiDelta(
   fallback: number | null | undefined,
 ): { delta: number; hint: string } | null {
   if (window && window.value !== 0) {
-    return { delta: window.value, hint: window.partial ? `${window.spanDays}d` : "7d" };
+    return {
+      delta: window.value,
+      hint: window.partial ? `${window.spanDays}d` : "7d",
+    };
   }
   if (fallback != null && fallback !== 0) {
     return { delta: fallback, hint: "sync" };

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { fmtAxisDate, fmtAxisDateLong, fmtCompact } from "../../lib/format";
 import type { SeriesPoint } from "../../lib/types";
-import { FILL, STROKE, buildPlot, type ChartTone } from "./plot";
+import { buildPlot, type ChartTone, FILL, STROKE } from "./plot";
 
 export function AreaChart({
   points,
@@ -25,7 +25,8 @@ export function AreaChart({
 
   const { path, area, coords, max, first, last } = plot;
   const hover = active != null ? points[active] : last;
-  const hoverCoord = active != null ? coords[active] : coords[coords.length - 1];
+  const hoverCoord =
+    active != null ? coords[active] : coords[coords.length - 1];
 
   return (
     <div>

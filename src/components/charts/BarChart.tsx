@@ -31,7 +31,9 @@ export function BarChart({
             <span className="block h-1.5 overflow-hidden rounded-full bg-raised">
               <span
                 className={`block h-full rounded-full transition-[width] duration-500 ${
-                  top ? "bg-gradient-to-r from-accent to-accent-hover" : "bg-[#707070]"
+                  top
+                    ? "bg-gradient-to-r from-accent to-accent-hover"
+                    : "bg-[#707070]"
                 }`}
                 style={{ width: `${Math.max(pct, item.value > 0 ? 3 : 0)}%` }}
               />
@@ -46,9 +48,16 @@ export function BarChart({
           </>
         );
         return (
-          <li key={item.label} className="border-b border-hairline first:pt-0 last:border-b-0 last:pb-0">
+          <li
+            key={item.label}
+            className="border-b border-hairline first:pt-0 last:border-b-0 last:pb-0"
+          >
             {onSelect ? (
-              <button type="button" onClick={() => onSelect(item.label)} className={rowClass}>
+              <button
+                type="button"
+                onClick={() => onSelect(item.label)}
+                className={rowClass}
+              >
                 {body}
               </button>
             ) : (

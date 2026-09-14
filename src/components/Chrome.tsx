@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
 import { ChartBar, FolderSimple, Plus } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import { dragWindow } from "../lib/drag";
 import { AppearanceControls } from "./AppearanceControls";
 import { Mark } from "./Mark";
@@ -45,7 +45,9 @@ export function Chrome({
           <span className="grid h-[26px] w-[26px] place-items-center rounded-md bg-gradient-to-br from-accent-hover to-accent text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
             <Mark className="h-3.5 w-3.5" />
           </span>
-          <span className="text-[14px] font-semibold tracking-[-0.01em]">Asterism</span>
+          <span className="text-[14px] font-semibold tracking-[-0.01em]">
+            Asterism
+          </span>
         </div>
         <nav className="mt-1 flex flex-col gap-0.5 px-3">
           <div className="px-2.5 pt-2 pb-1 font-mono text-[10px] uppercase tracking-[0.09em] text-faint">
@@ -64,9 +66,18 @@ export function Chrome({
             onClick={() => onNav("repos")}
             badge={trackedCount}
           />
-          <NavButton active={nav === "create"} icon={<Plus size={16} />} label="Create repository" onClick={() => onNav("create")} />
+          <NavButton
+            active={nav === "create"}
+            icon={<Plus size={16} />}
+            label="Create repository"
+            onClick={() => onNav("create")}
+          />
         </nav>
-        <div className="flex-1" data-tauri-drag-region onMouseDown={dragWindow} />
+        <div
+          className="flex-1"
+          data-tauri-drag-region
+          onMouseDown={dragWindow}
+        />
         <AppearanceControls />
         {login ? (
           <div className="m-2.5 flex items-center gap-2 rounded-lg border border-hairline p-2">
@@ -75,8 +86,12 @@ export function Chrome({
               <span className="ring-night absolute right-0 bottom-0 h-2 w-2 rounded-full bg-ok ring-2" />
             </span>
             <div className="min-w-0">
-              <div className="truncate text-[12px] leading-tight font-semibold">{login}</div>
-              <div className="text-[10.5px] leading-tight text-faint">GitHub · connected</div>
+              <div className="truncate text-[12px] leading-tight font-semibold">
+                {login}
+              </div>
+              <div className="text-[10.5px] leading-tight text-faint">
+                GitHub · connected
+              </div>
             </div>
           </div>
         ) : null}
@@ -120,13 +135,17 @@ function NavButton({
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       className={`relative flex h-8 w-full items-center gap-2 overflow-hidden rounded-md px-2.5 text-left text-[13px] font-medium transition-colors ${
-        active ? "bg-fill text-paper" : "text-mist hover:bg-hover hover:text-paper"
+        active
+          ? "bg-fill text-paper"
+          : "text-mist hover:bg-hover hover:text-paper"
       }`}
     >
       {active ? (
         <span className="absolute inset-y-0 left-0 w-[3px] bg-accent-soft" />
       ) : null}
-      <span className={`grid w-4 place-items-center ${active ? "text-accent-soft" : ""}`}>
+      <span
+        className={`grid w-4 place-items-center ${active ? "text-accent-soft" : ""}`}
+      >
         {icon}
       </span>
       <span className="truncate">{label}</span>

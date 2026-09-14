@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createRepo, listCreateOptions } from "../../lib/api";
 import type { CreatedRepo, CreateOptions } from "../../lib/types";
 
@@ -42,7 +42,9 @@ export function useCreateForm({
       .then((value) => {
         if (!active) return;
         setOptions(value);
-        setOwner((current) => (value.owners.includes(current) ? current : (value.owners[0] ?? "")));
+        setOwner((current) =>
+          value.owners.includes(current) ? current : (value.owners[0] ?? ""),
+        );
       })
       .catch((err) => {
         if (active) setError(String(err));
@@ -60,7 +62,8 @@ export function useCreateForm({
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (submitting.current || !owner || !cleanName || invalidName || !options) return;
+    if (submitting.current || !owner || !cleanName || invalidName || !options)
+      return;
     submitting.current = true;
     setBusy(true);
     setError(null);

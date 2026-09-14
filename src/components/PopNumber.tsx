@@ -24,7 +24,13 @@ export function PopNumber({
         <span
           key={`${i}-${ch}`}
           className="t-digit"
-          data-stagger={i === chars.length - 1 ? "2" : i === chars.length - 2 ? "1" : undefined}
+          data-stagger={
+            i === chars.length - 1
+              ? "2"
+              : i === chars.length - 2
+                ? "1"
+                : undefined
+          }
         >
           {ch}
         </span>

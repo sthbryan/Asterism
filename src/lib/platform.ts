@@ -48,7 +48,11 @@ export function classifyAsset(name: string): PlatformKey {
   return "other";
 }
 
-export function addAsset(platforms: PlatformDownloads, name: string, count: number) {
+export function addAsset(
+  platforms: PlatformDownloads,
+  name: string,
+  count: number,
+) {
   platforms[classifyAsset(name)] += count;
 }
 
@@ -56,11 +60,14 @@ export function platformsFromAssets(
   assets: { name: string; downloadCount: number }[],
 ): PlatformDownloads {
   const platforms = emptyPlatforms();
-  for (const asset of assets) addAsset(platforms, asset.name, asset.downloadCount);
+  for (const asset of assets)
+    addAsset(platforms, asset.name, asset.downloadCount);
   return platforms;
 }
 
-export function sumPlatforms(list: Array<PlatformDownloads | undefined | null>): PlatformDownloads {
+export function sumPlatforms(
+  list: Array<PlatformDownloads | undefined | null>,
+): PlatformDownloads {
   const platforms = emptyPlatforms();
   for (const item of list) {
     if (!item) continue;

@@ -1,11 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import {
-  getCache,
-  getConfig,
-  getStatus,
-  isMockMode,
-} from "../lib/api";
+import { getCache, getConfig, getStatus, isMockMode } from "../lib/api";
 import type { Status } from "../lib/types";
 import { useStore } from "./store";
 
@@ -31,7 +26,9 @@ function resolveInitialRoute(current: string): string {
       return detailPath(params.get("repo") ?? "sthbryan/hyperion");
     }
   }
-  return current === "/boot" || current === "/setup" || !current ? "/" : current;
+  return current === "/boot" || current === "/setup" || !current
+    ? "/"
+    : current;
 }
 
 function bootErrorStatus(err: unknown): Status {

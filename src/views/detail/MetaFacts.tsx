@@ -25,7 +25,9 @@ export function MetaFacts({ detail }: { detail: RepoDetail }) {
             <dt className="font-mono text-[10px] tracking-[0.08em] uppercase text-faint">
               {label}
             </dt>
-            <dd className="mt-1 truncate font-mono text-[12.5px] tabular">{value}</dd>
+            <dd className="mt-1 truncate font-mono text-[12.5px] tabular">
+              {value}
+            </dd>
           </div>
         ))}
         <div className="min-w-0 sm:col-span-2">

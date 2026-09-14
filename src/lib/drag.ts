@@ -1,6 +1,7 @@
 import type { MouseEvent as ReactMouseEvent } from "react";
 
-const IGNORE = "button, a, input, textarea, select, [role='button'], [role='switch'], [data-no-drag]";
+const IGNORE =
+  "button, a, input, textarea, select, [role='button'], [role='switch'], [data-no-drag]";
 
 export function dragWindow(event: ReactMouseEvent) {
   if (event.button !== 0) return;

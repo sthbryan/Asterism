@@ -9,7 +9,8 @@ const GLASS_KEY = "asterism:transparency";
 export function readStoredTheme(): ThemePref {
   try {
     const value = window.localStorage.getItem(THEME_KEY);
-    if (value === "light" || value === "system" || value === "dark") return value;
+    if (value === "light" || value === "system" || value === "dark")
+      return value;
   } catch {
     /* ignore */
   }
@@ -26,7 +27,9 @@ export function readStoredTransparency(): boolean {
 
 export function resolveTheme(pref: ThemePref): ResolvedTheme {
   if (pref === "system") {
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   }
   return pref;
 }
@@ -58,15 +61,23 @@ export function persistThemePref(pref: ThemePref) {
   }
 }
 
-export async function applyWindowChrome(resolved: ResolvedTheme, transparency: boolean) {
+export async function applyWindowChrome(
+  resolved: ResolvedTheme,
+  transparency: boolean,
+) {
   try {
-    const { Effect, EffectState, getCurrentWindow } = await import("@tauri-apps/api/window");
+    const { Effect, EffectState, getCurrentWindow } = await import(
+      "@tauri-apps/api/window"
+    );
     const win = getCurrentWindow();
     await win.setTheme(resolved);
     if (transparency) {
       await win.setBackgroundColor({ red: 0, green: 0, blue: 0, alpha: 0 });
       await win.setEffects({
-        effects: resolved === "dark" ? [Effect.HudWindow] : [Effect.HeaderView, Effect.ContentBackground],
+        effects:
+          resolved === "dark"
+            ? [Effect.HudWindow]
+            : [Effect.HeaderView, Effect.ContentBackground],
         state: EffectState.Active,
       });
     } else {
@@ -89,10 +100,12 @@ export function saveAppearance(theme: ThemePref, transparency: boolean) {
   } catch {
     /* ignore */
   }
-  return invoke<Config>("save_appearance", { theme, transparency }).catch(() => ({
-    version: 1,
-    repos: [],
-    theme,
-    transparency,
-  }));
+  return invoke<Config>("save_appearance", { theme, transparency }).catch(
+    () => ({
+      version: 1,
+      repos: [],
+      theme,
+      transparency,
+    }),
+  );
 }

@@ -25,7 +25,10 @@ export function ListSkeleton() {
             <Bone className="mb-3.5 h-3 w-36" />
             <div className="space-y-2.5">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="grid grid-cols-[minmax(0,140px)_1fr_56px] items-center gap-3">
+                <div
+                  key={i}
+                  className="grid grid-cols-[minmax(0,140px)_1fr_56px] items-center gap-3"
+                >
                   <Bone className="h-2.5 w-20" />
                   <Bone className="h-1.5 w-full rounded-full" />
                   <Bone className="ml-auto h-2.5 w-8" />

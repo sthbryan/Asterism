@@ -43,13 +43,18 @@ ${c.cyan}${c.bold}
    ╚══════════════════════════════════════╝
 ${c.reset}`;
   console.log(art);
-  console.log(`   ${paint(c.dim, "current")}  ${paint(c.bold + c.white, `v${current}`)}`);
-  if (dryRun) console.log(`   ${paint(c.yellow, "mode")}     dry-run (no writes)`);
+  console.log(
+    `   ${paint(c.dim, "current")}  ${paint(c.bold + c.white, `v${current}`)}`,
+  );
+  if (dryRun)
+    console.log(`   ${paint(c.yellow, "mode")}     dry-run (no writes)`);
   console.log();
 }
 
 function parseSemver(v) {
-  const m = String(v).trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
+  const m = String(v)
+    .trim()
+    .match(/^(\d+)\.(\d+)\.(\d+)$/);
   if (!m) fail(`invalid semver: ${v}`);
   return { major: +m[1], minor: +m[2], patch: +m[3] };
 }
@@ -61,9 +66,12 @@ function formatSemver({ major, minor, patch }) {
 function nextVersion(current, bump) {
   if (/^\d+\.\d+\.\d+$/.test(bump)) return bump;
   const s = parseSemver(current);
-  if (bump === "major") return formatSemver({ major: s.major + 1, minor: 0, patch: 0 });
-  if (bump === "minor") return formatSemver({ major: s.major, minor: s.minor + 1, patch: 0 });
-  if (bump === "patch") return formatSemver({ major: s.major, minor: s.minor, patch: s.patch + 1 });
+  if (bump === "major")
+    return formatSemver({ major: s.major + 1, minor: 0, patch: 0 });
+  if (bump === "minor")
+    return formatSemver({ major: s.major, minor: s.minor + 1, patch: 0 });
+  if (bump === "patch")
+    return formatSemver({ major: s.major, minor: s.minor, patch: s.patch + 1 });
   fail(`unknown bump "${bump}" (use patch|minor|major|x.y.z)`);
 }
 
@@ -146,7 +154,9 @@ async function chooseBump(current) {
   console.log(`   ${paint(c.cyan, "q")}  ${paint(c.dim, "quit")}\n`);
 
   const answer = (
-    await promptLine(`   ${paint(c.bold, "?")}  choice ${paint(c.dim, "[1/2/3/4/q]")}: `)
+    await promptLine(
+      `   ${paint(c.bold, "?")}  choice ${paint(c.dim, "[1/2/3/4/q]")}: `,
+    )
   ).toLowerCase();
 
   if (answer === "q" || answer === "quit" || answer === "") {
@@ -157,7 +167,9 @@ async function chooseBump(current) {
   if (answer === "2" || answer === "minor" || answer === "m") return "minor";
   if (answer === "3" || answer === "major") return "major";
   if (answer === "4" || answer === "custom" || answer === "c") {
-    const custom = await promptLine(`   ${paint(c.bold, "?")}  version ${paint(c.dim, "(x.y.z)")}: `);
+    const custom = await promptLine(
+      `   ${paint(c.bold, "?")}  version ${paint(c.dim, "(x.y.z)")}: `,
+    );
     if (!/^\d+\.\d+\.\d+$/.test(custom)) fail(`invalid version: ${custom}`);
     return custom;
   }
@@ -173,15 +185,20 @@ async function confirm(next, tag) {
   console.log(`   ${paint(c.dim, "────")}`);
   console.log(`   version  ${paint(c.bold + c.green, next)}`);
   console.log(`   tag      ${paint(c.bold + c.cyan, tag)}`);
-  console.log(`   files    package.json · tauri.conf.json · Cargo.toml · Cargo.lock`);
+  console.log(
+    `   files    package.json · tauri.conf.json · Cargo.toml · Cargo.lock`,
+  );
   console.log(
     `   git      commit + annotated tag${noPush ? paint(c.yellow, " (no push)") : " + push"}`,
   );
-  if (dryRun) console.log(`   ${paint(c.yellow, "dry-run — nothing will be written")}`);
+  if (dryRun)
+    console.log(`   ${paint(c.yellow, "dry-run — nothing will be written")}`);
   console.log();
 
   const answer = (
-    await promptLine(`   ${paint(c.bold, "?")}  proceed? ${paint(c.dim, "[y/N]")}: `)
+    await promptLine(
+      `   ${paint(c.bold, "?")}  proceed? ${paint(c.dim, "[y/N]")}: `,
+    )
   ).toLowerCase();
   return answer === "y" || answer === "yes";
 }
@@ -253,11 +270,14 @@ writeJson(tauriPath, tauri);
 bumpCargoToml(cargoPath, next);
 
 console.log(`   ${paint(c.dim, "…")} syncing Cargo.lock`);
-let lock = await $`cargo update --manifest-path ${cargoPath} --workspace --offline`
-  .quiet()
-  .nothrow();
+let lock =
+  await $`cargo update --manifest-path ${cargoPath} --workspace --offline`
+    .quiet()
+    .nothrow();
 if (lock.exitCode !== 0) {
-  lock = await $`cargo update --manifest-path ${cargoPath} --workspace`.quiet().nothrow();
+  lock = await $`cargo update --manifest-path ${cargoPath} --workspace`
+    .quiet()
+    .nothrow();
 }
 if (lock.exitCode !== 0) {
   fail(`cargo could not refresh Cargo.lock:\n${lock.stderr.toString().trim()}`);

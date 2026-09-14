@@ -1,8 +1,8 @@
 import { ArrowSquareOut, CheckCircle } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { Button } from "../../components/Button";
 import { isMockMode } from "../../lib/api";
 import type { CreatedRepo } from "../../lib/types";
-import { Button } from "../../components/Button";
 
 export function ResultCard({
   created,
@@ -25,7 +25,8 @@ export function ResultCard({
       <h2 className="mt-4 text-xl font-semibold">Repository created</h2>
       <p className="mt-2 break-all font-mono text-sm">{created.fullName}</p>
       <p className="mt-2 text-sm text-mist">
-        {created.private ? "Private" : "Public"} repository{isMockMode() ? " · Demo only" : " on GitHub"}.
+        {created.private ? "Private" : "Public"} repository
+        {isMockMode() ? " · Demo only" : " on GitHub"}.
       </p>
       {error && (
         <p role="alert" className="mt-4 text-sm text-accent-soft">
@@ -39,7 +40,9 @@ export function ResultCard({
         {!isMockMode() && (
           <Button
             onClick={() => {
-              void openUrl(created.htmlUrl).catch((err) => setError(String(err)));
+              void openUrl(created.htmlUrl).catch((err) =>
+                setError(String(err)),
+              );
             }}
           >
             Open on GitHub <ArrowSquareOut size={14} />

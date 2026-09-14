@@ -46,8 +46,18 @@ const maskPath = squirclePath(SIZE, 5);
 const cx = SIZE / 2;
 const cy = SIZE / 2;
 const main = starPath(cx, cy, SIZE * 0.28, SIZE * 0.11);
-const north = starPath(cx + SIZE * 0.22, cy - SIZE * 0.2, SIZE * 0.055, SIZE * 0.022);
-const south = starPath(cx - SIZE * 0.2, cy + SIZE * 0.18, SIZE * 0.04, SIZE * 0.016);
+const north = starPath(
+  cx + SIZE * 0.22,
+  cy - SIZE * 0.2,
+  SIZE * 0.055,
+  SIZE * 0.022,
+);
+const south = starPath(
+  cx - SIZE * 0.2,
+  cy + SIZE * 0.18,
+  SIZE * 0.04,
+  SIZE * 0.016,
+);
 
 const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}" fill="none">

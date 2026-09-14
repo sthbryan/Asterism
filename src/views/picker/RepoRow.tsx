@@ -55,7 +55,10 @@ export function RepoRow({
           {repo.private ? <Meta>Private</Meta> : null}
           {repo.archived ? <Meta>Archived</Meta> : null}
           <span className="tabular">
-            <Star size={10} className="mr-1 inline-block -translate-y-px text-faint" />
+            <Star
+              size={10}
+              className="mr-1 inline-block -translate-y-px text-faint"
+            />
             {fmtNum(repo.stars)}
           </span>
         </span>

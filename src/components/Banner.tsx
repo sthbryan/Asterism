@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { WarningCircle } from "@phosphor-icons/react";
+import { useEffect, useState } from "react";
 
 export function Banner({ message }: { message: string | null }) {
   const [text, setText] = useState(message);

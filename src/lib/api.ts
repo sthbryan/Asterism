@@ -1,15 +1,4 @@
 import { invoke } from "@tauri-apps/api/core";
-import type {
-  Cache,
-  CatalogRepo,
-  Config,
-  CreateOptions,
-  CreateRepoInput,
-  CreatedRepo,
-  RepoDetail,
-  Status,
-  ThemePref,
-} from "./types";
 import { readStoredTheme, readStoredTransparency } from "./appearance";
 import {
   MOCK_CACHE,
@@ -20,6 +9,17 @@ import {
   mockCreateRepo,
   mockDetail,
 } from "./mock";
+import type {
+  Cache,
+  CatalogRepo,
+  Config,
+  CreatedRepo,
+  CreateOptions,
+  CreateRepoInput,
+  RepoDetail,
+  Status,
+  ThemePref,
+} from "./types";
 
 export function isMockMode(): boolean {
   if (typeof window === "undefined") return false;
@@ -43,9 +43,17 @@ export function getStatus() {
   if (isMockMode()) {
     const setup = new URLSearchParams(window.location.search).get("setup");
     if (setup === "missing" || setup === "auth" || setup === "network") {
-      return delay<Status>({ ok: false, login: null, hint: null,
-        error: setup === "missing" ? "GitHub CLI (gh) was not found on this machine."
-          : setup === "auth" ? "GitHub CLI is not authenticated." : "Could not connect to api.github.com." });
+      return delay<Status>({
+        ok: false,
+        login: null,
+        hint: null,
+        error:
+          setup === "missing"
+            ? "GitHub CLI (gh) was not found on this machine."
+            : setup === "auth"
+              ? "GitHub CLI is not authenticated."
+              : "Could not connect to api.github.com.",
+      });
     }
     return delay({ ...MOCK_STATUS });
   }
@@ -61,7 +69,11 @@ function mockAppearance(): { theme: ThemePref; transparency: boolean } {
 
 export function getConfig() {
   if (isMockMode()) {
-    return delay<Config>({ version: 1, repos: [...mockRepos], ...mockAppearance() });
+    return delay<Config>({
+      version: 1,
+      repos: [...mockRepos],
+      ...mockAppearance(),
+    });
   }
   return invoke<Config>("get_config");
 }
@@ -69,16 +81,24 @@ export function getConfig() {
 export function saveConfig(repos: string[]) {
   if (isMockMode()) {
     mockRepos = [...repos];
-    return delay<Config>({ version: 1, repos: [...mockRepos], ...mockAppearance() });
+    return delay<Config>({
+      version: 1,
+      repos: [...mockRepos],
+      ...mockAppearance(),
+    });
   }
   return invoke<Config>("save_config", { repos });
 }
 
 export function getCache() {
   if (isMockMode()) {
-    const repos = MOCK_CACHE.repos.filter((r) => mockRepos.includes(r.fullName));
+    const repos = MOCK_CACHE.repos.filter((r) =>
+      mockRepos.includes(r.fullName),
+    );
     const history = Object.fromEntries(
-      repos.map((repo) => [repo.fullName, MOCK_CACHE.history[repo.fullName]]).filter(([, h]) => h),
+      repos
+        .map((repo) => [repo.fullName, MOCK_CACHE.history[repo.fullName]])
+        .filter(([, h]) => h),
     );
     return delay<Cache | null>({
       fetchedAt: MOCK_CACHE.fetchedAt,
@@ -95,7 +115,8 @@ export function listCatalog() {
 }
 
 export function listCreateOptions() {
-  if (isMockMode()) return delay<CreateOptions>({ ...MOCK_CREATE_OPTIONS }, 280);
+  if (isMockMode())
+    return delay<CreateOptions>({ ...MOCK_CREATE_OPTIONS }, 280);
   return invoke<CreateOptions>("list_create_options");
 }
 
@@ -106,9 +127,13 @@ export function createRepo(input: CreateRepoInput) {
 
 export function refreshTracked() {
   if (isMockMode()) {
-    const repos = MOCK_CACHE.repos.filter((r) => mockRepos.includes(r.fullName));
+    const repos = MOCK_CACHE.repos.filter((r) =>
+      mockRepos.includes(r.fullName),
+    );
     const history = Object.fromEntries(
-      repos.map((repo) => [repo.fullName, MOCK_CACHE.history[repo.fullName]]).filter(([, h]) => h),
+      repos
+        .map((repo) => [repo.fullName, MOCK_CACHE.history[repo.fullName]])
+        .filter(([, h]) => h),
     );
     return delay<Cache>(
       {

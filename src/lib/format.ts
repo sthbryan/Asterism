@@ -25,9 +25,11 @@ export function fmtCompact(n: number | null | undefined) {
 export function fmtBytes(n: number) {
   if (n < 1024) return `${fmtNum(n)} B`;
   const kb = n / 1024;
-  if (kb < 1024) return `${kb < 10 ? kb.toFixed(1) : fmtNum(Math.round(kb))} KB`;
+  if (kb < 1024)
+    return `${kb < 10 ? kb.toFixed(1) : fmtNum(Math.round(kb))} KB`;
   const mb = kb / 1024;
-  if (mb < 1024) return `${mb < 10 ? mb.toFixed(1) : fmtNum(Math.round(mb))} MB`;
+  if (mb < 1024)
+    return `${mb < 10 ? mb.toFixed(1) : fmtNum(Math.round(mb))} MB`;
   const gb = mb / 1024;
   return `${gb < 10 ? gb.toFixed(1) : fmtNum(Math.round(gb))} GB`;
 }
@@ -72,7 +74,9 @@ export function fmtAxisDateLong(unix: number) {
 const BARE_HOST =
   /^(www\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+([/:?#].*)?$/i;
 
-export function hrefFromMaybeUrl(raw: string | null | undefined): string | null {
+export function hrefFromMaybeUrl(
+  raw: string | null | undefined,
+): string | null {
   if (!raw) return null;
   const value = raw.trim();
   if (!value) return null;

@@ -1,9 +1,9 @@
-import { isMockMode } from "../../lib/api";
 import { Button } from "../../components/Button";
-import { SetupSection } from "./SetupSection";
-import { VisibilitySection } from "./VisibilitySection";
+import { isMockMode } from "../../lib/api";
 import { fieldClass } from "./fields";
+import { SetupSection } from "./SetupSection";
 import type { CreateFormApi } from "./useCreateForm";
+import { VisibilitySection } from "./VisibilitySection";
 
 export function CreateFormFields({ form }: { form: CreateFormApi }) {
   const {
@@ -29,12 +29,16 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
         void submit(event);
       }}
     >
-      <h2 className="text-xl font-semibold tracking-[-0.02em]">A new home for your project</h2>
+      <h2 className="text-xl font-semibold tracking-[-0.02em]">
+        A new home for your project
+      </h2>
       <p className="mt-2 text-[13px] leading-relaxed text-mist">
         Create a repository on GitHub and start tracking it in Asterism.
       </p>
       {isMockMode() && (
-        <p className="mt-3 text-sm text-mist">Demo mode — no repository will be created on GitHub.</p>
+        <p className="mt-3 text-sm text-mist">
+          Demo mode — no repository will be created on GitHub.
+        </p>
       )}
       {loading && (
         <p role="status" className="mt-5 text-sm text-mist">
@@ -51,7 +55,10 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
           )}
         </div>
       )}
-      <fieldset disabled={busy || loading || !options} className="mt-7 space-y-6 disabled:opacity-60">
+      <fieldset
+        disabled={busy || loading || !options}
+        className="mt-7 space-y-6 disabled:opacity-60"
+      >
         <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
           <label className="text-[13px] font-medium">
             Owner

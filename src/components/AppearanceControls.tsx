@@ -10,12 +10,17 @@ export function AppearanceControls() {
     <div className="mx-2.5 mb-1 flex items-center gap-2 rounded-lg border border-hairline px-2 py-1.5">
       <button
         type="button"
-        aria-label={next === "light" ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={
+          next === "light" ? "Switch to light mode" : "Switch to dark mode"
+        }
         title={next === "light" ? "Light mode" : "Dark mode"}
         onClick={() => setTheme(next)}
         className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper"
       >
-        <span className="t-icon-swap" data-state={resolved === "dark" ? "a" : "b"}>
+        <span
+          className="t-icon-swap"
+          data-state={resolved === "dark" ? "a" : "b"}
+        >
           <span className="t-icon" data-icon="a">
             <Moon size={14} />
           </span>

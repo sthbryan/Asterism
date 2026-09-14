@@ -12,12 +12,15 @@ export function usePicker({
   initialSelected: string[];
 }) {
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(initialSelected));
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialSelected),
+  );
   const [ownerFilter, setOwnerFilter] = useState<string | null>(null);
 
   const initial = useMemo(() => new Set(initialSelected), [initialSelected]);
   const dirty =
-    selected.size !== initial.size || [...selected].some((name) => !initial.has(name));
+    selected.size !== initial.size ||
+    [...selected].some((name) => !initial.has(name));
 
   const owners: OwnerEntry[] = useMemo(() => {
     const map = new Map<string, number>();

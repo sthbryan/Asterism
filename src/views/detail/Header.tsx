@@ -19,7 +19,9 @@ export function DetailTitle({
         Overview
       </button>
       <span className="text-faint">/</span>
-      <span className="font-mono text-[13px] font-semibold">{fullName ?? "…"}</span>
+      <span className="font-mono text-[13px] font-semibold">
+        {fullName ?? "…"}
+      </span>
     </nav>
   );
 }

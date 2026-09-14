@@ -5,7 +5,8 @@ import { platformItems, shortPath } from "../../lib/platform";
 import type { RepoDetail } from "../../lib/types";
 
 export function InsightsSection({ detail }: { detail: RepoDetail }) {
-  const langTotal = detail.languages.reduce((sum, lang) => sum + lang.bytes, 0) || 1;
+  const langTotal =
+    detail.languages.reduce((sum, lang) => sum + lang.bytes, 0) || 1;
   const platformBars = platformItems(
     detail.platforms ?? { macos: 0, windows: 0, linux: 0, other: 0 },
   );
@@ -35,7 +36,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
           )}
         </div>
         <div className="card p-4">
-          <div className="text-[13px] font-semibold">Popular paths · 14 days</div>
+          <div className="text-[13px] font-semibold">
+            Popular paths · 14 days
+          </div>
           {paths.length === 0 ? (
             <p className="mt-3 text-[13px] text-faint">
               {detail.trafficError && !detail.views
@@ -83,7 +86,10 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               {detail.languages.map((lang) => {
                 const pct = (lang.bytes / langTotal) * 100;
                 return (
-                  <li key={lang.name} className="grid grid-cols-[100px_1fr_40px] items-center gap-2.5">
+                  <li
+                    key={lang.name}
+                    className="grid grid-cols-[100px_1fr_40px] items-center gap-2.5"
+                  >
                     <span className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
                       <span
                         className="h-1.5 w-1.5 shrink-0 rounded-full"

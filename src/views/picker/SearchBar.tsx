@@ -1,6 +1,12 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
 
-export function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function SearchBar({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
   return (
     <label className="flex h-8 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-hairline bg-wash px-2.5 transition-colors focus-within:border-line">
       <MagnifyingGlass size={13} className="shrink-0 text-faint" />

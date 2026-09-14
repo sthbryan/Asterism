@@ -1,8 +1,8 @@
-import type { ReactNode } from "react";
 import { DownloadSimple, Eye } from "@phosphor-icons/react";
+import type { ReactNode } from "react";
 import { ColumnChart } from "../../components/Charts";
-import { fillTrafficDays } from "../../lib/series";
 import { fmtCompact, fmtNum } from "../../lib/format";
+import { fillTrafficDays } from "../../lib/series";
 import type { RepoDetail } from "../../lib/types";
 
 export function TrafficSection({ detail }: { detail: RepoDetail }) {
@@ -10,7 +10,9 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
     <div className="card mt-3 p-4">
       <div className="flex items-baseline justify-between gap-3">
         <div className="text-[13px] font-semibold">Traffic · 14 days</div>
-        <span className="text-[11px] text-faint">GitHub only exposes the last 14 days</span>
+        <span className="text-[11px] text-faint">
+          GitHub only exposes the last 14 days
+        </span>
       </div>
       {detail.trafficError && !detail.views && !detail.clones ? (
         <p className="mt-3 text-[13px] leading-relaxed text-mist">
@@ -19,7 +21,12 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-5">
           <div>
-            <TrafficBlock label="Views" icon={<Eye size={14} />} traffic={detail.views} unique="unique" />
+            <TrafficBlock
+              label="Views"
+              icon={<Eye size={14} />}
+              traffic={detail.views}
+              unique="unique"
+            />
             <div className="mt-3">
               <ColumnChart
                 tone="paper"

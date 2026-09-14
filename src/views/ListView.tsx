@@ -1,5 +1,3 @@
-import { useMemo, useState } from "react";
-import { VList } from "virtua";
 import {
   ArrowClockwise,
   CaretDown,
@@ -14,15 +12,23 @@ import {
   Star,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
+import { useMemo, useState } from "react";
+import { VList } from "virtua";
 import { Banner } from "../components/Banner";
-import { AreaChart, BarChart } from "../components/Charts";
 import { Button } from "../components/Button";
+import { AreaChart, BarChart } from "../components/Charts";
 import { KpiCard } from "../components/KpiCard";
 import { ListSkeleton } from "../components/Skeleton";
 import { fmtFetched, fmtNum, fmtSigned } from "../lib/format";
 import { langColor } from "../lib/langcolors";
 import { platformItems, sumPlatforms } from "../lib/platform";
-import { aggregateHistory, delta, pickKpiDelta, sumDeltas, windowDelta } from "../lib/series";
+import {
+  aggregateHistory,
+  delta,
+  pickKpiDelta,
+  sumDeltas,
+  windowDelta,
+} from "../lib/series";
 import type { RepoHistory, TrackedRepo } from "../lib/types";
 
 const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
@@ -42,7 +48,10 @@ export function ListTrailing({
   return (
     <div className="flex items-center gap-1">
       {refreshing ? (
-        <span className="t-shimmer font-mono text-[12px] leading-none" data-text="Refreshing…">
+        <span
+          className="t-shimmer font-mono text-[12px] leading-none"
+          data-text="Refreshing…"
+        >
           Refreshing…
         </span>
       ) : fetched ? (
@@ -59,7 +68,10 @@ export function ListTrailing({
         title="Refresh"
         className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <ArrowClockwise size={14} className={refreshing ? "animate-spin" : ""} />
+        <ArrowClockwise
+          size={14}
+          className={refreshing ? "animate-spin" : ""}
+        />
       </button>
     </div>
   );
@@ -96,7 +108,10 @@ export function ListView({
   );
 
   const names = useMemo(() => repos.map((repo) => repo.fullName), [repos]);
-  const starSeries = useMemo(() => aggregateHistory(history, names, "stars"), [history, names]);
+  const starSeries = useMemo(
+    () => aggregateHistory(history, names, "stars"),
+    [history, names],
+  );
   const downloadSeries = useMemo(
     () => aggregateHistory(history, names, "downloads"),
     [history, names],
@@ -105,8 +120,14 @@ export function ListView({
   const downloadDelta = useMemo(() => delta(downloadSeries), [downloadSeries]);
   const { starKpi, forkKpi, downloadKpi } = useMemo(
     () => ({
-      starKpi: pickKpiDelta(windowDelta(starSeries, 7), sumDeltas(repos.map((repo) => repo.starsDelta))),
-      forkKpi: pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta))),
+      starKpi: pickKpiDelta(
+        windowDelta(starSeries, 7),
+        sumDeltas(repos.map((repo) => repo.starsDelta)),
+      ),
+      forkKpi: pickKpiDelta(
+        null,
+        sumDeltas(repos.map((repo) => repo.forksDelta)),
+      ),
       downloadKpi: pickKpiDelta(
         windowDelta(downloadSeries, 7),
         sumDeltas(repos.map((repo) => repo.downloadsDelta)),
@@ -131,24 +152,28 @@ export function ListView({
     return {
       chartItems: items,
       top: first,
-      share: first && total > 0 ? Math.round((first.downloads / total) * 100) : 0,
+      share:
+        first && total > 0 ? Math.round((first.downloads / total) * 100) : 0,
       showChart: items.some((item) => item.value > 0),
     };
   }, [repos]);
-  const { languages, langTotal, privateCount, silentCount, errorCount } = useMemo(() => {
-    const langs = [...repos.reduce((map, repo) => {
-      const name = repo.language ?? "Unknown";
-      map.set(name, (map.get(name) ?? 0) + 1);
-      return map;
-    }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
-    return {
-      languages: langs,
-      langTotal: repos.length || 1,
-      privateCount: repos.filter((repo) => repo.private).length,
-      silentCount: repos.filter((repo) => repo.downloads === 0).length,
-      errorCount: repos.filter((repo) => repo.error).length,
-    };
-  }, [repos]);
+  const { languages, langTotal, privateCount, silentCount, errorCount } =
+    useMemo(() => {
+      const langs = [
+        ...repos.reduce((map, repo) => {
+          const name = repo.language ?? "Unknown";
+          map.set(name, (map.get(name) ?? 0) + 1);
+          return map;
+        }, new Map<string, number>()),
+      ].sort((a, b) => b[1] - a[1]);
+      return {
+        languages: langs,
+        langTotal: repos.length || 1,
+        privateCount: repos.filter((repo) => repo.private).length,
+        silentCount: repos.filter((repo) => repo.downloads === 0).length,
+        errorCount: repos.filter((repo) => repo.error).length,
+      };
+    }, [repos]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -168,7 +193,9 @@ export function ListView({
 
   function toggleSort(key: SortKey) {
     setSort((prev) =>
-      prev.key === key ? { key, dir: -prev.dir } : { key, dir: key === "fullName" ? 1 : -1 },
+      prev.key === key
+        ? { key, dir: -prev.dir }
+        : { key, dir: key === "fullName" ? 1 : -1 },
     );
   }
 
@@ -177,368 +204,446 @@ export function ListView({
   return showSkeleton ? (
     <ListSkeleton />
   ) : (
-        <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
-          <Banner message={banner} />
+    <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
+      <Banner message={banner} />
 
-          <div className="grid grid-cols-4 gap-3">
-            <KpiCard
-              label="Repositories"
-              value={repos.length}
-              icon={<FolderSimple size={15} />}
-              sub="tracked"
-            />
-            <KpiCard
-              label="Stars"
-              value={stars}
-              icon={<Star size={15} />}
-              sub="total"
-              delta={starKpi?.delta}
-              deltaHint={starKpi?.hint}
-            />
-            <KpiCard
-              label="Forks"
-              value={forks}
-              icon={<GitFork size={15} />}
-              sub="total"
-              delta={forkKpi?.delta}
-              deltaHint={forkKpi?.hint}
-            />
-            <KpiCard
-              label="Downloads"
-              value={downloads}
-              icon={<DownloadSimple size={15} />}
-              sub="release assets"
-              hero
-              delta={downloadKpi?.delta}
-              deltaHint={downloadKpi?.hint}
-            />
+      <div className="grid grid-cols-4 gap-3">
+        <KpiCard
+          label="Repositories"
+          value={repos.length}
+          icon={<FolderSimple size={15} />}
+          sub="tracked"
+        />
+        <KpiCard
+          label="Stars"
+          value={stars}
+          icon={<Star size={15} />}
+          sub="total"
+          delta={starKpi?.delta}
+          deltaHint={starKpi?.hint}
+        />
+        <KpiCard
+          label="Forks"
+          value={forks}
+          icon={<GitFork size={15} />}
+          sub="total"
+          delta={forkKpi?.delta}
+          deltaHint={forkKpi?.hint}
+        />
+        <KpiCard
+          label="Downloads"
+          value={downloads}
+          icon={<DownloadSimple size={15} />}
+          sub="release assets"
+          hero
+          delta={downloadKpi?.delta}
+          deltaHint={downloadKpi?.hint}
+        />
+      </div>
+
+      {repos.length > 0 ? (
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <div className="card p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="text-[13px] font-semibold">Stars over time</div>
+              {starDelta != null ? (
+                <span className="font-mono text-[11.5px] text-faint tabular">
+                  {starDelta >= 0 ? "+" : ""}
+                  {fmtNum(starDelta)} in range
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-[11.5px] leading-snug text-faint">
+              Reconstructed from GitHub stargazers, then updated on each
+              refresh.
+            </p>
+            <div className="mt-3">
+              <AreaChart
+                points={starSeries}
+                tone="paper"
+                empty="Open a repository or refresh to reconstruct star history from GitHub."
+              />
+            </div>
+          </div>
+          <div className="card p-4">
+            <div className="flex items-baseline justify-between gap-3">
+              <div className="text-[13px] font-semibold">
+                Downloads over time
+              </div>
+              {downloadDelta != null ? (
+                <span className="font-mono text-[11.5px] text-faint tabular">
+                  {downloadDelta >= 0 ? "+" : ""}
+                  {fmtNum(downloadDelta)} in range
+                </span>
+              ) : null}
+            </div>
+            <p className="mt-1 text-[11.5px] leading-snug text-faint">
+              GitHub does not publish download history. Asterism records a
+              snapshot each refresh.
+            </p>
+            <div className="mt-3">
+              <AreaChart
+                points={downloadSeries}
+                tone="accent"
+                empty="This chart fills in from the next refresh onward."
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {repos.length === 0 ? (
+        <div className="card mt-3 flex min-h-[240px] flex-col items-center justify-center px-8 text-center">
+          <h2 className="text-[16px] font-semibold tracking-[-0.02em]">
+            No repositories tracked
+          </h2>
+          <p className="mt-2 max-w-sm text-[12.5px] leading-relaxed text-mist">
+            Choose the repositories you want to watch. Only that set is synced.
+          </p>
+          <Button variant="primary" className="mt-4" onClick={onOpenPicker}>
+            Edit repositories
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
+          <div className="flex min-w-0 flex-col gap-3">
+            {showChart ? (
+              <div className="card">
+                <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
+                  <span className="text-[13px] font-semibold">
+                    Downloads by repo
+                  </span>
+                  <span className="ml-auto font-mono text-[11.5px] text-faint tabular">
+                    total {fmtNum(downloads)}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <BarChart items={chartItems} onSelect={onOpenRepo} />
+                </div>
+              </div>
+            ) : null}
+
+            <div className="card min-w-0 overflow-hidden">
+              <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
+                <span className="text-[13px] font-semibold">Repositories</span>
+                <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line">
+                  <MagnifyingGlass size={12} className="shrink-0 text-faint" />
+                  <input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Filter…"
+                    aria-label="Filter repositories"
+                    className="w-full bg-transparent text-[12px] leading-none outline-none placeholder:text-faint"
+                  />
+                </label>
+              </div>
+              <div
+                className={`grid ${COLS} items-center gap-3 border-b border-hairline px-4 py-2`}
+              >
+                <SortHead
+                  label="Repository"
+                  k="fullName"
+                  sort={sort}
+                  onSort={toggleSort}
+                />
+                <div className="flex justify-end">
+                  <SortHead
+                    label="Stars"
+                    k="stars"
+                    sort={sort}
+                    onSort={toggleSort}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <SortHead
+                    label="Forks"
+                    k="forks"
+                    sort={sort}
+                    onSort={toggleSort}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <SortHead
+                    label="Downloads"
+                    k="downloads"
+                    sort={sort}
+                    onSort={toggleSort}
+                  />
+                </div>
+                <span />
+              </div>
+              {rows.length <= 30 ? (
+                <ul>
+                  {rows.length === 0 ? (
+                    <li>
+                      <p className="px-5 py-8 text-center text-[13px] text-faint">
+                        No results for “{query.trim()}”.
+                      </p>
+                    </li>
+                  ) : (
+                    rows.map((repo) => (
+                      <li
+                        key={repo.fullName}
+                        className="border-b border-hairline last:border-b-0"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => onOpenRepo(repo.fullName)}
+                          className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span
+                              className="h-1.5 w-1.5 shrink-0 rounded-full"
+                              style={{ background: langColor(repo.language) }}
+                            />
+                            <span className="truncate text-[12.5px]">
+                              <span className="text-faint">
+                                {repo.fullName.split("/")[0]}/
+                              </span>
+                              <span className="font-medium">
+                                {repo.fullName.split("/")[1] ?? repo.fullName}
+                              </span>
+                            </span>
+                            {repo.error ? (
+                              <WarningCircleIcon
+                                size={13}
+                                className="shrink-0 text-accent-soft"
+                              />
+                            ) : null}
+                            {repo.private ? <Chip>Private</Chip> : null}
+                          </span>
+                          <NumCell
+                            value={repo.stars}
+                            delta={repo.starsDelta}
+                            strong={false}
+                          />
+                          <NumCell
+                            value={repo.forks}
+                            delta={repo.forksDelta}
+                            strong={false}
+                          />
+                          <NumCell
+                            value={repo.downloads}
+                            delta={repo.downloadsDelta}
+                            strong
+                          />
+                          <CaretRight
+                            size={12}
+                            className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
+                          />
+                        </button>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              ) : (
+                <VList
+                  style={{ height: Math.min(480, rows.length * 57) }}
+                  itemSize={57}
+                >
+                  {rows.map((repo) => (
+                    <div
+                      key={repo.fullName}
+                      className="border-b border-hairline last:border-b-0"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onOpenRepo(repo.fullName)}
+                        className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
+                      >
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span
+                            className="h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: langColor(repo.language) }}
+                          />
+                          <span className="truncate text-[12.5px]">
+                            <span className="text-faint">
+                              {repo.fullName.split("/")[0]}/
+                            </span>
+                            <span className="font-medium">
+                              {repo.fullName.split("/")[1] ?? repo.fullName}
+                            </span>
+                          </span>
+                          {repo.error ? (
+                            <WarningCircleIcon
+                              size={13}
+                              className="shrink-0 text-accent-soft"
+                            />
+                          ) : null}
+                          {repo.private ? <Chip>Private</Chip> : null}
+                        </span>
+                        <NumCell
+                          value={repo.stars}
+                          delta={repo.starsDelta}
+                          strong={false}
+                        />
+                        <NumCell
+                          value={repo.forks}
+                          delta={repo.forksDelta}
+                          strong={false}
+                        />
+                        <NumCell
+                          value={repo.downloads}
+                          delta={repo.downloadsDelta}
+                          strong
+                        />
+                        <CaretRight
+                          size={12}
+                          className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
+                        />
+                      </button>
+                    </div>
+                  ))}
+                </VList>
+              )}
+            </div>
           </div>
 
-          {repos.length > 0 ? (
-            <div className="mt-3 grid gap-3 lg:grid-cols-2">
-              <div className="card p-4">
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="text-[13px] font-semibold">Stars over time</div>
-                  {starDelta != null ? (
-                    <span className="font-mono text-[11.5px] text-faint tabular">
-                      {starDelta >= 0 ? "+" : ""}
-                      {fmtNum(starDelta)} in range
-                    </span>
-                  ) : null}
+          <div className="flex min-w-0 flex-col gap-3">
+            {top ? (
+              <button
+                type="button"
+                onClick={() => onOpenRepo(top.fullName)}
+                className="card w-full p-4 text-left transition-colors hover:bg-hover"
+              >
+                <div className="flex items-center gap-2 text-mist">
+                  <Star size={14} className="text-faint" />
+                  <span className="kpi-label">Top repository</span>
                 </div>
-                <p className="mt-1 text-[11.5px] leading-snug text-faint">
-                  Reconstructed from GitHub stargazers, then updated on each refresh.
+                <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
+                  {top.fullName}
                 </p>
-                <div className="mt-3">
-                  <AreaChart
-                    points={starSeries}
-                    tone="paper"
-                    empty="Open a repository or refresh to reconstruct star history from GitHub."
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div>
+                    <div className="text-[11px] leading-none text-faint">
+                      Stars
+                    </div>
+                    <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
+                      {fmtNum(top.stars)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] leading-none text-faint">
+                      Downloads
+                    </div>
+                    <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
+                      {fmtNum(top.downloads)}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-accent to-accent-hover"
+                    style={{ width: `${share}%` }}
                   />
                 </div>
-              </div>
-              <div className="card p-4">
-                <div className="flex items-baseline justify-between gap-3">
-                  <div className="text-[13px] font-semibold">Downloads over time</div>
-                  {downloadDelta != null ? (
-                    <span className="font-mono text-[11.5px] text-faint tabular">
-                      {downloadDelta >= 0 ? "+" : ""}
-                      {fmtNum(downloadDelta)} in range
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-[11.5px] leading-snug text-faint">
-                  GitHub does not publish download history. Asterism records a snapshot each refresh.
+                <p className="mt-2 text-[11.5px] leading-snug text-faint">
+                  {share}% of total downloads
                 </p>
+              </button>
+            ) : null}
+
+            {platformBars.length > 0 ? (
+              <div className="card p-4">
+                <div className="flex items-center gap-2 text-mist">
+                  <Desktop size={14} className="text-faint" />
+                  <span className="kpi-label">Downloads by platform</span>
+                </div>
                 <div className="mt-3">
-                  <AreaChart
-                    points={downloadSeries}
-                    tone="accent"
-                    empty="This chart fills in from the next refresh onward."
-                  />
+                  <BarChart items={platformBars} />
                 </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
 
-          {repos.length === 0 ? (
-            <div className="card mt-3 flex min-h-[240px] flex-col items-center justify-center px-8 text-center">
-              <h2 className="text-[16px] font-semibold tracking-[-0.02em]">
-                No repositories tracked
-              </h2>
-              <p className="mt-2 max-w-sm text-[12.5px] leading-relaxed text-mist">
-                Choose the repositories you want to watch. Only that set is synced.
-              </p>
-              <Button variant="primary" className="mt-4" onClick={onOpenPicker}>
-                Edit repositories
-              </Button>
-            </div>
-          ) : (
-            <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
-              <div className="flex min-w-0 flex-col gap-3">
-                {showChart ? (
-                  <div className="card">
-                    <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
-                      <span className="text-[13px] font-semibold">Downloads by repo</span>
-                      <span className="ml-auto font-mono text-[11.5px] text-faint tabular">
-                        total {fmtNum(downloads)}
-                      </span>
-                    </div>
-                    <div className="p-4">
-                      <BarChart items={chartItems} onSelect={onOpenRepo} />
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="card min-w-0 overflow-hidden">
-                  <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
-                    <span className="text-[13px] font-semibold">Repositories</span>
-                    <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line">
-                      <MagnifyingGlass size={12} className="shrink-0 text-faint" />
-                      <input
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Filter…"
-                        aria-label="Filter repositories"
-                        className="w-full bg-transparent text-[12px] leading-none outline-none placeholder:text-faint"
-                      />
-                    </label>
-                  </div>
-                  <div className={`grid ${COLS} items-center gap-3 border-b border-hairline px-4 py-2`}>
-                    <SortHead label="Repository" k="fullName" sort={sort} onSort={toggleSort} />
-                    <div className="flex justify-end">
-                      <SortHead label="Stars" k="stars" sort={sort} onSort={toggleSort} />
-                    </div>
-                    <div className="flex justify-end">
-                      <SortHead label="Forks" k="forks" sort={sort} onSort={toggleSort} />
-                    </div>
-                    <div className="flex justify-end">
-                      <SortHead label="Downloads" k="downloads" sort={sort} onSort={toggleSort} />
-                    </div>
-                    <span />
-                  </div>
-                  {rows.length <= 30 ? (
-                    <ul>
-                      {rows.length === 0 ? (
-                        <li>
-                          <p className="px-5 py-8 text-center text-[13px] text-faint">
-                            No results for “{query.trim()}”.
-                          </p>
-                        </li>
-                      ) : (
-                        rows.map((repo) => (
-                          <li
-                            key={repo.fullName}
-                            className="border-b border-hairline last:border-b-0"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => onOpenRepo(repo.fullName)}
-                              className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
-                            >
-                              <span className="flex min-w-0 items-center gap-2">
-                                <span
-                                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                                  style={{ background: langColor(repo.language) }}
-                                />
-                                <span className="truncate text-[12.5px]">
-                                  <span className="text-faint">
-                                    {repo.fullName.split("/")[0]}/
-                                  </span>
-                                  <span className="font-medium">
-                                    {repo.fullName.split("/")[1] ?? repo.fullName}
-                                  </span>
-                                </span>
-                                {repo.error ? (
-                                  <WarningCircleIcon size={13} className="shrink-0 text-accent-soft" />
-                                ) : null}
-                                {repo.private ? <Chip>Private</Chip> : null}
-                              </span>
-                              <NumCell value={repo.stars} delta={repo.starsDelta} strong={false} />
-                              <NumCell value={repo.forks} delta={repo.forksDelta} strong={false} />
-                              <NumCell value={repo.downloads} delta={repo.downloadsDelta} strong />
-                              <CaretRight
-                                size={12}
-                                className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
-                              />
-                            </button>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  ) : (
-                    <VList style={{ height: Math.min(480, rows.length * 57) }} itemSize={57}>
-                      {rows.map((repo) => (
-                        <div
-                          key={repo.fullName}
-                          className="border-b border-hairline last:border-b-0"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onOpenRepo(repo.fullName)}
-                            className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
-                          >
-                            <span className="flex min-w-0 items-center gap-2">
-                              <span
-                                className="h-1.5 w-1.5 shrink-0 rounded-full"
-                                style={{ background: langColor(repo.language) }}
-                              />
-                              <span className="truncate text-[12.5px]">
-                                <span className="text-faint">
-                                  {repo.fullName.split("/")[0]}/
-                                </span>
-                                <span className="font-medium">
-                                  {repo.fullName.split("/")[1] ?? repo.fullName}
-                                </span>
-                              </span>
-                              {repo.error ? (
-                                <WarningCircleIcon size={13} className="shrink-0 text-accent-soft" />
-                              ) : null}
-                              {repo.private ? <Chip>Private</Chip> : null}
-                            </span>
-                            <NumCell value={repo.stars} delta={repo.starsDelta} strong={false} />
-                            <NumCell value={repo.forks} delta={repo.forksDelta} strong={false} />
-                            <NumCell value={repo.downloads} delta={repo.downloadsDelta} strong />
-                            <CaretRight
-                              size={12}
-                              className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
+            {languages.length > 0 ? (
+              <div className="card p-4">
+                <div className="flex items-center gap-2 text-mist">
+                  <Code size={14} className="text-faint" />
+                  <span className="kpi-label">Languages</span>
+                </div>
+                <ul className="mt-3 space-y-2">
+                  {languages.map(([name, count]) => {
+                    const pct = (count / langTotal) * 100;
+                    return (
+                      <li
+                        key={name}
+                        className="grid grid-cols-[1fr_28px] items-center gap-2"
+                      >
+                        <span className="min-w-0">
+                          <span className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
+                            <span
+                              className="h-1.5 w-1.5 shrink-0 rounded-full"
+                              style={{
+                                background: langColor(
+                                  name === "Unknown" ? null : name,
+                                ),
+                              }}
                             />
-                          </button>
-                        </div>
-                      ))}
-                    </VList>
-                  )}
-                </div>
+                            <span className="truncate">{name}</span>
+                          </span>
+                          <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-raised">
+                            <span
+                              className="block h-full rounded-full"
+                              style={{
+                                width: `${Math.max(pct, 8)}%`,
+                                background: langColor(
+                                  name === "Unknown" ? null : name,
+                                ),
+                              }}
+                            />
+                          </span>
+                        </span>
+                        <span className="text-right font-mono text-[11.5px] text-mist tabular">
+                          {count}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
+            ) : null}
 
-              <div className="flex min-w-0 flex-col gap-3">
-                {top ? (
-                  <button
-                    type="button"
-                    onClick={() => onOpenRepo(top.fullName)}
-                    className="card w-full p-4 text-left transition-colors hover:bg-hover"
-                  >
-                    <div className="flex items-center gap-2 text-mist">
-                      <Star size={14} className="text-faint" />
-                      <span className="kpi-label">Top repository</span>
-                    </div>
-                    <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
-                      {top.fullName}
-                    </p>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <div>
-                        <div className="text-[11px] leading-none text-faint">Stars</div>
-                        <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
-                          {fmtNum(top.stars)}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-[11px] leading-none text-faint">Downloads</div>
-                        <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
-                          {fmtNum(top.downloads)}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-accent to-accent-hover"
-                        style={{ width: `${share}%` }}
-                      />
-                    </div>
-                    <p className="mt-2 text-[11.5px] leading-snug text-faint">
-                      {share}% of total downloads
-                    </p>
-                  </button>
-                ) : null}
-
-                {platformBars.length > 0 ? (
-                  <div className="card p-4">
-                    <div className="flex items-center gap-2 text-mist">
-                      <Desktop size={14} className="text-faint" />
-                      <span className="kpi-label">Downloads by platform</span>
-                    </div>
-                    <div className="mt-3">
-                      <BarChart items={platformBars} />
-                    </div>
-                  </div>
-                ) : null}
-
-                {languages.length > 0 ? (
-                  <div className="card p-4">
-                    <div className="flex items-center gap-2 text-mist">
-                      <Code size={14} className="text-faint" />
-                      <span className="kpi-label">Languages</span>
-                    </div>
-                    <ul className="mt-3 space-y-2">
-                      {languages.map(([name, count]) => {
-                        const pct = (count / langTotal) * 100;
-                        return (
-                          <li key={name} className="grid grid-cols-[1fr_28px] items-center gap-2">
-                            <span className="min-w-0">
-                              <span className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
-                                <span
-                                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                                  style={{ background: langColor(name === "Unknown" ? null : name) }}
-                                />
-                                <span className="truncate">{name}</span>
-                              </span>
-                              <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-raised">
-                                <span
-                                  className="block h-full rounded-full"
-                                  style={{
-                                    width: `${Math.max(pct, 8)}%`,
-                                    background: langColor(name === "Unknown" ? null : name),
-                                  }}
-                                />
-                              </span>
-                            </span>
-                            <span className="text-right font-mono text-[11.5px] text-mist tabular">
-                              {count}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ) : null}
-
-                <div className="card p-4">
-                  <div className="flex items-center gap-2 text-mist">
-                    <FolderSimple size={14} className="text-faint" />
-                    <span className="kpi-label">Tracked set</span>
-                  </div>
-                  <dl className="mt-3 space-y-2.5">
-                    <div className="flex items-center justify-between gap-3">
-                      <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
-                        <LockSimpleIcon size={12} className="text-faint" />
-                        Private
-                      </dt>
-                      <dd className="font-mono text-[12.5px] tabular">{fmtNum(privateCount)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
-                        <DownloadSimple size={12} className="text-faint" />
-                        No downloads
-                      </dt>
-                      <dd className="font-mono text-[12.5px] tabular">{fmtNum(silentCount)}</dd>
-                    </div>
-                    {errorCount > 0 ? (
-                      <div className="flex items-center justify-between gap-3">
-                        <dt className="flex items-center gap-1.5 text-[12.5px] text-accent-soft">
-                          <WarningCircleIcon size={12} />
-                          Failed
-                        </dt>
-                        <dd className="font-mono text-[12.5px] text-accent-soft tabular">
-                          {fmtNum(errorCount)}
-                        </dd>
-                      </div>
-                    ) : null}
-                  </dl>
-                </div>
+            <div className="card p-4">
+              <div className="flex items-center gap-2 text-mist">
+                <FolderSimple size={14} className="text-faint" />
+                <span className="kpi-label">Tracked set</span>
               </div>
+              <dl className="mt-3 space-y-2.5">
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
+                    <LockSimpleIcon size={12} className="text-faint" />
+                    Private
+                  </dt>
+                  <dd className="font-mono text-[12.5px] tabular">
+                    {fmtNum(privateCount)}
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between gap-3">
+                  <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
+                    <DownloadSimple size={12} className="text-faint" />
+                    No downloads
+                  </dt>
+                  <dd className="font-mono text-[12.5px] tabular">
+                    {fmtNum(silentCount)}
+                  </dd>
+                </div>
+                {errorCount > 0 ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="flex items-center gap-1.5 text-[12.5px] text-accent-soft">
+                      <WarningCircleIcon size={12} />
+                      Failed
+                    </dt>
+                    <dd className="font-mono text-[12.5px] text-accent-soft tabular">
+                      {fmtNum(errorCount)}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
             </div>
-          )}
+          </div>
         </div>
+      )}
+    </div>
   );
 }
 

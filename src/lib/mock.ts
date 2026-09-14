@@ -3,9 +3,9 @@ import type {
   Cache,
   CatalogRepo,
   Config,
+  CreatedRepo,
   CreateOptions,
   CreateRepoInput,
-  CreatedRepo,
   PlatformDownloads,
   RepoDetail,
   RepoHistory,
@@ -203,7 +203,11 @@ export const MOCK_HISTORY: Record<string, RepoHistory> = Object.fromEntries(
     repo.fullName,
     {
       stars: curve(90, Math.max(0, Math.round(repo.stars * 0.15)), repo.stars),
-      downloads: curve(60, Math.max(0, Math.round(repo.downloads * 0.08)), repo.downloads),
+      downloads: curve(
+        60,
+        Math.max(0, Math.round(repo.downloads * 0.08)),
+        repo.downloads,
+      ),
       forks: curve(90, Math.max(0, Math.round(repo.forks * 0.2)), repo.forks),
     },
   ]),
@@ -332,10 +336,9 @@ function detailFor(
     size: 18432,
     license: "MIT",
     defaultBranch: "main",
-    topics:
-      fullName.endsWith("asterism")
-        ? ["tauri", "github", "releases", "analytics"]
-        : ["screenshot", "demo"],
+    topics: fullName.endsWith("asterism")
+      ? ["tauri", "github", "releases", "analytics"]
+      : ["screenshot", "demo"],
     createdAt: new Date(NOW - 1000 * 60 * 60 * 24 * 400).toISOString(),
     updatedAt: new Date(NOW - 1000 * 60 * 60 * 5).toISOString(),
     pushedAt: new Date(NOW - 1000 * 60 * 60 * 2).toISOString(),
@@ -351,9 +354,24 @@ function detailFor(
     ],
     paths: [
       { path: `/${fullName}`, title: "Overview", count: 840, uniques: 510 },
-      { path: `/${fullName}/releases`, title: "Releases", count: 312, uniques: 204 },
-      { path: `/${fullName}/releases/tag/v0.3.0`, title: "/releases/tag/v0.3.0", count: 188, uniques: 142 },
-      { path: `/${fullName}/blob/main/README.md`, title: "README.md", count: 64, uniques: 51 },
+      {
+        path: `/${fullName}/releases`,
+        title: "Releases",
+        count: 312,
+        uniques: 204,
+      },
+      {
+        path: `/${fullName}/releases/tag/v0.3.0`,
+        title: "/releases/tag/v0.3.0",
+        count: 188,
+        uniques: 142,
+      },
+      {
+        path: `/${fullName}/blob/main/README.md`,
+        title: "README.md",
+        count: 64,
+        uniques: 51,
+      },
     ],
     releases: [
       {
@@ -362,7 +380,10 @@ function detailFor(
         publishedAt: new Date(NOW - 1000 * 60 * 60 * 24 * 4).toISOString(),
         draft: false,
         prerelease: false,
-        downloads: Math.max(1000, Math.round((tracked?.downloads ?? 1200) * 0.55)),
+        downloads: Math.max(
+          1000,
+          Math.round((tracked?.downloads ?? 1200) * 0.55),
+        ),
         assets: [
           {
             name: `${name}-0.3.0-macos-arm64.dmg`,
@@ -434,10 +455,18 @@ function detailFor(
       ]),
     starHistory:
       MOCK_HISTORY[fullName]?.stars ??
-      curve(90, Math.max(0, Math.round((tracked?.stars ?? 42) * 0.2)), tracked?.stars ?? 42),
+      curve(
+        90,
+        Math.max(0, Math.round((tracked?.stars ?? 42) * 0.2)),
+        tracked?.stars ?? 42,
+      ),
     downloadHistory:
       MOCK_HISTORY[fullName]?.downloads ??
-      curve(60, Math.max(0, Math.round((tracked?.downloads ?? 1200) * 0.1)), tracked?.downloads ?? 1200),
+      curve(
+        60,
+        Math.max(0, Math.round((tracked?.downloads ?? 1200) * 0.1)),
+        tracked?.downloads ?? 1200,
+      ),
     ...overrides,
   };
 }
@@ -452,7 +481,16 @@ export function mockDetail(fullName: string): RepoDetail {
 
 export const MOCK_CREATE_OPTIONS: CreateOptions = {
   owners: [MOCK_LOGIN, "dsi135"],
-  gitignores: ["Node", "Python", "Rust", "Go", "Swift", "Kotlin", "Java", "C++"],
+  gitignores: [
+    "Node",
+    "Python",
+    "Rust",
+    "Go",
+    "Swift",
+    "Kotlin",
+    "Java",
+    "C++",
+  ],
   licenses: [
     { key: "mit", name: "MIT License" },
     { key: "apache-2.0", name: "Apache License 2.0" },
@@ -466,12 +504,25 @@ export function mockCreateRepo(input: CreateRepoInput): CreatedRepo {
   const owner = input.owner.trim() || MOCK_LOGIN;
   const name = input.name.trim();
   if (!name) throw new Error("Repository name is required.");
-  if (MOCK_CATALOG.some((repo) => repo.name.toLowerCase() === name.toLowerCase() && repo.owner === owner)) {
+  if (
+    MOCK_CATALOG.some(
+      (repo) =>
+        repo.name.toLowerCase() === name.toLowerCase() && repo.owner === owner,
+    )
+  ) {
     throw new Error(`Name already exists on this account: ${owner}/${name}`);
   }
   const fullName = `${owner}/${name}`;
-  MOCK_CACHE.repos.unshift({ fullName, description: input.description, private: input.private,
-    language: null, stars: 0, forks: 0, downloads: 0, error: null });
+  MOCK_CACHE.repos.unshift({
+    fullName,
+    description: input.description,
+    private: input.private,
+    language: null,
+    stars: 0,
+    forks: 0,
+    downloads: 0,
+    error: null,
+  });
   MOCK_CATALOG.unshift({
     fullName,
     owner,

@@ -1,14 +1,14 @@
 import {
   createContext,
+  type Dispatch,
+  type MutableRefObject,
+  type ReactNode,
   useCallback,
   useContext,
   useMemo,
   useReducer,
   useRef,
   useState,
-  type Dispatch,
-  type MutableRefObject,
-  type ReactNode,
 } from "react";
 import { useLocation } from "wouter";
 import {
@@ -131,7 +131,12 @@ function reducer(state: StoreState, action: StoreAction): StoreState {
     case "detailFail":
       return { ...state, detailError: action.error, detailLoading: false };
     case "detailClear":
-      return { ...state, detail: null, detailError: null, detailLoading: false };
+      return {
+        ...state,
+        detail: null,
+        detailError: null,
+        detailLoading: false,
+      };
     case "select":
       return { ...state, selectedNames: action.repos };
     case "trackedClear":
@@ -287,7 +292,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
+  return (
+    <StoreContext.Provider value={value}>{children}</StoreContext.Provider>
+  );
 }
 
 export function useStore(): StoreValue {

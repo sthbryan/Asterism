@@ -7,8 +7,16 @@ export function VisibilitySection({ form }: { form: CreateFormApi }) {
       <legend className="text-[13px] font-medium">Visibility</legend>
       <div className="mt-3 space-y-3">
         {[
-          ["private", "Private", "Only you and people you grant access can see this repository."],
-          ["public", "Public", "Anyone on the internet can see this repository."],
+          [
+            "private",
+            "Private",
+            "Only you and people you grant access can see this repository.",
+          ],
+          [
+            "public",
+            "Public",
+            "Anyone on the internet can see this repository.",
+          ],
         ].map(([value, label, hint]) => (
           <label key={value} className="flex items-start gap-3 text-[13px]">
             <input

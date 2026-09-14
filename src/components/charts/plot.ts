@@ -47,13 +47,17 @@ export function buildPlot(points: SeriesPoint[]): Plot | null {
           y: yOf(point.value, max),
         }));
   const path = coords
-    .map((coord, index) => `${index === 0 ? "M" : "L"}${coord.x.toFixed(2)},${coord.y.toFixed(2)}`)
+    .map(
+      (coord, index) =>
+        `${index === 0 ? "M" : "L"}${coord.x.toFixed(2)},${coord.y.toFixed(2)}`,
+    )
     .join(" ");
   const area = `${path} L100,100 L0,100 Z`;
   return {
     path,
     area,
-    coords: series.length === 1 ? [{ x: 100, y: yOf(first.value, max) }] : coords,
+    coords:
+      series.length === 1 ? [{ x: 100, y: yOf(first.value, max) }] : coords,
     max,
     first,
     last,

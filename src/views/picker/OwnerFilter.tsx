@@ -16,7 +16,12 @@ export function OwnerFilter({
 }) {
   return (
     <div className="inline-flex gap-0.5 rounded-lg border border-hairline bg-wash p-[3px]">
-      <SegTab label="All" count={total} active={active === null} onClick={() => onChange(null)} />
+      <SegTab
+        label="All"
+        count={total}
+        active={active === null}
+        onClick={() => onChange(null)}
+      />
       {owners.map((owner) => (
         <SegTab
           key={owner.name}
@@ -54,7 +59,9 @@ function SegTab({
       }`}
     >
       {label}
-      <span className="font-mono text-[10.5px] text-faint tabular">{count}</span>
+      <span className="font-mono text-[10.5px] text-faint tabular">
+        {count}
+      </span>
     </button>
   );
 }

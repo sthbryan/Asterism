@@ -1,7 +1,7 @@
 import { Router } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
-import { StoreProvider } from "./app/store";
 import { Shell } from "./app/routes";
+import { StoreProvider } from "./app/store";
 
 export default function App() {
   return (

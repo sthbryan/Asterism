@@ -1,14 +1,13 @@
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { Redirect, useLocation, useRoute } from "wouter";
 import { AppearanceProvider } from "../components/Appearance";
 import { Chrome, type NavId } from "../components/Chrome";
 import { DetailSkeleton, ListSkeleton } from "../components/Skeleton";
+import { CreateView } from "../views/CreateView";
 import { DetailTitle, DetailTrailing, DetailView } from "../views/DetailView";
 import { ErrorScreen } from "../views/ErrorScreen";
 import { ListTrailing, ListView } from "../views/ListView";
 import { PickerTrailing, PickerView } from "../views/PickerView";
-import { CreateView } from "../views/CreateView";
-import { useStore } from "./store";
 import {
   decodeDetailParam,
   detailPath,
@@ -16,6 +15,7 @@ import {
   useCatalog,
   useDetail,
 } from "./hooks";
+import { useStore } from "./store";
 
 export function Shell() {
   useBoot();
@@ -48,7 +48,11 @@ function BootShell() {
         if (id === "repos") navigate("/repos");
       }}
       trackedCount={state.selectedNames.length}
-      title={<h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>}
+      title={
+        <h1 className="text-[15px] font-semibold tracking-[-0.01em]">
+          Overview
+        </h1>
+      }
       trailing={
         <ListTrailing
           refreshing={state.refreshing}
@@ -106,7 +110,13 @@ function MainShell() {
 
   if (isSetup || isBoot) return <Redirect to="/" />;
 
-  const view = isCreate ? "create" : isRepos ? "picker" : isDetail ? "detail" : "list";
+  const view = isCreate
+    ? "create"
+    : isRepos
+      ? "picker"
+      : isDetail
+        ? "detail"
+        : "list";
 
   function goList() {
     navigate("/");
@@ -114,9 +124,12 @@ function MainShell() {
 
   const login = state.status?.login ?? null;
   const page = view === "picker" || view === "detail" ? "2" : "1";
-  const nav: NavId = view === "create" ? "create" : view === "picker" ? "repos" : "overview";
+  const nav: NavId =
+    view === "create" ? "create" : view === "picker" ? "repos" : "overview";
 
-  let title: ReactNode = <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>;
+  let title: ReactNode = (
+    <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>
+  );
   let trailing: ReactNode = (
     <ListTrailing
       refreshing={state.refreshing}
@@ -130,7 +143,11 @@ function MainShell() {
     title = <h1 className="text-[15px] font-semibold">Create repository</h1>;
     trailing = null;
   } else if (view === "picker") {
-    title = <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Select repositories</h1>;
+    title = (
+      <h1 className="text-[15px] font-semibold tracking-[-0.01em]">
+        Select repositories
+      </h1>
+    );
     trailing = (
       <PickerTrailing
         dirty={pickerDirty}
@@ -170,7 +187,9 @@ function MainShell() {
               {view === "picker" ? (
                 <PickerBody />
               ) : (
-                <DetailBody fullName={decodeDetailParam(detailParams?.fullName)} />
+                <DetailBody
+                  fullName={decodeDetailParam(detailParams?.fullName)}
+                />
               )}
             </section>
           ) : null}

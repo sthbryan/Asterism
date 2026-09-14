@@ -1,20 +1,20 @@
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
 import {
   applyDocumentAppearance,
   applyWindowChrome,
+  type ResolvedTheme,
   readStoredTheme,
   readStoredTransparency,
   resolveTheme,
   saveAppearance,
-  type ResolvedTheme,
 } from "../lib/appearance";
 import type { ThemePref } from "../lib/types";
 
@@ -61,7 +61,8 @@ export function AppearanceProvider({
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("glass");
     if (q === "1" || q === "0") return;
-    if (transparencyFromConfig != null) setTransparencyState(transparencyFromConfig);
+    if (transparencyFromConfig != null)
+      setTransparencyState(transparencyFromConfig);
   }, [transparencyFromConfig]);
 
   useEffect(() => {
@@ -71,7 +72,8 @@ export function AppearanceProvider({
     return () => media.removeEventListener("change", onChange);
   }, []);
 
-  const resolved: ResolvedTheme = theme === "system" ? (systemDark ? "dark" : "light") : theme;
+  const resolved: ResolvedTheme =
+    theme === "system" ? (systemDark ? "dark" : "light") : theme;
 
   useEffect(() => {
     applyDocumentAppearance(theme, resolved, transparency);
@@ -103,7 +105,11 @@ export function AppearanceProvider({
     [theme, resolved, transparency, setTheme, setTransparency],
   );
 
-  return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
+  return (
+    <AppearanceContext.Provider value={value}>
+      {children}
+    </AppearanceContext.Provider>
+  );
 }
 
 export function useAppearance() {

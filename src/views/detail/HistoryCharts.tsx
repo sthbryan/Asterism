@@ -7,7 +7,8 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
       <div className="card p-4">
         <div className="text-[13px] font-semibold">Stars over time</div>
         <p className="mt-1 text-[11.5px] leading-snug text-faint">
-          Reconstructed from GitHub stargazers, then kept in sync on each refresh.
+          Reconstructed from GitHub stargazers, then kept in sync on each
+          refresh.
         </p>
         <div className="mt-3">
           <AreaChart
@@ -20,7 +21,8 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
       <div className="card p-4">
         <div className="text-[13px] font-semibold">Downloads over time</div>
         <p className="mt-1 text-[11.5px] leading-snug text-faint">
-          GitHub only reports current totals. Asterism snapshots them so the series grows from here.
+          GitHub only reports current totals. Asterism snapshots them so the
+          series grows from here.
         </p>
         <div className="mt-3">
           <AreaChart
