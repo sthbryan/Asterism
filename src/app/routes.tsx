@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect } from "react";
-import { Redirect, useLocation, useRoute } from "wouter";
+import { Redirect, useRoute } from "wouter";
 import { AppearanceProvider } from "../components/Appearance";
 import { Chrome, type NavId } from "../components/Chrome";
 import { DetailSkeleton, ListSkeleton } from "../components/Skeleton";
@@ -16,6 +16,7 @@ import {
   useDetail,
 } from "./hooks";
 import { useStore } from "./store";
+import { useTransitionNavigate } from "./useViewTransition";
 
 export function Shell() {
   useBoot();
@@ -35,7 +36,7 @@ export function Shell() {
 
 function BootShell() {
   const { state, runRefresh } = useStore();
-  const [, navigate] = useLocation();
+  const navigate = useTransitionNavigate();
   const login = state.status?.login ?? null;
   return (
     <Chrome
@@ -72,7 +73,7 @@ function BootShell() {
 
 function SetupShell() {
   const { state, retryBoot } = useStore();
-  const [, navigate] = useLocation();
+  const navigate = useTransitionNavigate();
   if (!state.status) return null;
   return (
     <Chrome
@@ -95,7 +96,7 @@ function SetupShell() {
 
 function MainShell() {
   const { state, runRefresh, pickerDirty, pickerSave } = useStore();
-  const [, navigate] = useLocation();
+  const navigate = useTransitionNavigate();
   const [isRepos] = useRoute("/repos");
   const [isCreate] = useRoute("/create");
   const [isDetail, detailParams] = useRoute("/repo/:fullName");
@@ -201,7 +202,7 @@ function MainShell() {
 
 function ListPage({ revealed }: { revealed: boolean }) {
   const { state } = useStore();
-  const [, navigate] = useLocation();
+  const navigate = useTransitionNavigate();
   return (
     <section className="t-page" data-page-id="1">
       <div className={`t-skel h-full ${revealed ? "is-revealed" : ""}`}>
@@ -229,7 +230,7 @@ function ListPage({ revealed }: { revealed: boolean }) {
 
 function PickerBody() {
   const { state, persistSelection, setPickerDirty, pickerSave } = useStore();
-  const [, navigate] = useLocation();
+  const navigate = useTransitionNavigate();
   const login = state.status?.login ?? null;
   useCatalog();
   return (
@@ -267,7 +268,7 @@ function DetailBody({ fullName }: { fullName: string }) {
 
 function CreateBody() {
   const { state, handleCreated } = useStore();
-  const [, navigate] = useLocation();
+  const navigate = useTransitionNavigate();
   const login = state.status?.login ?? null;
   return (
     <CreateView
