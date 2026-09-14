@@ -40,7 +40,7 @@ export function Chrome({
         />
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <div
-          className="flex h-12 items-center gap-2.5 px-4"
+          className="flex h-12 shrink-0 items-center gap-2.5 px-4"
           data-tauri-drag-region
           onMouseDown={dragWindow}
         >
