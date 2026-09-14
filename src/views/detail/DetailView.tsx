@@ -1,6 +1,7 @@
 import { WarningCircle } from "@phosphor-icons/react";
 import { useRoute } from "wouter";
-import { decodeDetailParam, useDetail } from "../../app/hooks";
+import { useDetail } from "../../app/hooks";
+import { decodeDetailParam } from "../../app/routes";
 import { useTransitionNavigate } from "../../app/useViewTransition";
 import { PageHeader } from "../../components/PageHeader";
 import { DetailSkeleton } from "../../components/Skeleton";

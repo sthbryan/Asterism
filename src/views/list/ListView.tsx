@@ -14,7 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { VList } from "virtua";
-import { detailPath } from "../../app/hooks";
+import { detailPath } from "../../app/routes";
 import { useStore } from "../../app/store";
 import { useTransitionNavigate } from "../../app/useViewTransition";
 import { Banner } from "../../components/Banner";
