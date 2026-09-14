@@ -1,0 +1,14 @@
+pre-commit:
+  jobs:
+    - run: bunx biome format {staged_files}
+      glob: "*.{js,ts,jsx,tsx,json,jsonc,css}"
+      staged: true
+    - run: bunx biome check --only=assist/source/organizeImports {staged_files}
+      glob: "*.{js,ts,jsx,tsx,json,jsonc,css}"
+      staged: true
+
+pre-push:
+  jobs:
+    - run: bun run format:check
+    - run: bunx tsc --noEmit
+    - run: cargo test --manifest-path src-tauri/Cargo.toml
