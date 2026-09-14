@@ -6,13 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Asterism</title>
     <script>
-      (function () {
+      (() => {
+        var params;
+        var pref = "dark";
+        var glass = false;
+        var resolved = "dark";
         try {
-          var params = new URLSearchParams(location.search);
-          var pref = params.get("theme") || localStorage.getItem("asterism:theme") || "dark";
-          var glass =
-            params.get("glass") === "1" || localStorage.getItem("asterism:transparency") === "1";
-          var resolved =
+          params = new URLSearchParams(location.search);
+          pref =
+            params.get("theme") ||
+            localStorage.getItem("asterism:theme") ||
+            "dark";
+          glass =
+            params.get("glass") === "1" ||
+            localStorage.getItem("asterism:transparency") === "1";
+          resolved =
             pref === "system"
               ? matchMedia("(prefers-color-scheme: dark)").matches
                 ? "dark"
@@ -24,7 +32,7 @@
           document.documentElement.dataset.themePref = pref;
           document.documentElement.dataset.transparency = glass ? "on" : "off";
           document.documentElement.style.colorScheme = resolved;
-        } catch (e) {
+        } catch {
           document.documentElement.dataset.theme = "dark";
         }
       })();
