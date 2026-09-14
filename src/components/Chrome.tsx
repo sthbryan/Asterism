@@ -30,8 +30,8 @@ export function Chrome({
   children: ReactNode;
 }) {
   return (
-    <div className="flex h-full min-h-0 bg-void text-paper">
-      <aside className="relative flex w-[212px] shrink-0 flex-col border-r border-hairline bg-night pt-12">
+    <div className="flex h-full min-h-0 gap-3 bg-transparent p-3 text-paper">
+      <aside className="relative flex w-[212px] shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-night pt-12 shadow-dock">
         <div
           className="absolute inset-x-0 top-0 h-12"
           data-tauri-drag-region
@@ -81,7 +81,7 @@ export function Chrome({
           </div>
         ) : null}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hairline bg-void shadow-dock-sm">
         <header
           data-tauri-drag-region
           onMouseDown={dragWindow}
