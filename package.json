@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "icons": "bun assets/brand/generate-icon.mjs && bunx tauri icon assets/brand/asterism-icon.svg",
-    "release": "bun scripts/release.mjs"
+    "release": "bun scripts/release.mjs",
+    "format": "biome format --write . && biome check --write --only=assist/source/organizeImports .",
+    "format:check": "biome format . && biome check --only=assist/source/organizeImports ."
   },
   "dependencies": {
     "@fontsource-variable/geist": "5.3.0",
@@ -27,6 +29,7 @@
     "wouter": "^3.11.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.13",
     "@tauri-apps/cli": "2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
