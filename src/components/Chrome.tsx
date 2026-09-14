@@ -35,7 +35,7 @@ export function Chrome({
   const { t } = useI18n();
   return (
     <div className="flex h-full min-h-0 gap-3 bg-transparent p-3 text-paper">
-      <aside className="relative flex w-[212px] shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-night pt-12 shadow-md">
+      <aside className="relative flex w-53 shrink-0 flex-col overflow-hidden rounded-lg border border-hairline bg-night pt-12 shadow-md">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <div
           className="absolute inset-x-0 top-0 h-12"
@@ -112,7 +112,7 @@ export function Chrome({
           </div>
         ) : null}
       </aside>
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-hairline bg-void shadow-md">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-hairline bg-void shadow-md">
         {/* biome-ignore lint/a11y/noStaticElementInteractions: Tauri window-drag region, not an app control; a role would mislead assistive tech. */}
         <header
           data-tauri-drag-region
