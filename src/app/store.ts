@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { create } from "zustand";
 import { createBootSlice } from "./stores/boot";
 import { createCatalogSlice } from "./stores/catalog";
@@ -14,7 +13,3 @@ export const useStore = create<AppStore>()((...args) => ({
   ...createCatalogSlice(...args),
   ...createDetailSlice(...args),
 }));
-
-export function StoreProvider({ children }: { children: ReactNode }) {
-  return children;
-}
