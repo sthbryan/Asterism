@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { fmtAxisDate, fmtNum } from "../../lib/format";
+import { useI18n } from "../../lib/i18n";
 import { type ChartTone, STROKE } from "./plot";
 
 export function ColumnChart({
@@ -11,6 +12,7 @@ export function ColumnChart({
   tone?: ChartTone;
   empty?: string;
 }) {
+  const { t } = useI18n();
   const [active, setActive] = useState<number | null>(null);
   const max = Math.max(...items.map((item) => item.value), 1);
   const current = active != null ? items[active] : null;
@@ -18,7 +20,7 @@ export function ColumnChart({
   if (items.length === 0) {
     return (
       <div className="grid h-[108px] place-items-center text-[12.5px] text-faint">
-        {empty ?? "No daily data."}
+        {empty ?? t("No daily data.")}
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { createRepo, listCreateOptions } from "../../lib/api";
+import { useI18n } from "../../lib/i18n";
 import type { CreatedRepo, CreateOptions } from "../../lib/types";
 
 export function isInvalidName(cleanName: string): boolean {
@@ -18,6 +19,7 @@ export function useCreateForm({
   login: string | null;
   onCreated: (repo: CreatedRepo, track: boolean) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [options, setOptions] = useState<CreateOptions | null>(null);
   const [owner, setOwner] = useState(login ?? "");
   const [name, setName] = useState("");
@@ -83,14 +85,10 @@ export function useCreateForm({
       try {
         await onCreated(repo, track);
       } catch (err) {
-        setError(
-          `Repository created, but tracking could not be saved. Select it in Repositories. ${String(err)}`,
-        );
+        setError(`${t("create.trackingFailed")} ${String(err)}`);
       }
     } catch (err) {
-      setError(
-        `${String(err)} Check your repositories on GitHub before retrying if the connection was interrupted.`,
-      );
+      setError(`${t("create.failed")} ${String(err)}`);
     } finally {
       submitting.current = false;
       setBusy(false);

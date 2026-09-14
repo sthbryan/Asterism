@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { PickerSkeleton } from "../components/Skeleton";
+import { useI18n } from "../lib/i18n";
 import type { CatalogRepo } from "../lib/types";
 import { OwnerFilter } from "./picker/OwnerFilter";
 import { PickerTrailing } from "./picker/PickerTrailing";
@@ -29,6 +30,7 @@ export function PickerView({
   onSave: (repos: string[]) => void;
   onDirtyChange?: (dirty: boolean, save: () => void) => void;
 }) {
+  const { t } = useI18n();
   const {
     query,
     setQuery,
@@ -74,12 +76,15 @@ export function PickerView({
 
       <div className="card mt-3 min-h-0 flex-1 overflow-auto">
         {error ? (
-          <div className="px-5 py-6 text-[13px] text-accent-soft">{error}</div>
+          <div role="alert" className="px-5 py-6 text-[13px] text-accent-soft">
+            <p>{t("errors.request")}</p>
+            <p className="mt-1 break-words">{error}</p>
+          </div>
         ) : loading ? (
           <PickerSkeleton />
         ) : filtered.length === 0 ? (
           <p className="px-5 py-6 text-center text-[12.5px] text-faint">
-            No repositories match that filter.
+            {t("No repositories match that filter.")}
           </p>
         ) : groups ? (
           <ul>

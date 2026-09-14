@@ -2,6 +2,7 @@ import { WarningCircle } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
 import { Button } from "../components/Button";
+import { useI18n } from "../lib/i18n";
 import type { Status } from "../lib/types";
 
 export function ErrorScreen({
@@ -11,6 +12,7 @@ export function ErrorScreen({
   status: Status;
   onRetry: () => void;
 }) {
+  const { t } = useI18n();
   const [actionError, setActionError] = useState<string | null>(null);
   const missing = status.error?.includes("was not found") ?? false;
   return (
@@ -18,12 +20,16 @@ export function ErrorScreen({
       <div className="max-w-md">
         <WarningCircle size={28} className="text-accent-soft" />
         <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.03em]">
-          {missing ? "Set up GitHub CLI" : "Connect to GitHub"}
+          {missing ? t("Set up GitHub CLI") : t("Connect to GitHub")}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-mist">
           {missing
-            ? "Asterism needs GitHub CLI to access your repositories. Install it, then sign in from your terminal."
-            : "Asterism could not connect to your GitHub account. Check your connection and GitHub CLI sign-in, then try again."}
+            ? t(
+                "Asterism needs GitHub CLI to access your repositories. Install it, then sign in from your terminal.",
+              )
+            : t(
+                "Asterism could not connect to your GitHub account. Check your connection and GitHub CLI sign-in, then try again.",
+              )}
         </p>
         <ol className="mt-6 space-y-4 text-sm">
           {missing && (
@@ -38,30 +44,32 @@ export function ErrorScreen({
                   );
                 }}
               >
-                Open GitHub CLI installation instructions
+                {t("Open GitHub CLI installation instructions")}
               </button>
             </li>
           )}
           <li>
-            {missing ? "2." : "1."} In your terminal, run{" "}
+            {missing ? "2." : "1."} {t("In your terminal, run")}{" "}
             <code className="rounded bg-fill px-2 py-1">
               {missing ? "gh auth login" : "gh auth status"}
             </code>
           </li>
           {!missing && (
             <li>
-              2. If you need to sign in, run{" "}
+              {t("2. If you need to sign in, run")}{" "}
               <code className="rounded bg-fill px-2 py-1">gh auth login</code>
             </li>
           )}
-          <li>3. Return here and check the connection.</li>
+          <li>{t("3. Return here and check the connection.")}</li>
         </ol>
         <Button variant="primary" className="mt-6" onClick={onRetry}>
-          Check connection
+          {t("Check connection")}
         </Button>
         {status.error && (
           <details className="mt-5 text-xs text-mist">
-            <summary className="cursor-pointer">Connection details</summary>
+            <summary className="cursor-pointer">
+              {t("Connection details")}
+            </summary>
             <p className="mt-2 whitespace-pre-wrap break-words">
               {status.error}
             </p>
@@ -69,7 +77,7 @@ export function ErrorScreen({
         )}
         {actionError && (
           <p role="alert" className="mt-3 text-sm text-accent-soft">
-            {actionError}
+            {t("errors.request")} {actionError}
           </p>
         )}
       </div>

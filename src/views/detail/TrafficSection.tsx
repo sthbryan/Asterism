@@ -1,31 +1,34 @@
 import { DownloadSimple, Eye } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { ColumnChart } from "../../components/Charts";
-import { fmtCompact, fmtNum } from "../../lib/format";
+import { fmtCompact } from "../../lib/format";
+import { useI18n } from "../../lib/i18n";
 import { fillTrafficDays } from "../../lib/series";
 import type { RepoDetail } from "../../lib/types";
 
 export function TrafficSection({ detail }: { detail: RepoDetail }) {
+  const { t } = useI18n();
   return (
     <div className="card mt-3 p-4">
       <div className="flex items-baseline justify-between gap-3">
-        <div className="text-[13px] font-semibold">Traffic · 14 days</div>
+        <div className="text-[13px] font-semibold">
+          {t("Traffic · 14 days")}
+        </div>
         <span className="text-[11px] text-faint">
-          GitHub only exposes the last 14 days
+          {t("GitHub only exposes the last 14 days")}
         </span>
       </div>
       {detail.trafficError && !detail.views && !detail.clones ? (
         <p className="mt-3 text-[13px] leading-relaxed text-mist">
-          Views and clones require push access. {detail.trafficError}
+          {t("Views and clones require push access.")} {detail.trafficError}
         </p>
       ) : (
         <div className="mt-3 grid grid-cols-2 gap-5">
           <div>
             <TrafficBlock
-              label="Views"
+              label={t("Views")}
               icon={<Eye size={14} />}
               traffic={detail.views}
-              unique="unique"
             />
             <div className="mt-3">
               <ColumnChart
@@ -33,18 +36,17 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
                 items={fillTrafficDays(detail.views?.days).map((day) => ({
                   ts: day.ts,
                   value: day.count,
-                  hint: `${fmtNum(day.uniques)} unique`,
+                  hint: t("common.unique", { count: day.uniques }),
                 }))}
-                empty="No view samples."
+                empty={t("No view samples.")}
               />
             </div>
           </div>
           <div>
             <TrafficBlock
-              label="Clones"
+              label={t("Clones")}
               icon={<DownloadSimple size={14} />}
               traffic={detail.clones}
-              unique="unique"
             />
             <div className="mt-3">
               <ColumnChart
@@ -52,9 +54,9 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
                 items={fillTrafficDays(detail.clones?.days).map((day) => ({
                   ts: day.ts,
                   value: day.count,
-                  hint: `${fmtNum(day.uniques)} unique`,
+                  hint: t("common.unique", { count: day.uniques }),
                 }))}
-                empty="No clone samples."
+                empty={t("No clone samples.")}
               />
             </div>
           </div>
@@ -68,13 +70,12 @@ function TrafficBlock({
   label,
   icon,
   traffic,
-  unique,
 }: {
   label: string;
   icon: ReactNode;
   traffic: RepoDetail["views"];
-  unique: string;
 }) {
+  const { t } = useI18n();
   return (
     <div>
       <div className="flex items-center gap-2 text-mist">
@@ -87,11 +88,11 @@ function TrafficBlock({
             {fmtCompact(traffic.count)}
           </div>
           <div className="mt-1.5 text-[12px] leading-none text-faint">
-            {fmtNum(traffic.uniques)} {unique}
+            {t("common.unique", { count: traffic.uniques })}
           </div>
         </div>
       ) : (
-        <p className="mt-2.5 text-[13px] text-faint">Unavailable</p>
+        <p className="mt-2.5 text-[13px] text-faint">{t("Unavailable")}</p>
       )}
     </div>
   );

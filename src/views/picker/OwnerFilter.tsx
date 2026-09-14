@@ -1,3 +1,4 @@
+import { useI18n } from "../../lib/i18n";
 export interface OwnerEntry {
   name: string;
   count: number;
@@ -14,10 +15,11 @@ export function OwnerFilter({
   active: string | null;
   onChange: (owner: string | null) => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="inline-flex gap-0.5 rounded-lg border border-hairline bg-wash p-[3px]">
       <SegTab
-        label="All"
+        label={t("All")}
         count={total}
         active={active === null}
         onClick={() => onChange(null)}

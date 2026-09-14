@@ -1,8 +1,10 @@
 import { Button } from "../../components/Button";
+import { useI18n } from "../../lib/i18n";
 import { fieldClass } from "./fields";
 import type { CreateFormApi } from "./useCreateForm";
 
 export function SetupSection({ form }: { form: CreateFormApi }) {
+  const { t } = useI18n();
   const {
     options,
     readme,
@@ -29,7 +31,7 @@ export function SetupSection({ form }: { form: CreateFormApi }) {
             onChange={(event) => setReadme(event.target.checked)}
             className="accent-accent"
           />
-          Add a README
+          {t("Add a README")}
         </label>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label className="text-[13px] font-medium">
@@ -39,20 +41,20 @@ export function SetupSection({ form }: { form: CreateFormApi }) {
               value={gitignore}
               onChange={(event) => setGitignore(event.target.value)}
             >
-              <option value="">None</option>
+              <option value="">{t("None")}</option>
               {options?.gitignores.map((item) => (
                 <option key={item}>{item}</option>
               ))}
             </select>
           </label>
           <label className="text-[13px] font-medium">
-            License
+            {t("License")}
             <select
               className={fieldClass}
               value={license}
               onChange={(event) => setLicense(event.target.value)}
             >
-              <option value="">None</option>
+              <option value="">{t("None")}</option>
               {options?.licenses.map((item) => (
                 <option key={item.key} value={item.key}>
                   {item.name}
@@ -69,7 +71,7 @@ export function SetupSection({ form }: { form: CreateFormApi }) {
           onChange={(event) => setTrack(event.target.checked)}
           className="accent-accent"
         />
-        Track this repository in Asterism
+        {t("Track this repository in Asterism")}
       </label>
       <div className="flex justify-end pb-4">
         <Button
@@ -77,7 +79,7 @@ export function SetupSection({ form }: { form: CreateFormApi }) {
           variant="primary"
           disabled={busy || !owner || !cleanName || Boolean(invalidName)}
         >
-          {busy ? "Creating repository…" : "Create repository"}
+          {busy ? t("Creating repository…") : t("Create repository")}
         </Button>
       </div>
     </>

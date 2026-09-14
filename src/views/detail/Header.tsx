@@ -1,5 +1,6 @@
 import { ArrowSquareOut, CaretLeft } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useI18n } from "../../lib/i18n";
 
 export function DetailTitle({
   fullName,
@@ -8,6 +9,7 @@ export function DetailTitle({
   fullName?: string;
   onBack: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <nav className="flex items-center gap-2 text-[13px]">
       <button
@@ -16,7 +18,7 @@ export function DetailTitle({
         className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-mist transition-colors hover:bg-hover hover:text-paper"
       >
         <CaretLeft size={13} />
-        Overview
+        {t("Overview")}
       </button>
       <span className="text-faint">/</span>
       <span className="font-mono text-[13px] font-semibold">

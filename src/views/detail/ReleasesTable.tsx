@@ -2,10 +2,12 @@ import { CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
 import { BarChart } from "../../components/Charts";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "../../lib/format";
+import { useI18n } from "../../lib/i18n";
 import type { RepoDetail } from "../../lib/types";
 import { Flag } from "./shared";
 
 export function ReleasesTable({ detail }: { detail: RepoDetail }) {
+  const { t } = useI18n();
   const [openTag, setOpenTag] = useState<string | null>(
     detail.releases[0]?.tag ?? null,
   );
@@ -13,7 +15,7 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
   return (
     <div className="card mt-3 overflow-hidden">
       <div className="flex items-center justify-between border-b border-hairline px-4 py-2.5">
-        <div className="text-[13px] font-semibold">Releases</div>
+        <div className="text-[13px] font-semibold">{t("Releases")}</div>
         <span className="font-mono text-[11.5px] text-faint tabular">
           {fmtNum(detail.releases.length)}
         </span>
@@ -33,7 +35,7 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
       ) : null}
       {detail.releases.length === 0 ? (
         <p className="px-5 py-6 text-center text-[13px] text-faint">
-          No releases published.
+          {t("No releases published.")}
         </p>
       ) : (
         <ul>
@@ -61,8 +63,8 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
                       ? release.name
                       : ""}
                   </span>
-                  {release.draft ? <Flag>Draft</Flag> : null}
-                  {release.prerelease ? <Flag>Pre</Flag> : null}
+                  {release.draft ? <Flag>{t("Draft")}</Flag> : null}
+                  {release.prerelease ? <Flag>{t("Pre")}</Flag> : null}
                   <span className="font-mono text-[12px] text-faint">
                     {fmtDate(release.publishedAt)}
                   </span>
@@ -73,7 +75,9 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
                 {open ? (
                   <ul className="pr-4 pb-3.5 pl-10">
                     {release.assets.length === 0 ? (
-                      <li className="py-1 text-[12px] text-faint">No assets</li>
+                      <li className="py-1 text-[12px] text-faint">
+                        {t("No assets")}
+                      </li>
                     ) : (
                       release.assets.map((asset) => (
                         <li

@@ -1,21 +1,23 @@
+import { useI18n } from "../../lib/i18n";
 import type { CreateFormApi } from "./useCreateForm";
 
 export function VisibilitySection({ form }: { form: CreateFormApi }) {
+  const { t } = useI18n();
   const { visibility, setVisibility } = form;
   return (
     <fieldset>
-      <legend className="text-[13px] font-medium">Visibility</legend>
+      <legend className="text-[13px] font-medium">{t("Visibility")}</legend>
       <div className="mt-3 space-y-3">
         {[
           [
             "private",
-            "Private",
-            "Only you and people you grant access can see this repository.",
+            t("Private"),
+            t("Only you and people you grant access can see this repository."),
           ],
           [
             "public",
-            "Public",
-            "Anyone on the internet can see this repository.",
+            t("Public"),
+            t("Anyone on the internet can see this repository."),
           ],
         ].map(([value, label, hint]) => (
           <label key={value} className="flex items-start gap-3 text-[13px]">

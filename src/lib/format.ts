@@ -1,6 +1,7 @@
+import { currentLocale } from "./i18n/locale";
 export function fmtNum(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
-  return new Intl.NumberFormat("en-US").format(n);
+  return new Intl.NumberFormat(currentLocale()).format(n);
 }
 
 export function fmtSigned(n: number) {
@@ -11,27 +12,22 @@ export function fmtSigned(n: number) {
 
 export function fmtCompact(n: number | null | undefined) {
   if (n == null || Number.isNaN(n)) return "—";
-  if (n >= 1_000_000) {
-    const v = n / 1_000_000;
-    return `${v >= 10 ? v.toFixed(0) : v.toFixed(1)}M`;
-  }
-  if (n >= 10_000) {
-    const v = n / 1000;
-    return `${v >= 100 ? v.toFixed(0) : v.toFixed(1)}k`;
-  }
-  return fmtNum(n);
+  return new Intl.NumberFormat(currentLocale(), {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(n);
 }
 
 export function fmtBytes(n: number) {
   if (n < 1024) return `${fmtNum(n)} B`;
   const kb = n / 1024;
   if (kb < 1024)
-    return `${kb < 10 ? kb.toFixed(1) : fmtNum(Math.round(kb))} KB`;
+    return `${kb < 10 ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(kb) : fmtNum(Math.round(kb))} KB`;
   const mb = kb / 1024;
   if (mb < 1024)
-    return `${mb < 10 ? mb.toFixed(1) : fmtNum(Math.round(mb))} MB`;
+    return `${mb < 10 ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(mb) : fmtNum(Math.round(mb))} MB`;
   const gb = mb / 1024;
-  return `${gb < 10 ? gb.toFixed(1) : fmtNum(Math.round(gb))} GB`;
+  return `${gb < 10 ? new Intl.NumberFormat(currentLocale(), { maximumFractionDigits: 1 }).format(gb) : fmtNum(Math.round(gb))} GB`;
 }
 
 export function fmtRepoSizeKb(kb: number) {
@@ -42,7 +38,7 @@ export function fmtDate(iso: string | null | undefined) {
   if (!iso) return "—";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("en-GB", {
+  return d.toLocaleDateString(currentLocale(), {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -52,19 +48,25 @@ export function fmtDate(iso: string | null | undefined) {
 export function fmtFetched(unix: number | null | undefined) {
   if (!unix) return null;
   const d = new Date(unix * 1000);
-  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(currentLocale(), {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 export function fmtAxisDate(unix: number) {
   const d = new Date(unix * 1000);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  return d.toLocaleDateString(currentLocale(), {
+    day: "numeric",
+    month: "short",
+  });
 }
 
 export function fmtAxisDateLong(unix: number) {
   const d = new Date(unix * 1000);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-GB", {
+  return d.toLocaleDateString(currentLocale(), {
     day: "numeric",
     month: "short",
     year: "numeric",

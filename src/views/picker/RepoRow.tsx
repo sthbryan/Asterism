@@ -1,5 +1,6 @@
 import { Check, Star } from "@phosphor-icons/react";
 import { fmtNum } from "../../lib/format";
+import { useI18n } from "../../lib/i18n";
 import type { CatalogRepo } from "../../lib/types";
 
 export function RepoRow({
@@ -11,9 +12,10 @@ export function RepoRow({
   selected: boolean;
   onToggle: (fullName: string) => void;
 }) {
+  const { t } = useI18n();
   const sub =
     repo.description ||
-    [repo.language, repo.fork ? "Fork" : null].filter(Boolean).join(" · ") ||
+    [repo.language, repo.fork ? t("Fork") : null].filter(Boolean).join(" · ") ||
     null;
   return (
     <li className="border-b border-hairline last:border-b-0">
@@ -51,8 +53,8 @@ export function RepoRow({
           ) : null}
         </span>
         <span className="flex shrink-0 items-center gap-3 font-mono text-[11.5px] text-mist">
-          {repo.private ? <Meta>Private</Meta> : null}
-          {repo.archived ? <Meta>Archived</Meta> : null}
+          {repo.private ? <Meta>{t("Private")}</Meta> : null}
+          {repo.archived ? <Meta>{t("Archived")}</Meta> : null}
           <span className="tabular">
             <Star
               size={10}

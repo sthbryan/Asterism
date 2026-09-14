@@ -27,6 +27,7 @@ export {
 export type TplVars = Record<string, string | number | boolean>;
 
 function lookup(dict: Dict, key: string): unknown {
+  if (Object.keys(dict).includes(key)) return dict[key];
   let current: unknown = dict;
   for (const part of key.split(".")) {
     if (typeof current !== "object" || current === null) return undefined;
@@ -35,11 +36,19 @@ function lookup(dict: Dict, key: string): unknown {
   return current;
 }
 
-function interpolate(template: string, vars?: TplVars): string {
+function interpolate(
+  template: string,
+  vars: TplVars | undefined,
+  activeInterpolationLocale: Locale,
+): string {
   if (!vars) return template;
   return template.replace(/\{(\w+)\}/g, (match, name: string) => {
     const value = vars[name];
-    return value === undefined ? match : String(value);
+    return value === undefined
+      ? match
+      : typeof value === "number"
+        ? new Intl.NumberFormat(activeInterpolationLocale).format(value)
+        : String(value);
   });
 }
 
@@ -62,12 +71,12 @@ export function translate(locale: Locale, key: string, vars?: TplVars): string {
   const primary = locale === "es" ? es : en;
   const fallback = locale === "es" ? en : es;
   const value = lookup(primary, key) ?? lookup(fallback, key);
-  if (typeof value === "string") return interpolate(value, vars);
+  if (typeof value === "string") return interpolate(value, vars, locale);
   if (typeof value === "object" && value !== null) {
     const forms = value as Record<string, string>;
     const template =
       forms[pickPlural(locale, countOf(vars))] ?? forms.other ?? key;
-    return interpolate(template, vars);
+    return interpolate(template, vars, locale);
   }
   return key;
 }

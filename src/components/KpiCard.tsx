@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { fmtCompact, fmtSigned } from "../lib/format";
+import { useI18n } from "../lib/i18n";
 import { PopNumber } from "./PopNumber";
 
 export function KpiCard({
@@ -19,6 +20,7 @@ export function KpiCard({
   deltaHint?: string;
   hero?: boolean;
 }) {
+  const { t } = useI18n();
   return (
     <div className={`card min-w-0 p-4 ${hero ? "border-accent/25" : ""}`}>
       <div className="flex items-center gap-2 text-mist">
@@ -43,7 +45,9 @@ export function KpiCard({
           }`}
         >
           {fmtSigned(delta)}
-          {deltaHint ? ` · ${deltaHint}` : ""}
+          {deltaHint
+            ? ` · ${deltaHint === "sync" ? t("sync") : deltaHint}`
+            : ""}
         </div>
       ) : sub ? (
         <div className="mt-1.5 text-[11.5px] leading-none text-faint">

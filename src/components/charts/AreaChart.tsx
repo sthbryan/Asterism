@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { fmtAxisDate, fmtAxisDateLong, fmtCompact } from "../../lib/format";
+import { useI18n } from "../../lib/i18n";
 import type { SeriesPoint } from "../../lib/types";
 import { buildPlot, type ChartTone, FILL, STROKE } from "./plot";
 
@@ -12,13 +13,14 @@ export function AreaChart({
   tone?: ChartTone;
   empty?: string;
 }) {
+  const { t } = useI18n();
   const [active, setActive] = useState<number | null>(null);
   const plot = useMemo(() => buildPlot(points), [points]);
 
   if (!plot) {
     return (
       <div className="grid h-[132px] place-items-center px-2 text-center text-[12.5px] leading-relaxed text-faint">
-        {empty ?? "Not enough samples yet."}
+        {empty ?? t("Not enough samples yet.")}
       </div>
     );
   }
@@ -66,7 +68,7 @@ export function AreaChart({
             preserveAspectRatio="none"
             className="absolute inset-0 h-full w-full overflow-visible"
             role="img"
-            aria-label="History chart"
+            aria-label={t("History chart")}
           >
             <line
               x1="0"

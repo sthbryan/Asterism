@@ -20,6 +20,7 @@ import { AreaChart, BarChart } from "../components/Charts";
 import { KpiCard } from "../components/KpiCard";
 import { ListSkeleton } from "../components/Skeleton";
 import { fmtFetched, fmtNum, fmtSigned } from "../lib/format";
+import { useI18n } from "../lib/i18n";
 import { langColor } from "../lib/langcolors";
 import { platformItems, sumPlatforms } from "../lib/platform";
 import {
@@ -44,28 +45,29 @@ export function ListTrailing({
   fetchedAt: number | null;
   onRefresh: () => void;
 }) {
+  const { t } = useI18n();
   const fetched = fmtFetched(fetchedAt);
   return (
     <div className="flex items-center gap-1">
       {refreshing ? (
         <span
           className="t-shimmer font-mono text-[12px] leading-none"
-          data-text="Refreshing…"
+          data-text={t("Refreshing…")}
         >
-          Refreshing…
+          {t("Refreshing…")}
         </span>
       ) : fetched ? (
         <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
           <span className="h-[7px] w-[7px] rounded-full bg-ok" />
-          Updated {fetched}
+          {t("list.updated", { value: fetched })}
         </span>
       ) : null}
       <button
         type="button"
         onClick={onRefresh}
         disabled={refreshing}
-        aria-label="Refresh"
-        title="Refresh"
+        aria-label={t("Refresh")}
+        title={t("Refresh")}
         className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ArrowClockwise
@@ -92,6 +94,7 @@ export function ListView({
   onOpenPicker: () => void;
   onOpenRepo: (fullName: string) => void;
 }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<{ key: SortKey; dir: number }>({
     key: "downloads",
@@ -205,36 +208,36 @@ export function ListView({
     <ListSkeleton />
   ) : (
     <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
-      <Banner message={banner} />
+      <Banner message={banner ? `${t("errors.request")} ${banner}` : null} />
 
       <div className="grid grid-cols-4 gap-3">
         <KpiCard
-          label="Repositories"
+          label={t("Repositories")}
           value={repos.length}
           icon={<FolderSimple size={15} />}
-          sub="tracked"
+          sub={t("tracked")}
         />
         <KpiCard
-          label="Stars"
+          label={t("Stars")}
           value={stars}
           icon={<Star size={15} />}
-          sub="total"
+          sub={t("total")}
           delta={starKpi?.delta}
           deltaHint={starKpi?.hint}
         />
         <KpiCard
-          label="Forks"
+          label={t("Forks")}
           value={forks}
           icon={<GitFork size={15} />}
-          sub="total"
+          sub={t("total")}
           delta={forkKpi?.delta}
           deltaHint={forkKpi?.hint}
         />
         <KpiCard
-          label="Downloads"
+          label={t("Downloads")}
           value={downloads}
           icon={<DownloadSimple size={15} />}
-          sub="release assets"
+          sub={t("release assets")}
           hero
           delta={downloadKpi?.delta}
           deltaHint={downloadKpi?.hint}
@@ -245,47 +248,51 @@ export function ListView({
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
           <div className="card p-4">
             <div className="flex items-baseline justify-between gap-3">
-              <div className="text-[13px] font-semibold">Stars over time</div>
+              <div className="text-[13px] font-semibold">
+                {t("Stars over time")}
+              </div>
               {starDelta != null ? (
                 <span className="font-mono text-[11.5px] text-faint tabular">
-                  {starDelta >= 0 ? "+" : ""}
-                  {fmtNum(starDelta)} in range
+                  {t("list.range", { value: fmtSigned(starDelta) })}
                 </span>
               ) : null}
             </div>
             <p className="mt-1 text-[11.5px] leading-snug text-faint">
-              Reconstructed from GitHub stargazers, then updated on each
-              refresh.
+              {t(
+                "Reconstructed from GitHub stargazers, then updated on each refresh.",
+              )}
             </p>
             <div className="mt-3">
               <AreaChart
                 points={starSeries}
                 tone="paper"
-                empty="Open a repository or refresh to reconstruct star history from GitHub."
+                empty={t(
+                  "Open a repository or refresh to reconstruct star history from GitHub.",
+                )}
               />
             </div>
           </div>
           <div className="card p-4">
             <div className="flex items-baseline justify-between gap-3">
               <div className="text-[13px] font-semibold">
-                Downloads over time
+                {t("Downloads over time")}
               </div>
               {downloadDelta != null ? (
                 <span className="font-mono text-[11.5px] text-faint tabular">
-                  {downloadDelta >= 0 ? "+" : ""}
-                  {fmtNum(downloadDelta)} in range
+                  {t("list.range", { value: fmtSigned(downloadDelta) })}
                 </span>
               ) : null}
             </div>
             <p className="mt-1 text-[11.5px] leading-snug text-faint">
-              GitHub does not publish download history. Asterism records a
-              snapshot each refresh.
+              {t(
+                "GitHub does not publish download history. Asterism records a snapshot each refresh.",
+              )}
             </p>
             <div className="mt-3">
               <AreaChart
                 points={downloadSeries}
                 tone="accent"
-                empty="This chart fills in from the next refresh onward."
+                empty={t("This chart fills in from the next refresh onward.")}
               />
             </div>
           </div>
@@ -295,13 +302,15 @@ export function ListView({
       {repos.length === 0 ? (
         <div className="card mt-3 flex min-h-[240px] flex-col items-center justify-center px-8 text-center">
           <h2 className="text-[16px] font-semibold tracking-[-0.02em]">
-            No repositories tracked
+            {t("No repositories tracked")}
           </h2>
           <p className="mt-2 max-w-sm text-[12.5px] leading-relaxed text-mist">
-            Choose the repositories you want to watch. Only that set is synced.
+            {t(
+              "Choose the repositories you want to watch. Only that set is synced.",
+            )}
           </p>
           <Button variant="primary" className="mt-4" onClick={onOpenPicker}>
-            Edit repositories
+            {t("Edit repositories")}
           </Button>
         </div>
       ) : (
@@ -311,10 +320,10 @@ export function ListView({
               <div className="card">
                 <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
                   <span className="text-[13px] font-semibold">
-                    Downloads by repo
+                    {t("Downloads by repo")}
                   </span>
                   <span className="ml-auto font-mono text-[11.5px] text-faint tabular">
-                    total {fmtNum(downloads)}
+                    {t("list.total", { value: fmtNum(downloads) })}
                   </span>
                 </div>
                 <div className="p-4">
@@ -325,14 +334,16 @@ export function ListView({
 
             <div className="card min-w-0 overflow-hidden">
               <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
-                <span className="text-[13px] font-semibold">Repositories</span>
+                <span className="text-[13px] font-semibold">
+                  {t("Repositories")}
+                </span>
                 <label className="ml-auto flex h-7 w-[170px] items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line">
                   <MagnifyingGlass size={12} className="shrink-0 text-faint" />
                   <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Filter…"
-                    aria-label="Filter repositories"
+                    placeholder={t("Filter…")}
+                    aria-label={t("Filter repositories")}
                     className="w-full bg-transparent text-[12px] leading-none outline-none placeholder:text-faint"
                   />
                 </label>
@@ -341,14 +352,14 @@ export function ListView({
                 className={`grid ${COLS} items-center gap-3 border-b border-hairline px-4 py-2`}
               >
                 <SortHead
-                  label="Repository"
+                  label={t("Repository")}
                   k="fullName"
                   sort={sort}
                   onSort={toggleSort}
                 />
                 <div className="flex justify-end">
                   <SortHead
-                    label="Stars"
+                    label={t("Stars")}
                     k="stars"
                     sort={sort}
                     onSort={toggleSort}
@@ -356,7 +367,7 @@ export function ListView({
                 </div>
                 <div className="flex justify-end">
                   <SortHead
-                    label="Forks"
+                    label={t("Forks")}
                     k="forks"
                     sort={sort}
                     onSort={toggleSort}
@@ -364,7 +375,7 @@ export function ListView({
                 </div>
                 <div className="flex justify-end">
                   <SortHead
-                    label="Downloads"
+                    label={t("Downloads")}
                     k="downloads"
                     sort={sort}
                     onSort={toggleSort}
@@ -377,7 +388,7 @@ export function ListView({
                   {rows.length === 0 ? (
                     <li>
                       <p className="px-5 py-8 text-center text-[13px] text-faint">
-                        No results for “{query.trim()}”.
+                        {t("list.noResults", { query: query.trim() })}
                       </p>
                     </li>
                   ) : (
@@ -410,7 +421,7 @@ export function ListView({
                                 className="shrink-0 text-accent-soft"
                               />
                             ) : null}
-                            {repo.private ? <Chip>Private</Chip> : null}
+                            {repo.private ? <Chip>{t("Private")}</Chip> : null}
                           </span>
                           <NumCell
                             value={repo.stars}
@@ -470,7 +481,7 @@ export function ListView({
                               className="shrink-0 text-accent-soft"
                             />
                           ) : null}
-                          {repo.private ? <Chip>Private</Chip> : null}
+                          {repo.private ? <Chip>{t("Private")}</Chip> : null}
                         </span>
                         <NumCell
                           value={repo.stars}
@@ -508,7 +519,7 @@ export function ListView({
               >
                 <div className="flex items-center gap-2 text-mist">
                   <Star size={14} className="text-faint" />
-                  <span className="kpi-label">Top repository</span>
+                  <span className="kpi-label">{t("Top repository")}</span>
                 </div>
                 <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
                   {top.fullName}
@@ -516,7 +527,7 @@ export function ListView({
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <div>
                     <div className="text-[11px] leading-none text-faint">
-                      Stars
+                      {t("Stars")}
                     </div>
                     <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
                       {fmtNum(top.stars)}
@@ -524,7 +535,7 @@ export function ListView({
                   </div>
                   <div>
                     <div className="text-[11px] leading-none text-faint">
-                      Downloads
+                      {t("Downloads")}
                     </div>
                     <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
                       {fmtNum(top.downloads)}
@@ -538,7 +549,7 @@ export function ListView({
                   />
                 </div>
                 <p className="mt-2 text-[11.5px] leading-snug text-faint">
-                  {share}% of total downloads
+                  {t("list.share", { value: fmtNum(share) })}
                 </p>
               </button>
             ) : null}
@@ -547,10 +558,17 @@ export function ListView({
               <div className="card p-4">
                 <div className="flex items-center gap-2 text-mist">
                   <Desktop size={14} className="text-faint" />
-                  <span className="kpi-label">Downloads by platform</span>
+                  <span className="kpi-label">
+                    {t("Downloads by platform")}
+                  </span>
                 </div>
                 <div className="mt-3">
-                  <BarChart items={platformBars} />
+                  <BarChart
+                    items={platformBars.map((item) => ({
+                      ...item,
+                      label: item.label === "Other" ? t("Other") : item.label,
+                    }))}
+                  />
                 </div>
               </div>
             ) : null}
@@ -559,7 +577,7 @@ export function ListView({
               <div className="card p-4">
                 <div className="flex items-center gap-2 text-mist">
                   <Code size={14} className="text-faint" />
-                  <span className="kpi-label">Languages</span>
+                  <span className="kpi-label">{t("Languages")}</span>
                 </div>
                 <ul className="mt-3 space-y-2">
                   {languages.map(([name, count]) => {
@@ -579,7 +597,9 @@ export function ListView({
                                 ),
                               }}
                             />
-                            <span className="truncate">{name}</span>
+                            <span className="truncate">
+                              {name === "Unknown" ? t("Unknown") : name}
+                            </span>
                           </span>
                           <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-raised">
                             <span
@@ -606,13 +626,13 @@ export function ListView({
             <div className="card p-4">
               <div className="flex items-center gap-2 text-mist">
                 <FolderSimple size={14} className="text-faint" />
-                <span className="kpi-label">Tracked set</span>
+                <span className="kpi-label">{t("Tracked set")}</span>
               </div>
               <dl className="mt-3 space-y-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
                     <LockSimpleIcon size={12} className="text-faint" />
-                    Private
+                    {t("Private")}
                   </dt>
                   <dd className="font-mono text-[12.5px] tabular">
                     {fmtNum(privateCount)}
@@ -621,7 +641,7 @@ export function ListView({
                 <div className="flex items-center justify-between gap-3">
                   <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
                     <DownloadSimple size={12} className="text-faint" />
-                    No downloads
+                    {t("No downloads")}
                   </dt>
                   <dd className="font-mono text-[12.5px] tabular">
                     {fmtNum(silentCount)}
@@ -631,7 +651,7 @@ export function ListView({
                   <div className="flex items-center justify-between gap-3">
                     <dt className="flex items-center gap-1.5 text-[12.5px] text-accent-soft">
                       <WarningCircleIcon size={12} />
-                      Failed
+                      {t("Failed")}
                     </dt>
                     <dd className="font-mono text-[12.5px] text-accent-soft tabular">
                       {fmtNum(errorCount)}

@@ -1,5 +1,6 @@
 import { WarningCircle } from "@phosphor-icons/react";
 import { DetailSkeleton } from "../components/Skeleton";
+import { useI18n } from "../lib/i18n";
 import type { RepoDetail } from "../lib/types";
 import { HistoryCharts } from "./detail/HistoryCharts";
 import { InsightsSection } from "./detail/InsightsSection";
@@ -20,6 +21,7 @@ export function DetailView({
   error: string | null;
   detail: RepoDetail | null;
 }) {
+  const { t } = useI18n();
   return loading ? (
     <DetailSkeleton />
   ) : (
@@ -27,7 +29,10 @@ export function DetailView({
       {error ? (
         <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
           <WarningCircle size={16} />
-          {error}
+          <div role="alert">
+            <p>{t("errors.request")}</p>
+            <p className="mt-1 break-words">{error}</p>
+          </div>
         </div>
       ) : detail ? (
         <DetailBody detail={detail} />

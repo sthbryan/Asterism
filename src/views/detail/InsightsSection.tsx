@@ -1,10 +1,12 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { BarChart } from "../../components/Charts";
+import { useI18n } from "../../lib/i18n";
 import { langColor } from "../../lib/langcolors";
 import { platformItems, shortPath } from "../../lib/platform";
 import type { RepoDetail } from "../../lib/types";
 
 export function InsightsSection({ detail }: { detail: RepoDetail }) {
+  const { t, formatNumber } = useI18n();
   const langTotal =
     detail.languages.reduce((sum, lang) => sum + lang.bytes, 0) || 1;
   const platformBars = platformItems(
@@ -17,12 +19,14 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
     <>
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         <div className="card p-4">
-          <div className="text-[13px] font-semibold">Referrers · 14 days</div>
+          <div className="text-[13px] font-semibold">
+            {t("Referrers · 14 days")}
+          </div>
           {referrers.length === 0 ? (
             <p className="mt-3 text-[13px] text-faint">
               {detail.trafficError && !detail.views
-                ? "Referrers need push access, same as views."
-                : "No referrers in the last 14 days."}
+                ? t("Referrers need push access, same as views.")
+                : t("No referrers in the last 14 days.")}
             </p>
           ) : (
             <div className="mt-3">
@@ -37,24 +41,30 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
         </div>
         <div className="card p-4">
           <div className="text-[13px] font-semibold">
-            Popular paths · 14 days
+            {t("Popular paths · 14 days")}
           </div>
           {paths.length === 0 ? (
             <p className="mt-3 text-[13px] text-faint">
               {detail.trafficError && !detail.views
-                ? "Paths need push access, same as views."
-                : "No popular paths in the last 14 days."}
+                ? t("Paths need push access, same as views.")
+                : t("No popular paths in the last 14 days.")}
             </p>
           ) : (
             <div className="mt-3">
               <BarChart
                 items={paths.map((row) => ({
-                  label: shortPath(row.path, detail.fullName),
+                  label:
+                    shortPath(row.path, detail.fullName) === "Overview"
+                      ? t("Overview")
+                      : shortPath(row.path, detail.fullName),
                   value: row.count,
                 }))}
                 onSelect={(label) => {
                   const match = paths.find(
-                    (row) => shortPath(row.path, detail.fullName) === label,
+                    (row) =>
+                      (shortPath(row.path, detail.fullName) === "Overview"
+                        ? t("Overview")
+                        : shortPath(row.path, detail.fullName)) === label,
                   );
                   if (match) void openUrl(`https://github.com${match.path}`);
                 }}
@@ -66,21 +76,30 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
         <div className="card p-4">
-          <div className="text-[13px] font-semibold">Downloads by platform</div>
+          <div className="text-[13px] font-semibold">
+            {t("Downloads by platform")}
+          </div>
           {platformBars.length === 0 ? (
             <p className="mt-3 text-[13px] text-faint">
-              No release assets with a recognizable platform.
+              {t("No release assets with a recognizable platform.")}
             </p>
           ) : (
             <div className="mt-3">
-              <BarChart items={platformBars} />
+              <BarChart
+                items={platformBars.map((item) => ({
+                  ...item,
+                  label: item.label === "Other" ? t("Other") : item.label,
+                }))}
+              />
             </div>
           )}
         </div>
         <div className="card p-4">
-          <div className="text-[13px] font-semibold">Languages</div>
+          <div className="text-[13px] font-semibold">{t("Languages")}</div>
           {detail.languages.length === 0 ? (
-            <p className="mt-3 text-[13px] text-faint">No language data.</p>
+            <p className="mt-3 text-[13px] text-faint">
+              {t("No language data.")}
+            </p>
           ) : (
             <ul className="mt-3.5 space-y-2">
               {detail.languages.map((lang) => {
@@ -107,7 +126,12 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
                       />
                     </span>
                     <span className="text-right font-mono text-[11.5px] text-mist tabular">
-                      {pct < 1 ? "<1%" : `${Math.round(pct)}%`}
+                      {pct < 1
+                        ? "<1%"
+                        : formatNumber(pct / 100, {
+                            style: "percent",
+                            maximumFractionDigits: 0,
+                          })}
                     </span>
                   </li>
                 );

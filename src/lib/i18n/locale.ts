@@ -15,8 +15,7 @@ export function detectLocale(): Locale {
         ? navigator.language
         : "";
     if (language.toLowerCase().startsWith("es")) return "es";
-  } catch {
-  }
+  } catch {}
   return "en";
 }
 
@@ -24,19 +23,24 @@ export function readStoredLocale(): Locale | null {
   try {
     const raw = window.localStorage.getItem(LOCALE_KEY);
     if (raw === "es" || raw === "en") return raw;
-  } catch {
-  }
+  } catch {}
   return null;
 }
 
 export function persistLocale(locale: Locale): void {
   try {
     window.localStorage.setItem(LOCALE_KEY, locale);
-  } catch {
-  }
+  } catch {}
 }
 
 export function applyDocumentLocale(locale: Locale): void {
   document.documentElement.lang = locale;
   persistLocale(locale);
+}
+
+export function currentLocale(): Locale {
+  return typeof document !== "undefined" &&
+    document.documentElement.lang === "es"
+    ? "es"
+    : "en";
 }

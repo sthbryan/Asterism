@@ -1,4 +1,5 @@
 import { Button } from "../../components/Button";
+import { useI18n } from "../../lib/i18n";
 
 export function PickerTrailing({
   dirty,
@@ -11,14 +12,15 @@ export function PickerTrailing({
   onCancel: () => void;
   onSave: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <>
       <Button variant="quiet" onClick={onCancel}>
-        Cancel
+        {t("Cancel")}
       </Button>
       {dirty ? (
         <Button variant="primary" onClick={onSave} disabled={loading}>
-          Save changes
+          {t("Save changes")}
         </Button>
       ) : null}
     </>
