@@ -1,5 +1,5 @@
-import { CaretDown } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
+import { Select } from "@/components/Select";
 import type { PickerSort } from "./usePicker";
 
 const OPTIONS: { value: PickerSort; label: string }[] = [
@@ -17,29 +17,26 @@ export function SortControl({
 }) {
   const { t } = useI18n();
   return (
-    <label className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-hairline bg-wash px-2 pl-2.5 transition-colors focus-within:border-line">
-      <span className="text-[11px] font-medium tracking-wide text-faint uppercase">
+    <div className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-hairline bg-wash pl-2.5 transition-colors focus-within:border-line">
+      <label
+        id="picker-sort-label"
+        htmlFor="picker-sort"
+        className="text-[11px] font-medium tracking-wide text-faint uppercase"
+      >
         {t("Sort")}
-      </span>
-      <span className="relative inline-flex items-center">
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value as PickerSort)}
-          aria-label={t("Sort repositories")}
-          className="h-full cursor-pointer appearance-none bg-transparent pr-4 text-[12px] font-medium text-mist outline-none hover:text-paper"
-        >
-          {OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {t(opt.label)}
-            </option>
-          ))}
-        </select>
-        <CaretDown
-          size={10}
-          weight="bold"
-          className="pointer-events-none absolute right-0 text-faint"
-        />
-      </span>
-    </label>
+      </label>
+      <Select
+        id="picker-sort"
+        value={value}
+        onChange={(sort) => onChange(sort as PickerSort)}
+        ariaLabel={t("Sort repositories")}
+        ariaLabelledBy="picker-sort-label"
+        className="min-w-44"
+        options={OPTIONS.map((option) => ({
+          value: option.value,
+          label: t(option.label),
+        }))}
+      />
+    </div>
   );
 }

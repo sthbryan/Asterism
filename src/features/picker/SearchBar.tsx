@@ -1,4 +1,4 @@
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import { Input } from "@/components/Input";
 
@@ -13,9 +13,9 @@ export function SearchBar({
   return (
     <label
       htmlFor="picker-search"
-      className="flex h-8 min-w-[200px] flex-1 items-center gap-2 rounded-md border border-hairline bg-wash px-2.5 transition-colors focus-within:border-line"
+      className="flex h-9 min-w-50 flex-1 items-center gap-2 rounded-md border border-hairline bg-wash px-2.5 transition-colors focus-within:border-line"
     >
-      <MagnifyingGlass size={13} className="shrink-0 text-faint" />
+      <MagnifyingGlassIcon size={13} className="shrink-0 text-faint" />
       <Input
         id="picker-search"
         variant="compact"
