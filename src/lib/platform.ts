@@ -95,7 +95,7 @@ export function platformItems(platforms: PlatformDownloads) {
 
 export function shortPath(path: string, fullName: string) {
   const prefix = `/${fullName}`;
-  if (path === prefix || path === prefix + "/") return "Overview";
+  if (path === prefix || path === `${prefix}/`) return "Overview";
   if (path.startsWith(prefix)) {
     const rest = path.slice(prefix.length);
     return rest.startsWith("/") ? rest : `/${rest}`;
