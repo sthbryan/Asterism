@@ -12,31 +12,39 @@ import { enqueuePreference } from "../src/lib/preferences";
 
 describe("translations", () => {
   test("both languages contain the same nonempty messages and placeholders", () => {
-    expect(Object.keys(en).sort()).toEqual(Object.keys(es).sort());
-    for (const [key, english] of Object.entries(en)) {
-      const spanish = es[key];
-      expect(typeof english).toBe(typeof spanish);
-      const variants =
-        typeof english === "string"
-          ? [[english, spanish]]
-          : Object.entries(english).map(([form, text]) => [
-              text,
-              (spanish as Record<string, string>)[form],
-            ]);
-      for (const [left, right] of variants) {
-        expect(typeof right).toBe("string");
-        expect(String(right).trim().length).toBeGreaterThan(0);
-        expect(
-          String(left)
-            .match(/\{\w+\}/g)
-            ?.sort() ?? [],
-        ).toEqual(
-          String(right)
+    function compareTrees(english: unknown, spanish: unknown) {
+      expect(typeof spanish).toBe(typeof english);
+      if (typeof english === "string") {
+        expect(english.trim().length).toBeGreaterThan(0);
+        expect(String(spanish).trim().length).toBeGreaterThan(0);
+        expect(english.match(/\{\w+\}/g)?.sort() ?? []).toEqual(
+          String(spanish)
             .match(/\{\w+\}/g)
             ?.sort() ?? [],
         );
+        return;
+      }
+      if (typeof english !== "object" || english === null) return;
+      const spanishObject = spanish as Record<string, unknown>;
+      for (const [key, value] of Object.entries(english)) {
+        expect(Object.hasOwn(spanishObject, key)).toBe(true);
+        compareTrees(value, spanishObject[key]);
       }
     }
+
+    compareTrees(en, es);
+    function compareKeys(english: unknown, spanish: unknown) {
+      if (typeof english !== "object" || english === null) return;
+      const englishObject = english as Record<string, unknown>;
+      const spanishObject = spanish as Record<string, unknown>;
+      expect(Object.keys(englishObject).sort()).toEqual(
+        Object.keys(spanishObject).sort(),
+      );
+      for (const key of Object.keys(englishObject)) {
+        compareKeys(englishObject[key], spanishObject[key]);
+      }
+    }
+    compareKeys(en, es);
   });
   test("singular, plural and interpolation follow the selected language", () => {
     expect(translate("es", "common.repos", { count: 1 })).toBe("1 repositorio");

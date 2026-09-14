@@ -1,0 +1,41 @@
+{
+  "% of total downloads": "% of total downloads",
+  "(optional)": "(optional)",
+  "Anyone on the internet can see this repository.": "Anyone on the internet can see this repository.",
+  "Choose the repositories you want to watch. Only that set is synced.": "Choose the repositories you want to watch. Only that set is synced.",
+  "Create a repository on GitHub and start tracking it in Asterism.": "Create a repository on GitHub and start tracking it in Asterism.",
+  "Create repository": "Create repository",
+  "Default branch": "Default branch",
+  "GitHub does not publish download history. Asterism records a snapshot each refresh.": "GitHub does not publish download history. Asterism records a snapshot each refresh.",
+  "GitHub only exposes the last 14 days": "GitHub only exposes the last 14 days",
+  "GitHub · connected": "GitHub · connected",
+  "Loading repository options…": "Loading repository options…",
+  "No results for “": "No results for “",
+  "None": "None",
+  "Only you and people you grant access can see this repository.": "Only you and people you grant access can see this repository.",
+  "Panel": "Panel",
+  "Pre": "Pre",
+  "Repository": "Repository",
+  "Stars ↓": "Stars ↓",
+  "Unavailable": "Unavailable",
+  "Use letters, numbers, periods, hyphens or underscores. Names cannot be . or .., or end in .git.": "Use letters, numbers, periods, hyphens or underscores. Names cannot be . or .., or end in .git.",
+  "in range": "in range",
+  "my-project": "my-project",
+  "owner": "owner",
+  "release assets": "release assets",
+  "repository": "repository",
+  "total": "total",
+  "tracked": "tracked",
+  "unique": {
+    "one": "{count} unique",
+    "other": "{count} unique"
+  },
+  "errors.request": "Could not complete the request. Please try again.",
+  "Unknown": "Unknown",
+  "Other": "Other",
+  "sync": "sync",
+  "repos": {
+    "one": "{count} repository",
+    "other": "{count} repositories"
+  }
+}

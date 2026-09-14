@@ -1,0 +1,41 @@
+{
+  "% of total downloads": "% del total de descargas",
+  "(optional)": "(opcional)",
+  "Anyone on the internet can see this repository.": "Cualquier persona en internet puede ver este repositorio.",
+  "Choose the repositories you want to watch. Only that set is synced.": "Elige los repositorios que quieres seguir. Solo se sincronizarán los seleccionados.",
+  "Create a repository on GitHub and start tracking it in Asterism.": "Crea un repositorio en GitHub y empieza a seguirlo en Asterism.",
+  "Create repository": "Crear repositorio",
+  "Default branch": "Rama predeterminada",
+  "GitHub does not publish download history. Asterism records a snapshot each refresh.": "GitHub no publica el historial de descargas. Asterism guarda una muestra en cada actualización.",
+  "GitHub only exposes the last 14 days": "GitHub solo proporciona los últimos 14 días",
+  "GitHub · connected": "GitHub · conectado",
+  "Loading repository options…": "Cargando opciones del repositorio…",
+  "No results for “": "Sin resultados para «",
+  "None": "Ninguna",
+  "Only you and people you grant access can see this repository.": "Solo tú y las personas a las que des acceso pueden ver este repositorio.",
+  "Panel": "Panel",
+  "Pre": "Previa",
+  "Repository": "Repositorio",
+  "Stars ↓": "Estrellas ↓",
+  "Unavailable": "No disponible",
+  "Use letters, numbers, periods, hyphens or underscores. Names cannot be . or .., or end in .git.": "Usa letras, números, puntos, guiones o guiones bajos. El nombre no puede ser . ni .., ni terminar en .git.",
+  "in range": "en el período",
+  "my-project": "mi-proyecto",
+  "owner": "propietario",
+  "release assets": "archivos de versiones",
+  "repository": "repositorio",
+  "total": "total",
+  "tracked": "seguidos",
+  "unique": {
+    "one": "{count} único",
+    "other": "{count} únicos"
+  },
+  "errors.request": "No se pudo completar la solicitud. Inténtalo de nuevo.",
+  "Unknown": "Desconocido",
+  "Other": "Otros",
+  "sync": "sincronización",
+  "repos": {
+    "one": "{count} repositorio",
+    "other": "{count} repositorios"
+  }
+}

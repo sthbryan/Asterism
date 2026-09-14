@@ -1,0 +1,21 @@
+{
+  "A new home for your project": "Un nuevo hogar para tu proyecto",
+  "Add a README": "Añadir un README",
+  "Create another": "Crear otro",
+  "Created": "Creación",
+  "Creating repository…": "Creando repositorio…",
+  "Demo mode — no repository will be created on GitHub.": "Modo de demostración: no se creará ningún repositorio en GitHub.",
+  "Description": "Descripción",
+  "License": "Licencia",
+  "Private": "Privado",
+  "Public": "Público",
+  "Repository created": "Repositorio creado",
+  "Repository name": "Nombre del repositorio",
+  "Track this repository in Asterism": "Seguir este repositorio en Asterism",
+  "What does this project do?": "¿Qué hace este proyecto?",
+  "result": "Repositorio {visibility}{demo}.",
+  "demoSuffix": " · Solo demostración",
+  "githubSuffix": " en GitHub",
+  "trackingFailed": "Repositorio creado, pero no se pudo guardar el seguimiento. Selecciónalo en Repositorios.",
+  "failed": "Si se interrumpió la conexión, comprueba tus repositorios en GitHub antes de volver a intentarlo."
+}

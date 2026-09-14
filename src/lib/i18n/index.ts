@@ -1,9 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useStore } from "../../app/store";
 import type { Locale } from "../types";
-import { en } from "./en";
-import type { Dict } from "./es";
-import { es } from "./es";
 import {
   applyDocumentLocale,
   detectLocale,
@@ -11,9 +8,11 @@ import {
   persistLocale,
   readStoredLocale,
 } from "./locale";
+import type { Dict } from "./locales";
+import { en, es } from "./locales";
 
 export type { Locale } from "../types";
-export type { Dict, PluralForms } from "./es";
+export type { Dict, PluralForms } from "./locales";
 export {
   applyDocumentLocale,
   detectLocale,

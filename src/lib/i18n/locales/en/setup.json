@@ -1,0 +1,14 @@
+{
+  "2. If you need to sign in, run": "2. If you need to sign in, run",
+  "3. Return here and check the connection.": "3. Return here and check the connection.",
+  "Asterism could not connect to your GitHub account. Check your connection and GitHub CLI sign-in, then try again.": "Asterism could not connect to your GitHub account. Check your connection and GitHub CLI sign-in, then try again.",
+  "Asterism needs GitHub CLI to access your repositories. Install it, then sign in from your terminal.": "Asterism needs GitHub CLI to access your repositories. Install it, then sign in from your terminal.",
+  "Check connection": "Check connection",
+  "Connect to GitHub": "Connect to GitHub",
+  "Connection details": "Connection details",
+  "In your terminal, run": "In your terminal, run",
+  "Open GitHub CLI installation instructions": "Open GitHub CLI installation instructions",
+  "Retry loading": "Retry loading",
+  "Set up GitHub CLI": "Set up GitHub CLI",
+  "Setup": "Setup"
+}
