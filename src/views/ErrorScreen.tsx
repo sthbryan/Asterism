@@ -30,6 +30,7 @@ export function ErrorScreen({
             <li>
               1.{" "}
               <button
+                type="button"
                 className="text-paper underline underline-offset-4"
                 onClick={() => {
                   void openUrl("https://cli.github.com").catch((err) =>
