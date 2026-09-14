@@ -1,73 +1,54 @@
 import {
   createContext,
   type ReactNode,
-  useCallback,
   useContext,
-  useLayoutEffect,
-  useRef,
+  useMemo,
   useState,
 } from "react";
-
-export type HeaderState = {
-  id?: symbol;
-  title: ReactNode;
-  trailing: ReactNode;
-};
+import { createPortal } from "react-dom";
 
 type HeaderContextType = {
-  header: HeaderState;
-  setHeader: (update: {
-    id: symbol;
-    title: ReactNode;
-    trailing: ReactNode;
-    isCleanup?: boolean;
-  }) => void;
+  titleTarget: HTMLDivElement | null;
+  trailingTarget: HTMLDivElement | null;
+  setTitleTarget: (node: HTMLDivElement | null) => void;
+  setTrailingTarget: (node: HTMLDivElement | null) => void;
 };
 
 const HeaderContext = createContext<HeaderContextType | null>(null);
 
 export function HeaderProvider({ children }: { children: ReactNode }) {
-  const [header, setHeaderState] = useState<HeaderState>({
-    title: null,
-    trailing: null,
-  });
-
-  const setHeader = useCallback(
-    (update: {
-      id: symbol;
-      title: ReactNode;
-      trailing: ReactNode;
-      isCleanup?: boolean;
-    }) => {
-      setHeaderState((current) => {
-        if (update.isCleanup && current.id !== update.id) {
-          return current;
-        }
-        return {
-          id: update.id,
-          title: update.title,
-          trailing: update.trailing,
-        };
-      });
-    },
-    [],
+  const [titleTarget, setTitleTarget] = useState<HTMLDivElement | null>(null);
+  const [trailingTarget, setTrailingTarget] = useState<HTMLDivElement | null>(
+    null,
   );
-
+  const value = useMemo(
+    () => ({ titleTarget, trailingTarget, setTitleTarget, setTrailingTarget }),
+    [titleTarget, trailingTarget],
+  );
   return (
-    <HeaderContext.Provider value={{ header, setHeader }}>
-      {children}
-    </HeaderContext.Provider>
+    <HeaderContext.Provider value={value}>{children}</HeaderContext.Provider>
   );
+}
+
+function useHeaderContext() {
+  const context = useContext(HeaderContext);
+  if (!context) throw new Error("PageHeader requires HeaderProvider");
+  return context;
 }
 
 export function useHeader() {
-  const ctx = useContext(HeaderContext);
-  if (!ctx) {
-    throw new Error("useHeader must be used within <HeaderProvider>");
-  }
-  return ctx;
+  const { setTitleTarget, setTrailingTarget } = useHeaderContext();
+  return {
+    header: {
+      title: <div ref={setTitleTarget} className="contents" />,
+      trailing: <div ref={setTrailingTarget} className="contents" />,
+    },
+  };
 }
 
+/** Keep controls owned by their route so props and callbacks stay current.
+ * Portals avoid copying React elements into shell state on every render.
+ */
 export function PageHeader({
   title,
   trailing,
@@ -75,27 +56,11 @@ export function PageHeader({
   title: ReactNode;
   trailing?: ReactNode;
 }) {
-  const { setHeader } = useHeader();
-  const idRef = useRef<symbol | null>(null);
-  const titleRef = useRef(title);
-  const trailingRef = useRef(trailing ?? null);
-  if (!idRef.current) {
-    idRef.current = Symbol("PageHeader");
-  }
-  titleRef.current = title;
-  trailingRef.current = trailing ?? null;
-
-  useLayoutEffect(() => {
-    const id = idRef.current as symbol;
-    setHeader({
-      id,
-      title: titleRef.current,
-      trailing: trailingRef.current,
-    });
-    return () => {
-      setHeader({ id, title: null, trailing: null, isCleanup: true });
-    };
-  }, [setHeader]);
-
-  return null;
+  const { titleTarget, trailingTarget } = useHeaderContext();
+  return (
+    <>
+      {titleTarget && createPortal(title, titleTarget)}
+      {trailingTarget && createPortal(trailing ?? null, trailingTarget)}
+    </>
+  );
 }
