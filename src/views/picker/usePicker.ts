@@ -67,7 +67,6 @@ export function usePicker({
           (a, b) => b.stars - a.stars || a.fullName.localeCompare(b.fullName),
         );
         break;
-      case "selected":
       default:
         arr.sort((a, b) => {
           const sa = selected.has(a.fullName) ? 0 : 1;
