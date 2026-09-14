@@ -90,10 +90,10 @@ async fn refresh_tracked() -> Result<Cache, String> {
         let fetches = gh::refresh_tracked(cfg.repos, seed_for);
         let now = history::now_secs();
         let repos = fetches
-            .iter()
+            .into_iter()
             .map(|fetch| {
-                history::apply_fetch(&mut store, &fetch.repo, fetch.star_seed.clone(), now);
-                let mut repo = fetch.repo.clone();
+                history::apply_fetch(&mut store, &fetch.repo, fetch.star_seed, now);
+                let mut repo = fetch.repo;
                 if let Some(old) = prev.get(&repo.full_name) {
                     repo.stars_delta = Some(repo.stars as i64 - old.stars as i64);
                     repo.forks_delta = Some(repo.forks as i64 - old.forks as i64);

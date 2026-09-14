@@ -49,6 +49,7 @@ pub fn load_config() -> Result<Config, String> {
         fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {e}", path.display()))?;
     let mut cfg: Config = serde_json::from_str(&raw)
         .map_err(|e| format!("Invalid config at {}: {e}", path.display()))?;
+    drop(raw);
     if cfg.version == 0 {
         cfg.version = 1;
     }
@@ -70,9 +71,16 @@ pub fn save_config(mut cfg: Config) -> Result<Config, String> {
     Ok(cfg)
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-struct CacheFile {
+struct CacheFile<'a> {
+    fetched_at: u64,
+    repos: &'a [crate::models::TrackedRepo],
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CacheFileOwned {
     fetched_at: u64,
     repos: Vec<crate::models::TrackedRepo>,
 }
@@ -89,6 +97,7 @@ pub fn load_history() -> Result<HistoryStore, String> {
         fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {e}", path.display()))?;
     let mut store: HistoryStore = serde_json::from_str(&raw)
         .map_err(|e| format!("Invalid history at {}: {e}", path.display()))?;
+    drop(raw);
     if store.version == 0 {
         store.version = 1;
     }
@@ -110,8 +119,9 @@ pub fn load_cache() -> Result<Option<Cache>, String> {
     }
     let raw =
         fs::read_to_string(&path).map_err(|e| format!("Could not read {}: {e}", path.display()))?;
-    let file: CacheFile = serde_json::from_str(&raw)
+    let file: CacheFileOwned = serde_json::from_str(&raw)
         .map_err(|e| format!("Invalid cache at {}: {e}", path.display()))?;
+    drop(raw);
     let history = load_history()?.repos;
     Ok(Some(Cache {
         fetched_at: file.fetched_at,
@@ -131,7 +141,7 @@ pub fn save_cache(
     };
     let file = CacheFile {
         fetched_at: cache.fetched_at,
-        repos: cache.repos.clone(),
+        repos: &cache.repos,
     };
     let path = cache_path()?;
     ensure_parent(&path)?;

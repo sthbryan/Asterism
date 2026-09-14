@@ -83,19 +83,19 @@ pub fn downsample(points: &[SeriesPoint], max: usize) -> Vec<SeriesPoint> {
         return points.to_vec();
     }
     let mut out = Vec::with_capacity(max);
-    out.push(points[0].clone());
+    out.push(points[0]);
     let inner = (max - 2) as f64;
     let span = (points.len() - 2) as f64;
     for i in 1..=(max - 2) {
         let idx = 1 + ((i as f64 / inner) * span).round() as usize;
         let idx = idx.clamp(1, points.len() - 2);
         if out.last().map(|p| p.ts) != Some(points[idx].ts) {
-            out.push(points[idx].clone());
+            out.push(points[idx]);
         }
     }
     if let Some(last) = points.last() {
         if out.last().map(|p| p.ts) != Some(last.ts) {
-            out.push(last.clone());
+            out.push(*last);
         }
     }
     out

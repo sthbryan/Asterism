@@ -162,21 +162,24 @@ fn parse_catalog_repo(value: &Value) -> Option<CatalogRepo> {
 }
 
 pub fn list_catalog() -> Result<Vec<CatalogRepo>, String> {
-    let json = run_gh_json(&[
-        "api",
-        "--paginate",
-        "/user/repos?per_page=100&affiliation=owner,organization_member&sort=full_name",
-    ])?;
     let mut repos = Vec::new();
-    if let Some(arr) = json.as_array() {
-        for item in arr {
-            if let Some(repo) = parse_catalog_repo(item) {
-                repos.push(repo);
+    {
+        let json = run_gh_json(&[
+            "api",
+            "--paginate",
+            "/user/repos?per_page=100&affiliation=owner,organization_member&sort=full_name",
+        ])?;
+        if let Some(arr) = json.as_array() {
+            for item in arr {
+                if let Some(repo) = parse_catalog_repo(item) {
+                    repos.push(repo);
+                }
             }
         }
-    }
+    } // NB: suelta el Value temporal antes de ordenar/dedup.
     repos.sort_by(|a, b| a.full_name.to_lowercase().cmp(&b.full_name.to_lowercase()));
     repos.dedup_by(|a, b| a.full_name == b.full_name);
+    repos.shrink_to_fit();
     Ok(repos)
 }
 
@@ -226,6 +229,7 @@ fn parse_releases(json: &Value) -> Vec<Release> {
             assets,
         });
     }
+    releases.shrink_to_fit();
     releases
 }
 
@@ -267,6 +271,9 @@ fn parse_tracked(
 fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
     match run_gh_json(&["api", &format!("/repos/{full_name}")]) {
         Ok(repo) => {
+            // created_at se extrae antes: el Value de repo se suelta en cuanto
+            // se construye la fila, sin convivir con el seed de estrellas.
+            let created_at = as_string(&repo, "created_at");
             let row = match release_downloads(&full_name) {
                 Ok((releases, downloads)) => parse_tracked(
                     &full_name,
@@ -281,7 +288,7 @@ fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
                     row
                 }
             };
-            let created_at = as_string(&repo, "created_at");
+            drop(repo);
             let star_seed = if seed_stars && row.stars > 0 {
                 star_series(&full_name, row.stars, created_at.as_deref()).ok()
             } else {
@@ -452,7 +459,10 @@ pub fn star_series(
 
     let page_size = 100u64;
     let total_pages = current_stars.div_ceil(page_size).max(1);
-    let max_requests = 12u64;
+    // Tope de peticiones: ya acota el trabajo en memoria (12 páginas × 100
+    // stargazers como máximo vivo a la vez, una página por iteración).
+    const MAX_STAR_PAGES: u64 = 12;
+    let max_requests = MAX_STAR_PAGES;
     let mut pages: Vec<u64> = if total_pages <= max_requests {
         (1..=total_pages).collect()
     } else {
@@ -466,36 +476,44 @@ pub fn star_series(
 
     let mut sampled: Vec<SeriesPoint> = Vec::new();
     for page in &pages {
-        let json = run_gh_json(&[
-            "api",
-            "-H",
-            "Accept: application/vnd.github.star+json",
-            &format!("/repos/{full_name}/stargazers?per_page={page_size}&page={page}"),
-        ])?;
-        let Some(arr) = json.as_array() else {
-            break;
+        // El JSON de cada página vive solo dentro del bloque: se suelta
+        // antes de acumular el lote en `sampled`.
+        let (batch, short_page) = {
+            let json = run_gh_json(&[
+                "api",
+                "-H",
+                "Accept: application/vnd.github.star+json",
+                &format!("/repos/{full_name}/stargazers?per_page={page_size}&page={page}"),
+            ])?;
+            let Some(arr) = json.as_array() else {
+                break;
+            };
+            if arr.is_empty() {
+                break;
+            }
+            let mut batch = Vec::with_capacity(arr.len());
+            for (i, item) in arr.iter().enumerate() {
+                let Some(ts) = as_string(item, "starred_at")
+                    .as_deref()
+                    .and_then(parse_iso_unix)
+                else {
+                    continue;
+                };
+                let value = if fetched_all {
+                    sampled.len() as u64 + batch.len() as u64 + 1
+                } else {
+                    (page - 1) * page_size + i as u64 + 1
+                };
+                batch.push(SeriesPoint { ts, value });
+            }
+            (batch, arr.len() < page_size as usize)
         };
-        if arr.is_empty() {
-            break;
-        }
-        for (i, item) in arr.iter().enumerate() {
-            let Some(ts) = as_string(item, "starred_at")
-                .as_deref()
-                .and_then(parse_iso_unix)
-            else {
-                continue;
-            };
-            let value = if fetched_all {
-                sampled.len() as u64 + 1
-            } else {
-                (page - 1) * page_size + i as u64 + 1
-            };
-            sampled.push(SeriesPoint { ts, value });
-        }
-        if arr.len() < page_size as usize {
+        sampled.extend(batch);
+        if short_page {
             break;
         }
     }
+    sampled.shrink_to_fit();
 
     if fetched_all {
         sampled.sort_by_key(|p| p.ts);
@@ -576,6 +594,31 @@ fn license_name(value: &Value) -> Option<String> {
 
 pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
     let repo = run_gh_json(&["api", &format!("/repos/{full_name}")])?;
+    // Se extrae todo lo necesario del JSON del repo y se suelta antes de las
+    // siguientes llamadas (releases, languages, traffic): así el Value grande
+    // no convive en memoria con los demás.
+    let resolved_name = as_string(&repo, "full_name").unwrap_or_else(|| full_name.clone());
+    let description = as_string(&repo, "description");
+    let homepage = as_string(&repo, "homepage");
+    let private = as_bool(&repo, "private");
+    let visibility = as_string(&repo, "visibility");
+    let archived = as_bool(&repo, "archived");
+    let is_template = as_bool(&repo, "is_template");
+    let language = as_string(&repo, "language");
+    let stars = as_u64(&repo, "stargazers_count");
+    let forks = as_u64(&repo, "forks_count");
+    let watchers = as_u64(&repo, "subscribers_count");
+    let open_issues = as_u64(&repo, "open_issues_count");
+    let network_count = as_u64(&repo, "network_count");
+    let size = as_u64(&repo, "size");
+    let license = license_name(&repo);
+    let default_branch = as_string(&repo, "default_branch");
+    let topics = topics(&repo);
+    let created_at = as_string(&repo, "created_at");
+    let updated_at = as_string(&repo, "updated_at");
+    let pushed_at = as_string(&repo, "pushed_at");
+    drop(repo);
+
     let (releases, downloads) = release_downloads(&full_name)?;
     let platforms = platforms_from_releases(&releases);
 
@@ -617,27 +660,27 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
     };
 
     Ok(RepoDetail {
-        full_name: as_string(&repo, "full_name").unwrap_or(full_name),
-        description: as_string(&repo, "description"),
-        homepage: as_string(&repo, "homepage"),
-        private: as_bool(&repo, "private"),
-        visibility: as_string(&repo, "visibility"),
-        archived: as_bool(&repo, "archived"),
-        is_template: as_bool(&repo, "is_template"),
-        language: as_string(&repo, "language"),
+        full_name: resolved_name,
+        description,
+        homepage,
+        private,
+        visibility,
+        archived,
+        is_template,
+        language,
         languages,
-        stars: as_u64(&repo, "stargazers_count"),
-        forks: as_u64(&repo, "forks_count"),
-        watchers: as_u64(&repo, "subscribers_count"),
-        open_issues: as_u64(&repo, "open_issues_count"),
-        network_count: as_u64(&repo, "network_count"),
-        size: as_u64(&repo, "size"),
-        license: license_name(&repo),
-        default_branch: as_string(&repo, "default_branch"),
-        topics: topics(&repo),
-        created_at: as_string(&repo, "created_at"),
-        updated_at: as_string(&repo, "updated_at"),
-        pushed_at: as_string(&repo, "pushed_at"),
+        stars,
+        forks,
+        watchers,
+        open_issues,
+        network_count,
+        size,
+        license,
+        default_branch,
+        topics,
+        created_at,
+        updated_at,
+        pushed_at,
         downloads,
         views,
         clones,

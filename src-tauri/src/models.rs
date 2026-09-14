@@ -103,7 +103,7 @@ pub struct TrackedRepo {
     pub error: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SeriesPoint {
     pub ts: u64,
