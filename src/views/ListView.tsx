@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { VList } from "virtua";
 import {
   ArrowClockwise,
   CaretDown,
@@ -11,7 +12,7 @@ import {
   LockSimple,
   MagnifyingGlass,
   Star,
-  WarningCircle,
+  WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { Banner } from "../components/Banner";
 import { AreaChart, BarChart } from "../components/Charts";
@@ -85,41 +86,69 @@ export function ListView({
     dir: -1,
   });
 
-  const stars = repos.reduce((sum, repo) => sum + repo.stars, 0);
-  const forks = repos.reduce((sum, repo) => sum + repo.forks, 0);
-  const downloads = repos.reduce((sum, repo) => sum + repo.downloads, 0);
-
-  const names = repos.map((repo) => repo.fullName);
-  const starSeries = aggregateHistory(history, names, "stars");
-  const downloadSeries = aggregateHistory(history, names, "downloads");
-  const starDelta = delta(starSeries);
-  const downloadDelta = delta(downloadSeries);
-  const starKpi = pickKpiDelta(windowDelta(starSeries, 7), sumDeltas(repos.map((repo) => repo.starsDelta)));
-  const forkKpi = pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta)));
-  const downloadKpi = pickKpiDelta(
-    windowDelta(downloadSeries, 7),
-    sumDeltas(repos.map((repo) => repo.downloadsDelta)),
+  const { stars, forks, downloads } = useMemo(
+    () => ({
+      stars: repos.reduce((sum, repo) => sum + repo.stars, 0),
+      forks: repos.reduce((sum, repo) => sum + repo.forks, 0),
+      downloads: repos.reduce((sum, repo) => sum + repo.downloads, 0),
+    }),
+    [repos],
   );
-  const platformBars = platformItems(sumPlatforms(repos.map((repo) => repo.platforms)));
 
-  const byDownloads = [...repos].sort((a, b) => b.downloads - a.downloads);
-  const chartItems = byDownloads.slice(0, 6).map((repo) => ({
-    label: repo.fullName,
-    value: repo.downloads,
-    color: langColor(repo.language),
-  }));
-  const top = byDownloads[0];
-  const share = top && downloads > 0 ? Math.round((top.downloads / downloads) * 100) : 0;
-  const showChart = chartItems.some((item) => item.value > 0);
-  const languages = [...repos.reduce((map, repo) => {
-    const name = repo.language ?? "Unknown";
-    map.set(name, (map.get(name) ?? 0) + 1);
-    return map;
-  }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
-  const langTotal = repos.length || 1;
-  const privateCount = repos.filter((repo) => repo.private).length;
-  const silentCount = repos.filter((repo) => repo.downloads === 0).length;
-  const errorCount = repos.filter((repo) => repo.error).length;
+  const names = useMemo(() => repos.map((repo) => repo.fullName), [repos]);
+  const starSeries = useMemo(() => aggregateHistory(history, names, "stars"), [history, names]);
+  const downloadSeries = useMemo(
+    () => aggregateHistory(history, names, "downloads"),
+    [history, names],
+  );
+  const starDelta = useMemo(() => delta(starSeries), [starSeries]);
+  const downloadDelta = useMemo(() => delta(downloadSeries), [downloadSeries]);
+  const { starKpi, forkKpi, downloadKpi } = useMemo(
+    () => ({
+      starKpi: pickKpiDelta(windowDelta(starSeries, 7), sumDeltas(repos.map((repo) => repo.starsDelta))),
+      forkKpi: pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta))),
+      downloadKpi: pickKpiDelta(
+        windowDelta(downloadSeries, 7),
+        sumDeltas(repos.map((repo) => repo.downloadsDelta)),
+      ),
+    }),
+    [starSeries, downloadSeries, repos],
+  );
+  const platformBars = useMemo(
+    () => platformItems(sumPlatforms(repos.map((repo) => repo.platforms))),
+    [repos],
+  );
+
+  const { chartItems, top, share, showChart } = useMemo(() => {
+    const sorted = [...repos].sort((a, b) => b.downloads - a.downloads);
+    const items = sorted.slice(0, 6).map((repo) => ({
+      label: repo.fullName,
+      value: repo.downloads,
+      color: langColor(repo.language),
+    }));
+    const first = sorted[0];
+    const total = sorted.reduce((sum, repo) => sum + repo.downloads, 0);
+    return {
+      chartItems: items,
+      top: first,
+      share: first && total > 0 ? Math.round((first.downloads / total) * 100) : 0,
+      showChart: items.some((item) => item.value > 0),
+    };
+  }, [repos]);
+  const { languages, langTotal, privateCount, silentCount, errorCount } = useMemo(() => {
+    const langs = [...repos.reduce((map, repo) => {
+      const name = repo.language ?? "Unknown";
+      map.set(name, (map.get(name) ?? 0) + 1);
+      return map;
+    }, new Map<string, number>())].sort((a, b) => b[1] - a[1]);
+    return {
+      languages: langs,
+      langTotal: repos.length || 1,
+      privateCount: repos.filter((repo) => repo.private).length,
+      silentCount: repos.filter((repo) => repo.downloads === 0).length,
+      errorCount: repos.filter((repo) => repo.error).length,
+    };
+  }, [repos]);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -288,50 +317,97 @@ export function ListView({
                     </div>
                     <span />
                   </div>
-                  <ul>
-                    {rows.map((repo) => (
-                      <li key={repo.fullName} className="border-b border-hairline last:border-b-0">
-                        <button
-                          type="button"
-                          onClick={() => onOpenRepo(repo.fullName)}
-                          className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
+                  {rows.length <= 30 ? (
+                    <ul>
+                      {rows.length === 0 ? (
+                        <li>
+                          <p className="px-5 py-8 text-center text-[13px] text-faint">
+                            No results for “{query.trim()}”.
+                          </p>
+                        </li>
+                      ) : (
+                        rows.map((repo) => (
+                          <li
+                            key={repo.fullName}
+                            className="border-b border-hairline last:border-b-0"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => onOpenRepo(repo.fullName)}
+                              className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
+                            >
+                              <span className="flex min-w-0 items-center gap-2">
+                                <span
+                                  className="h-1.5 w-1.5 shrink-0 rounded-full"
+                                  style={{ background: langColor(repo.language) }}
+                                />
+                                <span className="truncate text-[12.5px]">
+                                  <span className="text-faint">
+                                    {repo.fullName.split("/")[0]}/
+                                  </span>
+                                  <span className="font-medium">
+                                    {repo.fullName.split("/")[1] ?? repo.fullName}
+                                  </span>
+                                </span>
+                                {repo.error ? (
+                                  <WarningCircleIcon size={13} className="shrink-0 text-accent-soft" />
+                                ) : null}
+                                {repo.private ? <Chip>Private</Chip> : null}
+                              </span>
+                              <NumCell value={repo.stars} delta={repo.starsDelta} strong={false} />
+                              <NumCell value={repo.forks} delta={repo.forksDelta} strong={false} />
+                              <NumCell value={repo.downloads} delta={repo.downloadsDelta} strong />
+                              <CaretRight
+                                size={12}
+                                className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
+                              />
+                            </button>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  ) : (
+                    <VList style={{ height: Math.min(480, rows.length * 57) }} itemSize={57}>
+                      {rows.map((repo) => (
+                        <div
+                          key={repo.fullName}
+                          className="border-b border-hairline last:border-b-0"
                         >
-                          <span className="flex min-w-0 items-center gap-2">
-                            <span
-                              className="h-1.5 w-1.5 shrink-0 rounded-full"
-                              style={{ background: langColor(repo.language) }}
-                            />
-                            <span className="truncate text-[12.5px]">
-                              <span className="text-faint">
-                                {repo.fullName.split("/")[0]}/
+                          <button
+                            type="button"
+                            onClick={() => onOpenRepo(repo.fullName)}
+                            className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
+                          >
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span
+                                className="h-1.5 w-1.5 shrink-0 rounded-full"
+                                style={{ background: langColor(repo.language) }}
+                              />
+                              <span className="truncate text-[12.5px]">
+                                <span className="text-faint">
+                                  {repo.fullName.split("/")[0]}/
+                                </span>
+                                <span className="font-medium">
+                                  {repo.fullName.split("/")[1] ?? repo.fullName}
+                                </span>
                               </span>
-                              <span className="font-medium">
-                                {repo.fullName.split("/")[1] ?? repo.fullName}
-                              </span>
+                              {repo.error ? (
+                                <WarningCircleIcon size={13} className="shrink-0 text-accent-soft" />
+                              ) : null}
+                              {repo.private ? <Chip>Private</Chip> : null}
                             </span>
-                            {repo.error ? (
-                              <WarningCircle size={13} className="shrink-0 text-accent-soft" />
-                            ) : null}
-                            {repo.private ? <Chip>Private</Chip> : null}
-                          </span>
-                          <NumCell value={repo.stars} delta={repo.starsDelta} strong={false} />
-                          <NumCell value={repo.forks} delta={repo.forksDelta} strong={false} />
-                          <NumCell value={repo.downloads} delta={repo.downloadsDelta} strong />
-                          <CaretRight
-                            size={12}
-                            className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
-                          />
-                        </button>
-                      </li>
-                    ))}
-                    {rows.length === 0 ? (
-                      <li>
-                        <p className="px-5 py-8 text-center text-[13px] text-faint">
-                          No results for “{query.trim()}”.
-                        </p>
-                      </li>
-                    ) : null}
-                  </ul>
+                            <NumCell value={repo.stars} delta={repo.starsDelta} strong={false} />
+                            <NumCell value={repo.forks} delta={repo.forksDelta} strong={false} />
+                            <NumCell value={repo.downloads} delta={repo.downloadsDelta} strong />
+                            <CaretRight
+                              size={12}
+                              className="justify-self-end text-faint opacity-0 transition-opacity group-hover:opacity-100"
+                            />
+                          </button>
+                        </div>
+                      ))}
+                    </VList>
+                  )}
                 </div>
               </div>
 
@@ -449,7 +525,7 @@ export function ListView({
                     {errorCount > 0 ? (
                       <div className="flex items-center justify-between gap-3">
                         <dt className="flex items-center gap-1.5 text-[12.5px] text-accent-soft">
-                          <WarningCircle size={12} />
+                          <WarningCircleIcon size={12} />
                           Failed
                         </dt>
                         <dd className="font-mono text-[12.5px] text-accent-soft tabular">
