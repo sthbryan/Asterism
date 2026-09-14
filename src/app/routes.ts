@@ -6,7 +6,7 @@ import {
   PickerView,
   SettingsView,
   SetupView,
-} from "../views";
+} from "../features";
 
 export type NavId = "overview" | "repos" | "create" | "settings";
 
