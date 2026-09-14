@@ -14,27 +14,27 @@ import {
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { VList } from "virtua";
-import { useI18n } from "../../app/hooks";
-import { detailPath } from "../../app/routes";
-import { useStore } from "../../app/store";
-import { useTransitionNavigate } from "../../app/useViewTransition";
-import { Banner } from "../../components/Banner";
-import { Button } from "../../components/Button";
-import { AreaChart, BarChart } from "../../components/Charts";
-import { Input } from "../../components/Input";
-import { KpiCard } from "../../components/KpiCard";
-import { PageHeader } from "../../components/PageHeader";
-import { ListSkeleton } from "../../components/Skeleton";
-import { fmtFetched, fmtNum, fmtSigned } from "../../lib/format";
-import { langColor } from "../../lib/langcolors";
-import { platformItems, sumPlatforms } from "../../lib/platform";
+import { useI18n } from "@/app/hooks";
+import { detailPath } from "@/app/routes";
+import { useStore } from "@/app/store";
+import { useTransitionNavigate } from "@/app/useViewTransition";
+import { Banner } from "@/components/Banner";
+import { Button } from "@/components/Button";
+import { AreaChart, BarChart } from "@/components/Charts";
+import { Input } from "@/components/Input";
+import { KpiCard } from "@/components/KpiCard";
+import { PageHeader } from "@/components/PageHeader";
+import { ListSkeleton } from "@/components/Skeleton";
+import { fmtFetched, fmtNum, fmtSigned } from "@/lib/format";
+import { langColor } from "@/lib/langcolors";
+import { platformItems, sumPlatforms } from "@/lib/platform";
 import {
   aggregateHistory,
   delta,
   pickKpiDelta,
   sumDeltas,
   windowDelta,
-} from "../../lib/series";
+} from "@/lib/series";
 
 const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
 

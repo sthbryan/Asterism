@@ -1,9 +1,9 @@
 import { useCallback, useEffect } from "react";
-import { useCatalog, useI18n } from "../../app/hooks";
-import { useStore } from "../../app/store";
-import { useTransitionNavigate } from "../../app/useViewTransition";
-import { PageHeader } from "../../components/PageHeader";
-import { PickerSkeleton } from "../../components/Skeleton";
+import { useCatalog, useI18n } from "@/app/hooks";
+import { useStore } from "@/app/store";
+import { useTransitionNavigate } from "@/app/useViewTransition";
+import { PageHeader } from "@/components/PageHeader";
+import { PickerSkeleton } from "@/components/Skeleton";
 import { OwnerFilter } from "./OwnerFilter";
 import { PickerTrailing } from "./PickerTrailing";
 import { RepoRow } from "./RepoRow";

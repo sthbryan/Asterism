@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from "react";
+import { useStore } from "@/app/store";
 import {
   formatDateFor,
   formatRelativeTime,
   type TplVars,
   translate,
-} from "../../lib/i18n";
-import type { Locale } from "../../lib/types";
-import { useStore } from "../store";
+} from "@/lib/i18n";
+import type { Locale } from "@/lib/types";
 
 export type I18n = {
   locale: Locale;

@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { persistLocale } from "../../lib/i18n/locale";
-import { enqueuePreference } from "../../lib/preferences";
+import { persistLocale } from "@/lib/i18n/locale";
+import { enqueuePreference } from "@/lib/preferences";
 import type { ApiClient } from "./types";
 
 export const tauriClient: ApiClient = {

@@ -1,6 +1,6 @@
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { hrefFromMaybeUrl } from "../../lib/format";
+import { hrefFromMaybeUrl } from "@/lib/format";
 
 export function Flag({ children }: { children: string }) {
   return (

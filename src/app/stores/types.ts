@@ -9,7 +9,7 @@ import type {
   Status,
   ThemePref,
   TrackedRepo,
-} from "../../lib/types";
+} from "@/lib/types";
 
 export type StoreState = {
   bootAttempt: number;

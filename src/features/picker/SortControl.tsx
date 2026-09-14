@@ -1,5 +1,5 @@
 import { CaretDown } from "@phosphor-icons/react";
-import { useI18n } from "../../app/hooks";
+import { useI18n } from "@/app/hooks";
 import type { PickerSort } from "./usePicker";
 
 const OPTIONS: { value: PickerSort; label: string }[] = [

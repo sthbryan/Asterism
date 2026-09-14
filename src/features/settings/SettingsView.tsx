@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { useI18n } from "../../app/hooks";
-import { useStore } from "../../app/store";
-import { useAppearance } from "../../components/Appearance";
-import { Button } from "../../components/Button";
-import { PageHeader } from "../../components/PageHeader";
-import { Select } from "../../components/Select";
-import { Toggle } from "../../components/Toggle";
-import type { Diagnostics, Locale, ThemePref } from "../../lib/types";
-import { getDiagnostics, isMockMode } from "../../services/api";
+import { useI18n } from "@/app/hooks";
+import { useStore } from "@/app/store";
+import { useAppearance } from "@/components/Appearance";
+import { Button } from "@/components/Button";
+import { PageHeader } from "@/components/PageHeader";
+import { Select } from "@/components/Select";
+import { Toggle } from "@/components/Toggle";
+import type { Diagnostics, Locale, ThemePref } from "@/lib/types";
+import { getDiagnostics, isMockMode } from "@/services/api";
 
 export function SettingsView() {
   const { t, locale, setLocale } = useI18n();

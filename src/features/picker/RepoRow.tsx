@@ -1,7 +1,7 @@
 import { Check, Star } from "@phosphor-icons/react";
-import { useI18n } from "../../app/hooks";
-import { fmtNum } from "../../lib/format";
-import type { CatalogRepo } from "../../lib/types";
+import { useI18n } from "@/app/hooks";
+import { fmtNum } from "@/lib/format";
+import type { CatalogRepo } from "@/lib/types";
 
 export function RepoRow({
   repo,

@@ -1,14 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
+import { detailPath } from "@/app/routes";
+import { useStore } from "@/app/store";
 import {
   applyDocumentLocale,
   detectLocale,
   readStoredLocale,
-} from "../../lib/i18n/locale";
-import type { Status } from "../../lib/types";
-import { getCache, getConfig, getStatus, isMockMode } from "../../services/api";
-import { detailPath } from "../routes";
-import { useStore } from "../store";
+} from "@/lib/i18n/locale";
+import type { Status } from "@/lib/types";
+import { getCache, getConfig, getStatus, isMockMode } from "@/services/api";
 
 function resolveInitialRoute(current: string): string {
   if (isMockMode()) {

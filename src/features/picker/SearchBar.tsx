@@ -1,6 +1,6 @@
 import { MagnifyingGlass } from "@phosphor-icons/react";
-import { useI18n } from "../../app/hooks";
-import { Input } from "../../components/Input";
+import { useI18n } from "@/app/hooks";
+import { Input } from "@/components/Input";
 
 export function SearchBar({
   value,

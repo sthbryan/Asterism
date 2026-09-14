@@ -15,8 +15,8 @@ import {
   readStoredTransparency,
   resolveTheme,
   saveAppearance,
-} from "../lib/appearance";
-import type { ThemePref } from "../lib/types";
+} from "@/lib/appearance";
+import type { ThemePref } from "@/lib/types";
 
 type AppearanceValue = {
   error: string | null;

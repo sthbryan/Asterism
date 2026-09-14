@@ -1,4 +1,4 @@
-import { fmtCompact } from "../../lib/format";
+import { fmtCompact } from "@/lib/format";
 
 export function BarChart({
   items,

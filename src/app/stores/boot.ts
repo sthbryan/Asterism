@@ -1,12 +1,12 @@
 import type { StateCreator } from "zustand";
-import { readStoredTheme, readStoredTransparency } from "../../lib/appearance";
+import { readStoredTheme, readStoredTransparency } from "@/lib/appearance";
 import {
   applyDocumentLocale,
   detectLocale,
   normalizeLocale,
   readStoredLocale,
-} from "../../lib/i18n/locale";
-import { saveLocale } from "../../services/api";
+} from "@/lib/i18n/locale";
+import { saveLocale } from "@/services/api";
 import type { AppStore } from "./types";
 
 export type BootSlice = Pick<

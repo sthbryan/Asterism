@@ -1,9 +1,9 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useI18n } from "../../app/hooks";
-import { BarChart } from "../../components/Charts";
-import { langColor } from "../../lib/langcolors";
-import { platformItems, shortPath } from "../../lib/platform";
-import type { RepoDetail } from "../../lib/types";
+import { useI18n } from "@/app/hooks";
+import { BarChart } from "@/components/Charts";
+import { langColor } from "@/lib/langcolors";
+import { platformItems, shortPath } from "@/lib/platform";
+import type { RepoDetail } from "@/lib/types";
 
 export function InsightsSection({ detail }: { detail: RepoDetail }) {
   const { t, formatNumber } = useI18n();

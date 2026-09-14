@@ -1,8 +1,8 @@
-import { useI18n } from "../../app/hooks";
-import { Button } from "../../components/Button";
-import { Input } from "../../components/Input";
-import { Select } from "../../components/Select";
-import { isMockMode } from "../../services/api";
+import { useI18n } from "@/app/hooks";
+import { Button } from "@/components/Button";
+import { Input } from "@/components/Input";
+import { Select } from "@/components/Select";
+import { isMockMode } from "@/services/api";
 import { SetupSection } from "./SetupSection";
 import type { CreateFormApi } from "./useCreateForm";
 import { VisibilitySection } from "./VisibilitySection";

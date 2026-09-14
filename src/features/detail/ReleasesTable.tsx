@@ -1,9 +1,9 @@
 import { CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
-import { useI18n } from "../../app/hooks";
-import { BarChart } from "../../components/Charts";
-import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "../../lib/format";
-import type { RepoDetail } from "../../lib/types";
+import { useI18n } from "@/app/hooks";
+import { BarChart } from "@/components/Charts";
+import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "@/lib/format";
+import type { RepoDetail } from "@/lib/types";
 import { Flag } from "./shared";
 
 export function ReleasesTable({ detail }: { detail: RepoDetail }) {

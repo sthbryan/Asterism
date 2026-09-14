@@ -1,6 +1,6 @@
-import { useI18n } from "../../app/hooks";
-import { AreaChart } from "../../components/Charts";
-import type { RepoDetail } from "../../lib/types";
+import { useI18n } from "@/app/hooks";
+import { AreaChart } from "@/components/Charts";
+import type { RepoDetail } from "@/lib/types";
 
 export function HistoryCharts({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();

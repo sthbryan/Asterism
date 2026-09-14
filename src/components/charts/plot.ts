@@ -1,4 +1,4 @@
-import type { SeriesPoint } from "../../lib/types";
+import type { SeriesPoint } from "@/lib/types";
 
 export type ChartTone = "accent" | "paper";
 

@@ -9,7 +9,7 @@ import type {
   Locale,
   RepoDetail,
   Status,
-} from "../../lib/types";
+} from "@/lib/types";
 
 export type ApiClient = {
   getStatus: () => Promise<Status>;

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useStore } from "../store";
+import { useStore } from "@/app/store";
 
 /** Load repo detail for fullName and merge history into the store. */
 export function useDetail(fullName: string) {

@@ -1,8 +1,8 @@
 import { DownloadSimple, Eye, GitFork, Star } from "@phosphor-icons/react";
-import { useI18n } from "../../app/hooks";
-import { KpiCard } from "../../components/KpiCard";
-import { pickKpiDelta, windowDelta } from "../../lib/series";
-import type { RepoDetail } from "../../lib/types";
+import { useI18n } from "@/app/hooks";
+import { KpiCard } from "@/components/KpiCard";
+import { pickKpiDelta, windowDelta } from "@/lib/series";
+import type { RepoDetail } from "@/lib/types";
 
 export function Kpis({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();

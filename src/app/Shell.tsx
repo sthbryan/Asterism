@@ -1,7 +1,7 @@
 import { Redirect, Route, Switch, useLocation } from "wouter";
-import { AppearanceProvider } from "../components/Appearance";
-import { Chrome, type NavId } from "../components/Chrome";
-import { HeaderProvider, useHeader } from "../components/PageHeader";
+import { AppearanceProvider } from "@/components/Appearance";
+import { Chrome, type NavId } from "@/components/Chrome";
+import { HeaderProvider, useHeader } from "@/components/PageHeader";
 import { useBoot } from "./hooks";
 import { getNavForPath, ROUTES } from "./routes";
 import { useStore } from "./store";

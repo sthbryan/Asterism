@@ -1,6 +1,6 @@
-import { useI18n } from "../../app/hooks";
-import { useStore } from "../../app/store";
-import { PageHeader } from "../../components/PageHeader";
+import { useI18n } from "@/app/hooks";
+import { useStore } from "@/app/store";
+import { PageHeader } from "@/components/PageHeader";
 import { ErrorScreen } from "./ErrorScreen";
 
 export function SetupView() {

@@ -1,9 +1,9 @@
-import { readStoredTheme, readStoredTransparency } from "../../lib/appearance";
+import { readStoredTheme, readStoredTransparency } from "@/lib/appearance";
 import {
   detectLocale,
   persistLocale,
   readStoredLocale,
-} from "../../lib/i18n/locale";
+} from "@/lib/i18n/locale";
 import {
   MOCK_CACHE,
   MOCK_CATALOG,
@@ -12,8 +12,8 @@ import {
   MOCK_STATUS,
   mockCreateRepo,
   mockDetail,
-} from "../../lib/mock";
-import type { Cache, Config, Diagnostics, Locale } from "../../lib/types";
+} from "@/lib/mock";
+import type { Cache, Config, Diagnostics, Locale } from "@/lib/types";
 import type { ApiClient } from "./types";
 
 function delay<T>(value: T, ms = 250): Promise<T> {

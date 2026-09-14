@@ -1,4 +1,4 @@
-import { useI18n } from "../../app/hooks";
+import { useI18n } from "@/app/hooks";
 export interface OwnerEntry {
   name: string;
   count: number;

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useStore } from "../store";
+import { useStore } from "@/app/store";
 
 /** Ensure the repo catalog is loaded (picker entry point). */
 export function useCatalog() {

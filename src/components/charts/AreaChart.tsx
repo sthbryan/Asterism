@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { useI18n } from "../../app/hooks";
-import { fmtAxisDate, fmtAxisDateLong, fmtCompact } from "../../lib/format";
-import type { SeriesPoint } from "../../lib/types";
+import { useI18n } from "@/app/hooks";
+import { fmtAxisDate, fmtAxisDateLong, fmtCompact } from "@/lib/format";
+import type { SeriesPoint } from "@/lib/types";
 import { buildPlot, type ChartTone, FILL, STROKE } from "./plot";
 
 export function AreaChart({

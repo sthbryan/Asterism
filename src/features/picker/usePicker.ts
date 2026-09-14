@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import type { CatalogRepo } from "../../lib/types";
+import type { CatalogRepo } from "@/lib/types";
 import type { OwnerEntry } from "./OwnerFilter";
 
 export type PickerSort = "selected" | "name" | "stars";
