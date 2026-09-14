@@ -28,7 +28,8 @@
     "react-dom": "19.3.0",
     "tailwindcss": "4.3.3",
     "virtua": "^0.51.3",
-    "wouter": "^3.11.0"
+    "wouter": "^3.11.0",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.13",

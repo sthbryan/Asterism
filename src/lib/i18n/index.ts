@@ -147,8 +147,8 @@ export type I18n = {
  * to the active locale.
  */
 export function useI18n(): I18n {
-  const { state, setLocale } = useStore();
-  const locale = state.locale;
+  const locale = useStore((s) => s.locale);
+  const setLocale = useStore((s) => s.setLocale);
 
   const boundT = useCallback(
     (key: string, vars?: TplVars) => translate(locale, key, vars),
