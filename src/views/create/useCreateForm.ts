@@ -34,6 +34,7 @@ export function useCreateForm({
   const [attempt, setAttempt] = useState(0);
   const submitting = useRef(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt is an intentional refetch signal for retry; it is not read inside the effect.
   useEffect(() => {
     let active = true;
     setLoading(true);
