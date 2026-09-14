@@ -16,12 +16,19 @@ import {
   listCatalog,
   refreshTracked,
   saveConfig,
+  saveLocale,
 } from "../lib/api";
+import {
+  applyDocumentLocale,
+  detectLocale,
+  normalizeLocale,
+} from "../lib/i18n/locale";
 import type {
   Cache,
   CatalogRepo,
   Config,
   CreatedRepo,
+  Locale,
   RepoDetail,
   RepoHistory,
   Status,
@@ -41,6 +48,7 @@ export type StoreState = {
   banner: string | null;
   theme: ThemePref;
   transparency: boolean;
+  locale: Locale;
   catalog: CatalogRepo[];
   catalogLoading: boolean;
   catalogError: string | null;
@@ -64,6 +72,7 @@ export type StoreAction =
   | { type: "detailFail"; error: string }
   | { type: "detailClear" }
   | { type: "select"; repos: string[] }
+  | { type: "setLocale"; locale: Locale }
   | { type: "trackedClear" }
   | { type: "mergeHistory"; fullName: string; detail: RepoDetail }
   | { type: "banner"; message: string | null };
@@ -80,6 +89,7 @@ const initialState: StoreState = {
   banner: null,
   theme: "dark",
   transparency: false,
+  locale: detectLocale(),
   catalog: [],
   catalogLoading: false,
   catalogError: null,
@@ -100,6 +110,7 @@ function reducer(state: StoreState, action: StoreAction): StoreState {
         selectedNames: action.config.repos,
         theme: action.config.theme ?? state.theme,
         transparency: Boolean(action.config.transparency),
+        locale: action.config.locale ?? detectLocale(),
         tracked: action.cache?.repos ?? [],
         fetchedAt: action.cache?.fetchedAt ?? null,
         history: action.cache?.history ?? {},
@@ -139,6 +150,8 @@ function reducer(state: StoreState, action: StoreAction): StoreState {
       };
     case "select":
       return { ...state, selectedNames: action.repos };
+    case "setLocale":
+      return { ...state, locale: action.locale };
     case "trackedClear":
       return { ...state, tracked: [], fetchedAt: null, history: {} };
     case "mergeHistory":
@@ -167,6 +180,7 @@ export type StoreValue = {
   loadCatalog: () => Promise<void>;
   fetchDetail: (fullName: string) => Promise<void>;
   persistSelection: (repos: string[]) => void;
+  setLocale: (locale: Locale) => void;
   handleCreated: (repo: CreatedRepo, track: boolean) => Promise<void>;
   retryBoot: () => void;
   pickerDirty: boolean;
@@ -266,6 +280,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "bootStart" });
   }, [navigate]);
 
+  const setLocale = useCallback((locale: Locale) => {
+    const next = normalizeLocale(locale);
+    applyDocumentLocale(next);
+    dispatch({ type: "setLocale", locale: next });
+    void saveLocale(next).catch(() => {
+      /* localStorage fallback already persisted by applyDocumentLocale */
+    });
+  }, []);
+
   const value = useMemo<StoreValue>(
     () => ({
       state,
@@ -276,6 +299,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       persistSelection,
       handleCreated,
       retryBoot,
+      setLocale,
       pickerDirty,
       setPickerDirty,
       pickerSave,
@@ -288,6 +312,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       persistSelection,
       handleCreated,
       retryBoot,
+      setLocale,
       pickerDirty,
     ],
   );

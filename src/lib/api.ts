@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { readStoredTheme, readStoredTransparency } from "./appearance";
+import { detectLocale, persistLocale, readStoredLocale } from "./i18n/locale";
 import {
   MOCK_CACHE,
   MOCK_CATALOG,
@@ -16,6 +17,8 @@ import type {
   CreatedRepo,
   CreateOptions,
   CreateRepoInput,
+  Diagnostics,
+  Locale,
   RepoDetail,
   Status,
   ThemePref,
@@ -60,10 +63,15 @@ export function getStatus() {
   return invoke<Status>("get_status");
 }
 
-function mockAppearance(): { theme: ThemePref; transparency: boolean } {
+function mockAppearance(): {
+  theme: ThemePref;
+  transparency: boolean;
+  locale: Locale;
+} {
   return {
     theme: readStoredTheme(),
     transparency: readStoredTransparency(),
+    locale: readStoredLocale() ?? detectLocale(),
   };
 }
 
@@ -150,4 +158,38 @@ export function refreshTracked() {
 export function getRepoDetail(fullName: string) {
   if (isMockMode()) return delay<RepoDetail>(mockDetail(fullName), 350);
   return invoke<RepoDetail>("get_repo_detail", { fullName });
+}
+
+export function saveLocale(locale: Locale) {
+  persistLocale(locale);
+  if (isMockMode()) {
+    return delay<Config>({
+      version: 1,
+      repos: [...mockRepos],
+      ...mockAppearance(),
+      locale,
+    });
+  }
+  return invoke<Config>("save_locale", { locale }).catch(() => ({
+    version: 1,
+    repos: [],
+    theme: readStoredTheme(),
+    transparency: readStoredTransparency(),
+    locale,
+  }));
+}
+
+const MOCK_DIAGNOSTICS: Diagnostics = {
+  ghVersion: "gh version 2.74.2 (mock)",
+  ghError: null,
+  gitVersion: "git version 2.49.0 (mock)",
+  gitError: null,
+  configPath: "~/.config/asterism/config.json",
+  cachePath: "~/.cache/asterism/cache.json",
+  historyPath: "~/.cache/asterism/history.json",
+};
+
+export function getDiagnostics() {
+  if (isMockMode()) return delay<Diagnostics>({ ...MOCK_DIAGNOSTICS });
+  return invoke<Diagnostics>("get_diagnostics");
 }

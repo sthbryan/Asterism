@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { getCache, getConfig, getStatus, isMockMode } from "../lib/api";
+import { applyDocumentLocale, detectLocale } from "../lib/i18n/locale";
 import type { Status } from "../lib/types";
 import { useStore } from "./store";
 
@@ -62,6 +63,7 @@ export function useBoot() {
         }
         const [cfg, cache] = await Promise.all([getConfig(), getCache()]);
         if (cancelled) return;
+        applyDocumentLocale(cfg.locale ?? detectLocale());
         dispatch({ type: "bootOk", status: next, config: cfg, cache });
         navigate(resolveInitialRoute(pathRef.current), { replace: true });
         void loadCatalog();
