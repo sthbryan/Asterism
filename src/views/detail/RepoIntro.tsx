@@ -1,4 +1,4 @@
-import { Globe, LockSimple } from "@phosphor-icons/react";
+import { Globe, LockSimpleIcon } from "@phosphor-icons/react";
 import type { RepoDetail } from "../../lib/types";
 import { Flag } from "./shared";
 
@@ -7,7 +7,7 @@ export function RepoIntro({ detail }: { detail: RepoDetail }) {
     <>
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] leading-none font-medium text-accent-soft">
-          {detail.private ? <LockSimple size={11} /> : <Globe size={12} />}
+          {detail.private ? <LockSimpleIcon size={11} /> : <Globe size={12} />}
           {detail.private ? "Private" : "Public"}
         </span>
         {detail.archived ? <Flag>Archived</Flag> : null}

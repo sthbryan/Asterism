@@ -9,7 +9,7 @@ import {
   DownloadSimple,
   FolderSimple,
   GitFork,
-  LockSimple,
+  LockSimpleIcon,
   MagnifyingGlass,
   Star,
   WarningCircleIcon,
@@ -510,7 +510,7 @@ export function ListView({
                   <dl className="mt-3 space-y-2.5">
                     <div className="flex items-center justify-between gap-3">
                       <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
-                        <LockSimple size={12} className="text-faint" />
+                        <LockSimpleIcon size={12} className="text-faint" />
                         Private
                       </dt>
                       <dd className="font-mono text-[12.5px] tabular">{fmtNum(privateCount)}</dd>
