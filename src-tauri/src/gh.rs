@@ -1,5 +1,3 @@
-use std::io::ErrorKind;
-use std::process::{Command, Stdio};
 use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
@@ -8,117 +6,18 @@ use serde_json::Value;
 use crate::history::{collapse_days, day_bucket, now_secs, parse_iso_unix};
 use crate::models::{
     Asset, CatalogRepo, CreateOptions, CreateRepoInput, CreatedRepo, LanguageShare, LicenseOption,
-    PlatformDownloads, PopularPath, Referrer, Release, RepoDetail, SeriesPoint, Status, TrackedRepo,
-    Traffic, TrafficDay,
+    PlatformDownloads, PopularPath, Referrer, Release, RepoDetail, SeriesPoint, Status,
+    TrackedRepo, Traffic, TrafficDay,
 };
+
+mod process;
+
+use process::run_gh_json;
+pub(crate) use process::{run_gh_env, tool_version};
 
 pub struct TrackedFetch {
     pub repo: TrackedRepo,
     pub star_seed: Option<Vec<SeriesPoint>>,
-}
-
-fn augmented_path() -> String {
-    let extra = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin";
-    match std::env::var("PATH") {
-        Ok(path) if !path.is_empty() => format!("{extra}:{path}"),
-        _ => extra.to_string(),
-    }
-}
-
-fn run_gh(args: &[&str]) -> Result<String, String> {
-    run_gh_env(args, &[])
-}
-
-fn run_gh_env(args: &[&str], extra_env: &[(&str, &str)]) -> Result<String, String> {
-    let mut cmd = Command::new("gh");
-    cmd.args(args)
-        .env("PATH", augmented_path())
-        .env("GH_PAGER", "cat")
-        .env("NO_COLOR", "1")
-        .env("CLICOLOR", "0")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .stdin(Stdio::null());
-    for (key, value) in extra_env {
-        cmd.env(key, value);
-    }
-
-    let output = cmd.output().map_err(|err| {
-        if err.kind() == ErrorKind::NotFound {
-            "GitHub CLI (gh) was not found on this machine.".to_string()
-        } else {
-            format!("Could not run gh: {err}")
-        }
-    })?;
-
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let msg = if !stderr.trim().is_empty() {
-            stderr.trim().to_string()
-        } else if !stdout.trim().is_empty() {
-            stdout.trim().to_string()
-        } else {
-            format!("gh exited with status {}", output.status)
-        };
-        return Err(msg);
-    }
-
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
-}
-
-fn run_gh_json(args: &[&str]) -> Result<Value, String> {
-    let raw = run_gh(args)?;
-    let trimmed = raw.trim();
-    if trimmed.is_empty() {
-        return Ok(Value::Null);
-    }
-    serde_json::from_str(trimmed).map_err(|e| format!("Could not parse gh JSON: {e}"))
-}
-
-fn first_line(output: &str) -> String {
-    output.lines().next().unwrap_or("").trim().to_string()
-}
-
-/// Runs `<program> <args>` (with the augmented PATH used for `gh`, so GUI
-/// launches find Homebrew binaries) and returns `(first stdout line, error)`.
-/// Never fails: a missing binary or a bad exit becomes `None + technical
-/// message` so diagnostics can report every tool independently.
-pub fn tool_version(program: &str, args: &[&str]) -> (Option<String>, Option<String>) {
-    let mut cmd = Command::new(program);
-    cmd.args(args)
-        .env("PATH", augmented_path())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .stdin(Stdio::null());
-    let output = match cmd.output() {
-        Ok(output) => output,
-        Err(err) if err.kind() == ErrorKind::NotFound => {
-            return (None, Some(format!("{program} was not found on this machine.")));
-        }
-        Err(err) => return (None, Some(format!("Could not run {program}: {err}"))),
-    };
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        let msg = stderr.trim();
-        return (
-            None,
-            Some(if msg.is_empty() {
-                format!("{program} exited with status {}", output.status)
-            } else {
-                msg.to_string()
-            }),
-        );
-    }
-    let line = first_line(&String::from_utf8_lossy(&output.stdout));
-    if line.is_empty() {
-        (
-            None,
-            Some(format!("{program} returned empty version output.")),
-        )
-    } else {
-        (Some(line), None)
-    }
 }
 
 fn as_u64(value: &Value, key: &str) -> u64 {
@@ -327,8 +226,7 @@ fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
                     platforms_from_releases(&releases),
                 ),
                 Err(err) => {
-                    let mut row =
-                        parse_tracked(&full_name, &repo, 0, PlatformDownloads::default());
+                    let mut row = parse_tracked(&full_name, &repo, 0, PlatformDownloads::default());
                     row.error = Some(err);
                     row
                 }
@@ -696,10 +594,7 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         Ok(json) => parse_referrers(&json),
         Err(_) => Vec::new(),
     };
-    let paths = match run_gh_json(&[
-        "api",
-        &format!("/repos/{full_name}/traffic/popular/paths"),
-    ]) {
+    let paths = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/popular/paths")]) {
         Ok(json) => parse_paths(&json),
         Err(_) => Vec::new(),
     };
@@ -760,15 +655,17 @@ fn validate_repo_name(name: &str) -> Result<(), String> {
 
 pub fn list_create_options() -> Result<CreateOptions, String> {
     let user = run_gh_json(&["api", "user"])?;
-    let login = as_string(&user, "login").ok_or_else(|| {
-        "GitHub CLI did not return an authenticated user.".to_string()
-    })?;
+    let login = as_string(&user, "login")
+        .ok_or_else(|| "GitHub CLI did not return an authenticated user.".to_string())?;
     let mut owners = vec![login];
     if let Ok(orgs) = run_gh_json(&["api", "--paginate", "/user/orgs?per_page=100"]) {
         if let Some(arr) = orgs.as_array() {
             for item in arr {
                 if let Some(org) = as_string(item, "login") {
-                    if !owners.iter().any(|existing| existing.eq_ignore_ascii_case(&org)) {
+                    if !owners
+                        .iter()
+                        .any(|existing| existing.eq_ignore_ascii_case(&org))
+                    {
                         owners.push(org);
                     }
                 }
@@ -817,17 +714,16 @@ pub fn create_repo(input: CreateRepoInput) -> Result<CreatedRepo, String> {
     if owner.is_empty() {
         return Err("Owner is required.".to_string());
     }
-    if owner.len() > 39 || !owner.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
-        || owner.starts_with('-') || owner.ends_with('-') {
+    if owner.len() > 39
+        || !owner.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+        || owner.starts_with('-')
+        || owner.ends_with('-')
+    {
         return Err("Invalid repository owner.".to_string());
     }
     validate_repo_name(name)?;
     let full_name = format!("{owner}/{name}");
-    let mut args: Vec<String> = vec![
-        "repo".to_string(),
-        "create".to_string(),
-        full_name.clone(),
-    ];
+    let mut args: Vec<String> = vec!["repo".to_string(), "create".to_string(), full_name.clone()];
     args.push(if input.private {
         "--private".to_string()
     } else {
@@ -874,6 +770,7 @@ pub fn create_repo(input: CreateRepoInput) -> Result<CreatedRepo, String> {
 
 #[cfg(test)]
 mod create_tests {
+    use super::process::first_line;
     use super::*;
 
     #[test]
@@ -890,23 +787,30 @@ mod create_tests {
     #[test]
     fn unsafe_owner_is_rejected_before_running_gh() {
         let result = create_repo(CreateRepoInput {
-            owner: "--help".into(), name: "test".into(), description: None,
-            private: true, add_readme: true, gitignore: None, license: None,
+            owner: "--help".into(),
+            name: "test".into(),
+            description: None,
+            private: true,
+            add_readme: true,
+            gitignore: None,
+            license: None,
         });
         assert_eq!(result.unwrap_err(), "Invalid repository owner.");
     }
 
     #[test]
     fn missing_tool_reports_technical_error_without_failing() {
-        let (version, error) =
-            tool_version("asterism-definitely-missing-binary", &["--version"]);
+        let (version, error) = tool_version("asterism-definitely-missing-binary", &["--version"]);
         assert_eq!(version, None);
         assert!(error.unwrap().contains("was not found"));
     }
 
     #[test]
     fn first_line_trims_to_a_single_line() {
-        assert_eq!(first_line("gh version 2.74.2 (2025-01-01)\nmore"), "gh version 2.74.2 (2025-01-01)");
+        assert_eq!(
+            first_line("gh version 2.74.2 (2025-01-01)\nmore"),
+            "gh version 2.74.2 (2025-01-01)"
+        );
         assert_eq!(first_line("  \n"), "");
     }
 }
