@@ -1,5 +1,50 @@
 /* transitions.dev snippets — pasted verbatim, then layout extras. */
 
+/* Layout extras — structural rules only; keep them before the transition
+   rules (ascending specificity) and do not change the transition properties below. */
+.t-page-slide {
+  height: 100%;
+  min-height: 0;
+}
+.t-page {
+  overflow: auto;
+}
+
+.t-skel {
+  height: 100%;
+  min-height: 0;
+}
+.t-skel-skeleton,
+.t-skel-content {
+  overflow: auto;
+}
+.t-skel-skeleton {
+  pointer-events: none;
+}
+
+.t-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--switch-track);
+  padding: 0;
+}
+.t-toggle[data-on="true"] {
+  background: var(--color-accent);
+}
+.t-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-paper);
+}
+
 /* Page side-by-side */
 .t-page-slide {
   position: relative;
@@ -36,7 +81,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .t-page-slide .t-page {
-    transition: none !important;
+    transition: none;
   }
 }
 
@@ -68,7 +113,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .t-icon-swap .t-icon {
-    transition: none !important;
+    transition: none;
   }
 }
 
@@ -108,8 +153,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-digit-group .t-digit {
-    animation: none !important;
+  .t-digit-group.is-animating .t-digit {
+    animation: none;
   }
 }
 
@@ -149,7 +194,10 @@
 }
 .t-skel.is-resetting .t-skel-skeleton,
 .t-skel.is-resetting .t-skel-content {
-  transition: none !important;
+  transition: none;
+}
+.t-skel:not(.is-revealed) .t-skel-content {
+  pointer-events: none;
 }
 
 .t-skel-skeleton.is-pulsing > * {
@@ -168,10 +216,10 @@
 @media (prefers-reduced-motion: reduce) {
   .t-skel-skeleton,
   .t-skel-content {
-    transition: none !important;
+    transition: none;
   }
   .t-skel-skeleton.is-pulsing > * {
-    animation: none !important;
+    animation: none;
   }
 }
 
@@ -213,7 +261,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .t-shimmer::before {
-    animation: none !important;
+    animation: none;
   }
 }
 
@@ -239,8 +287,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .t-toast.is-open,
   .t-toast {
-    transition: none !important;
+    transition: none;
   }
 }
 
@@ -291,56 +340,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .t-toggle-thumb {
-    animation: none !important;
+  .t-toggle.is-init[data-on="true"] .t-toggle-thumb,
+  .t-toggle.is-init[data-on="false"] .t-toggle-thumb {
+    animation: none;
   }
-}
-
-/* Layout extras — do not change the transition properties above. */
-.t-page-slide {
-  height: 100%;
-  min-height: 0;
-}
-.t-page {
-  overflow: auto;
-}
-
-.t-skel {
-  height: 100%;
-  min-height: 0;
-}
-.t-skel-skeleton,
-.t-skel-content {
-  overflow: auto;
-}
-.t-skel-skeleton {
-  pointer-events: none;
-}
-.t-skel:not(.is-revealed) .t-skel-content {
-  pointer-events: none;
-}
-
-.t-toggle {
-  position: relative;
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-  flex-shrink: 0;
-  border-radius: 999px;
-  background: var(--switch-track);
-  padding: 0;
-}
-.t-toggle[data-on="true"] {
-  background: var(--color-accent);
-}
-.t-toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: var(--color-paper);
 }
 
 html[data-theme="dark"] {
