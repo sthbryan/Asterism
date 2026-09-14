@@ -1,4 +1,4 @@
-import { platformsFromAssets } from "./platform";
+import { platformsFromAssets } from "../platform";
 import type {
   Cache,
   CatalogRepo,
@@ -13,7 +13,7 @@ import type {
   Status,
   TrackedRepo,
   TrafficDay,
-} from "./types";
+} from "../types";
 
 export const MOCK_LOGIN = "sthbryan";
 

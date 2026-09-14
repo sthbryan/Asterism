@@ -1,16 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
-import { getCache, getConfig, getStatus, isMockMode } from "../lib/api";
+import { getCache, getConfig, getStatus, isMockMode } from "../../lib/api";
 import {
   applyDocumentLocale,
   detectLocale,
   readStoredLocale,
-} from "../lib/i18n/locale";
-import type { Status } from "../lib/types";
-import { decodeDetailParam, detailPath } from "./routes";
-import { useStore } from "./store";
-
-export { decodeDetailParam, detailPath };
+} from "../../lib/i18n/locale";
+import type { Status } from "../../lib/types";
+import { detailPath } from "../routes";
+import { useStore } from "../store";
 
 function resolveInitialRoute(current: string): string {
   if (isMockMode()) {
@@ -93,44 +91,4 @@ export function useBoot() {
     navigate,
     runRefresh,
   ]);
-}
-
-/** Ensure the repo catalog is loaded (picker entry point). */
-export function useCatalog() {
-  const catalog = useStore((s) => s.catalog);
-  const catalogLoading = useStore((s) => s.catalogLoading);
-  const catalogError = useStore((s) => s.catalogError);
-  const loadCatalog = useStore((s) => s.loadCatalog);
-
-  useEffect(() => {
-    if (catalog.length === 0 && !catalogLoading && !catalogError) {
-      void loadCatalog();
-    }
-  }, [catalog.length, catalogLoading, catalogError, loadCatalog]);
-}
-
-/** Load repo detail for fullName and merge star/download history into the store. */
-export function useDetail(fullName: string) {
-  const detail = useStore((s) => s.detail);
-  const loading = useStore((s) => s.detailLoading);
-  const error = useStore((s) => s.detailError);
-  const fetchDetail = useStore((s) => s.fetchDetail);
-  const clearDetail = useStore((s) => s.clearDetail);
-
-  useEffect(() => {
-    if (!fullName) return;
-    void fetchDetail(fullName);
-  }, [fullName, fetchDetail]);
-
-  useEffect(() => {
-    return () => {
-      clearDetail();
-    };
-  }, [clearDetail]);
-
-  return {
-    detail,
-    loading,
-    error,
-  };
 }
