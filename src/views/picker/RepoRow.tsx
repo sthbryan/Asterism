@@ -19,8 +19,7 @@ export function RepoRow({
     <li className="border-b border-hairline last:border-b-0">
       <button
         type="button"
-        role="checkbox"
-        aria-checked={selected}
+        aria-pressed={selected}
         onClick={() => onToggle(repo.fullName)}
         onKeyDown={(e) => {
           if (e.key === " " || e.key === "Enter") {
