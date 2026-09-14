@@ -1,10 +1,11 @@
-import { ChartBar, FolderSimple, Plus } from "@phosphor-icons/react";
+import { ChartBar, FolderSimple, GearSix, Plus } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { dragWindow } from "../lib/drag";
-import { AppearanceControls } from "./AppearanceControls";
+import { useI18n } from "../lib/i18n";
+
 import { Mark } from "./Mark";
 
-export type NavId = "overview" | "repos" | "create";
+export type NavId = "overview" | "repos" | "create" | "settings";
 
 function initials(login: string | null | undefined) {
   if (!login) return "··";
@@ -29,6 +30,7 @@ export function Chrome({
   trailing?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useI18n();
   return (
     <div className="flex h-full min-h-0 gap-3 bg-transparent p-3 text-paper">
       <aside className="relative flex w-[212px] shrink-0 flex-col overflow-hidden rounded-2xl border border-hairline bg-night pt-12 shadow-dock">
@@ -53,25 +55,25 @@ export function Chrome({
         </div>
         <nav className="mt-1 flex flex-col gap-0.5 px-3">
           <div className="px-2.5 pt-2 pb-1 font-mono text-[10px] uppercase tracking-[0.09em] text-faint">
-            Panel
+            {t("Panel")}
           </div>
           <NavButton
             active={nav === "overview"}
             icon={<ChartBar size={16} />}
-            label="Overview"
+            label={t("Overview")}
             onClick={() => onNav("overview")}
           />
           <NavButton
             active={nav === "repos"}
             icon={<FolderSimple size={16} />}
-            label="Repositories"
+            label={t("Repositories")}
             onClick={() => onNav("repos")}
             badge={trackedCount}
           />
           <NavButton
             active={nav === "create"}
             icon={<Plus size={16} />}
-            label="Create repository"
+            label={t("Create repository")}
             onClick={() => onNav("create")}
           />
         </nav>
@@ -81,7 +83,14 @@ export function Chrome({
           data-tauri-drag-region
           onMouseDown={dragWindow}
         />
-        <AppearanceControls />
+        <div className="px-3 pb-2">
+          <NavButton
+            active={nav === "settings"}
+            icon={<GearSix size={16} />}
+            label={t("settings.title")}
+            onClick={() => onNav("settings")}
+          />
+        </div>
         {login ? (
           <div className="m-2.5 flex items-center gap-2 rounded-lg border border-hairline p-2">
             <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-fill font-mono text-[10px] font-semibold">
@@ -93,7 +102,7 @@ export function Chrome({
                 {login}
               </div>
               <div className="text-[10.5px] leading-tight text-faint">
-                GitHub · connected
+                {t("GitHub · connected")}
               </div>
             </div>
           </div>

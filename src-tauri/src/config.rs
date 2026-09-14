@@ -40,8 +40,16 @@ fn ensure_parent(path: &PathBuf) -> Result<(), String> {
     Ok(())
 }
 
+static CONFIG_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 pub fn load_config() -> Result<Config, String> {
-    let path = config_path()?;
+    let _guard = CONFIG_LOCK
+        .lock()
+        .map_err(|_| "Configuration lock failed".to_string())?;
+    load_config_at(&config_path()?)
+}
+
+fn load_config_at(path: &PathBuf) -> Result<Config, String> {
     if !path.exists() {
         return Ok(Config::default());
     }
@@ -59,13 +67,27 @@ pub fn load_config() -> Result<Config, String> {
     Ok(cfg)
 }
 
-pub fn save_config(mut cfg: Config) -> Result<Config, String> {
+// Config updates share one lock so locale, appearance and repository selection
+// cannot overwrite each other's fields when commands arrive together.
+pub fn update_config(change: impl FnOnce(&mut Config)) -> Result<Config, String> {
+    update_config_at(&config_path()?, change)
+}
+
+fn update_config_at(path: &PathBuf, change: impl FnOnce(&mut Config)) -> Result<Config, String> {
+    let _guard = CONFIG_LOCK
+        .lock()
+        .map_err(|_| "Configuration lock failed".to_string())?;
+    let mut cfg = load_config_at(path)?;
+    change(&mut cfg);
+    save_config_at(path, cfg)
+}
+
+fn save_config_at(path: &PathBuf, mut cfg: Config) -> Result<Config, String> {
     cfg.version = 1;
     cfg.repos.retain(|r| !r.trim().is_empty());
     cfg.repos.sort();
     cfg.repos.dedup();
-    let path = config_path()?;
-    ensure_parent(&path)?;
+    ensure_parent(path)?;
     let body = serde_json::to_string_pretty(&cfg).map_err(|e| e.to_string())?;
     fs::write(&path, body).map_err(|e| format!("Could not write {}: {e}", path.display()))?;
     Ok(cfg)
@@ -148,4 +170,57 @@ pub fn save_cache(
     let body = serde_json::to_string_pretty(&file).map_err(|e| e.to_string())?;
     fs::write(&path, body).map_err(|e| format!("Could not write {}: {e}", path.display()))?;
     Ok(cache)
+}
+
+#[cfg(test)]
+mod preference_tests {
+    use super::*;
+    use crate::models::{Locale, ThemePref};
+
+    #[test]
+    fn concurrent_updates_preserve_existing_preferences_after_reload() {
+        let dir = std::env::temp_dir().join(format!(
+            "asterism-preferences-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("config.json");
+        fs::write(
+            &path,
+            r#"{"version":1,"repos":["owner/repo"],"theme":"light","transparency":true}"#,
+        )
+        .unwrap();
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(3));
+        let workers: Vec<_> = (0..3)
+            .map(|n| {
+                let path = path.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    update_config_at(&path, |cfg| match n {
+                        0 => cfg.locale = Some(Locale::Es),
+                        1 => cfg.theme = ThemePref::System,
+                        _ => cfg.repos.push("owner/another".into()),
+                    })
+                    .unwrap();
+                })
+            })
+            .collect();
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        let saved = load_config_at(&path).unwrap();
+        assert_eq!(saved.locale, Some(Locale::Es));
+        assert_eq!(saved.theme, ThemePref::System);
+        assert!(saved.transparency);
+        assert_eq!(saved.repos, vec!["owner/another", "owner/repo"]);
+        fs::write(&path, "invalid JSON").unwrap();
+        assert!(update_config_at(&path, |cfg| cfg.locale = Some(Locale::En)).is_err());
+        assert_eq!(fs::read_to_string(&path).unwrap(), "invalid JSON");
+        fs::remove_dir_all(dir).unwrap();
+    }
 }

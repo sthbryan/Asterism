@@ -18,10 +18,12 @@ import {
   saveConfig,
   saveLocale,
 } from "../lib/api";
+import { readStoredTheme, readStoredTransparency } from "../lib/appearance";
 import {
   applyDocumentLocale,
   detectLocale,
   normalizeLocale,
+  readStoredLocale,
 } from "../lib/i18n/locale";
 import type {
   Cache,
@@ -49,6 +51,7 @@ export type StoreState = {
   theme: ThemePref;
   transparency: boolean;
   locale: Locale;
+  preferenceError: string | null;
   catalog: CatalogRepo[];
   catalogLoading: boolean;
   catalogError: string | null;
@@ -58,6 +61,8 @@ export type StoreState = {
 };
 
 export type StoreAction =
+  | { type: "preferences"; config: Config }
+  | { type: "preferenceError"; error: string | null }
   | { type: "bootStart" }
   | { type: "bootOk"; status: Status; config: Config; cache: Cache | null }
   | { type: "bootFail"; status: Status }
@@ -87,9 +92,10 @@ const initialState: StoreState = {
   fetchedAt: null,
   refreshing: false,
   banner: null,
-  theme: "dark",
-  transparency: false,
-  locale: detectLocale(),
+  theme: readStoredTheme(),
+  transparency: readStoredTransparency(),
+  locale: readStoredLocale() ?? detectLocale(),
+  preferenceError: null,
   catalog: [],
   catalogLoading: false,
   catalogError: null,
@@ -100,6 +106,15 @@ const initialState: StoreState = {
 
 function reducer(state: StoreState, action: StoreAction): StoreState {
   switch (action.type) {
+    case "preferences":
+      return {
+        ...state,
+        theme: action.config.theme ?? state.theme,
+        transparency: Boolean(action.config.transparency),
+        locale: action.config.locale ?? state.locale,
+      };
+    case "preferenceError":
+      return { ...state, preferenceError: action.error };
     case "bootStart":
       return { ...state, bootAttempt: state.bootAttempt + 1, booted: false };
     case "bootOk":
@@ -108,15 +123,12 @@ function reducer(state: StoreState, action: StoreAction): StoreState {
         booted: true,
         status: action.status,
         selectedNames: action.config.repos,
-        theme: action.config.theme ?? state.theme,
-        transparency: Boolean(action.config.transparency),
-        locale: action.config.locale ?? detectLocale(),
         tracked: action.cache?.repos ?? [],
         fetchedAt: action.cache?.fetchedAt ?? null,
         history: action.cache?.history ?? {},
       };
     case "bootFail":
-      return { ...state, booted: false, status: action.status };
+      return { ...state, booted: true, status: action.status };
     case "refreshStart":
       return { ...state, refreshing: true, banner: null };
     case "refreshed":
@@ -284,8 +296,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const next = normalizeLocale(locale);
     applyDocumentLocale(next);
     dispatch({ type: "setLocale", locale: next });
-    void saveLocale(next).catch(() => {
-      /* localStorage fallback already persisted by applyDocumentLocale */
+    dispatch({ type: "preferenceError", error: null });
+    void saveLocale(next).catch((err) => {
+      dispatch({ type: "preferenceError", error: String(err) });
     });
   }, []);
 

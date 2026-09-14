@@ -33,25 +33,20 @@ async fn get_config() -> Result<Config, String> {
 
 #[tauri::command]
 async fn save_config(repos: Vec<String>) -> Result<Config, String> {
-    offload(move || {
-        let mut cfg = config::load_config()?;
-        cfg.repos = repos;
-        config::save_config(cfg)
-    })
-    .await?
+    offload(move || config::update_config(|cfg| cfg.repos = repos)).await?
 }
 
 #[tauri::command]
 async fn save_appearance(theme: String, transparency: bool) -> Result<Config, String> {
     offload(move || {
-        let mut cfg = config::load_config()?;
-        cfg.theme = match theme.as_str() {
-            "light" => ThemePref::Light,
-            "system" => ThemePref::System,
-            _ => ThemePref::Dark,
-        };
-        cfg.transparency = transparency;
-        config::save_config(cfg)
+        config::update_config(|cfg| {
+            cfg.theme = match theme.as_str() {
+                "light" => ThemePref::Light,
+                "system" => ThemePref::System,
+                _ => ThemePref::Dark,
+            };
+            cfg.transparency = transparency;
+        })
     })
     .await?
 }
@@ -70,12 +65,8 @@ fn normalize_locale(raw: &str) -> Locale {
 
 #[tauri::command]
 async fn save_locale(locale: String) -> Result<Config, String> {
-    offload(move || {
-        let mut cfg = config::load_config()?;
-        cfg.locale = Some(normalize_locale(&locale));
-        config::save_config(cfg)
-    })
-    .await?
+    offload(move || config::update_config(|cfg| cfg.locale = Some(normalize_locale(&locale))))
+        .await?
 }
 
 #[tauri::command]
@@ -169,11 +160,7 @@ async fn get_repo_detail(full_name: String) -> Result<RepoDetail, String> {
             if let Ok(seed) =
                 gh::star_series(&full_name, detail.stars, detail.created_at.as_deref())
             {
-                store
-                    .repos
-                    .entry(full_name.clone())
-                    .or_default()
-                    .stars = seed;
+                store.repos.entry(full_name.clone()).or_default().stars = seed;
             }
         }
         let snapshot = models::TrackedRepo {

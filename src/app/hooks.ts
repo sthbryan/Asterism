@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { getCache, getConfig, getStatus, isMockMode } from "../lib/api";
-import { applyDocumentLocale, detectLocale } from "../lib/i18n/locale";
+import {
+  applyDocumentLocale,
+  detectLocale,
+  readStoredLocale,
+} from "../lib/i18n/locale";
 import type { Status } from "../lib/types";
 import { useStore } from "./store";
 
@@ -21,6 +25,7 @@ function resolveInitialRoute(current: string): string {
   if (isMockMode()) {
     const params = new URLSearchParams(window.location.search);
     const screenParam = params.get("screen");
+    if (screenParam === "settings") return "/settings";
     if (screenParam === "create") return "/create";
     if (screenParam === "picker") return "/repos";
     if (screenParam === "detail") {
@@ -41,7 +46,7 @@ function bootErrorStatus(err: unknown): Status {
   };
 }
 
-/** Boot flow: status -> config+cache -> initial route, catalog preload, refresh. */
+/** Load preferences before connecting, then cache, route and GitHub data. */
 export function useBoot() {
   const { state, dispatch, runRefresh, loadCatalog } = useStore();
   const [path, navigate] = useLocation();
@@ -54,16 +59,20 @@ export function useBoot() {
     let cancelled = false;
     (async () => {
       try {
+        const cfg = await getConfig();
+        if (cancelled) return;
+        applyDocumentLocale(cfg.locale ?? readStoredLocale() ?? detectLocale());
+        dispatch({ type: "preferences", config: cfg });
         const next = await getStatus();
         if (cancelled) return;
         if (!next.ok) {
           dispatch({ type: "bootFail", status: next });
-          navigate("/setup", { replace: true });
+          if (pathRef.current !== "/settings")
+            navigate("/setup", { replace: true });
           return;
         }
-        const [cfg, cache] = await Promise.all([getConfig(), getCache()]);
+        const cache = await getCache();
         if (cancelled) return;
-        applyDocumentLocale(cfg.locale ?? detectLocale());
         dispatch({ type: "bootOk", status: next, config: cfg, cache });
         navigate(resolveInitialRoute(pathRef.current), { replace: true });
         void loadCatalog();
@@ -86,10 +95,19 @@ export function useBoot() {
 export function useCatalog() {
   const { state, loadCatalog } = useStore();
   useEffect(() => {
-    if (state.catalog.length === 0 && !state.catalogLoading) {
+    if (
+      state.catalog.length === 0 &&
+      !state.catalogLoading &&
+      !state.catalogError
+    ) {
       void loadCatalog();
     }
-  }, [state.catalog.length, state.catalogLoading, loadCatalog]);
+  }, [
+    state.catalog.length,
+    state.catalogLoading,
+    state.catalogError,
+    loadCatalog,
+  ]);
 }
 
 /** Load repo detail for fullName and merge star/download history into the store. */

@@ -19,6 +19,7 @@ import {
 import type { ThemePref } from "../lib/types";
 
 type AppearanceValue = {
+  error: string | null;
   theme: ThemePref;
   resolved: ResolvedTheme;
   transparency: boolean;
@@ -37,6 +38,7 @@ export function AppearanceProvider({
   theme?: ThemePref;
   transparency?: boolean;
 }) {
+  const [error, setError] = useState<string | null>(null);
   const [theme, setThemeState] = useState<ThemePref>(() => {
     const q = new URLSearchParams(window.location.search).get("theme");
     if (q === "light" || q === "dark" || q === "system") return q;
@@ -81,7 +83,10 @@ export function AppearanceProvider({
   }, [theme, resolved, transparency]);
 
   const persist = useCallback((nextTheme: ThemePref, nextGlass: boolean) => {
-    void saveAppearance(nextTheme, nextGlass);
+    setError(null);
+    void saveAppearance(nextTheme, nextGlass).catch((err) =>
+      setError(String(err)),
+    );
   }, []);
 
   const setTheme = useCallback(
@@ -101,8 +106,8 @@ export function AppearanceProvider({
   );
 
   const value = useMemo(
-    () => ({ theme, resolved, transparency, setTheme, setTransparency }),
-    [theme, resolved, transparency, setTheme, setTransparency],
+    () => ({ theme, resolved, transparency, setTheme, setTransparency, error }),
+    [theme, resolved, transparency, setTheme, setTransparency, error],
   );
 
   return (
@@ -116,6 +121,7 @@ export function useAppearance() {
   const value = useContext(AppearanceContext);
   if (!value) {
     return {
+      error: null,
       theme: "dark" as ThemePref,
       resolved: resolveTheme(readStoredTheme()),
       transparency: false,

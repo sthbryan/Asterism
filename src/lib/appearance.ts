@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { enqueuePreference } from "./preferences";
 import type { Config, ThemePref } from "./types";
 
 export type ResolvedTheme = "dark" | "light";
@@ -100,12 +101,9 @@ export function saveAppearance(theme: ThemePref, transparency: boolean) {
   } catch {
     /* ignore */
   }
-  return invoke<Config>("save_appearance", { theme, transparency }).catch(
-    () => ({
-      version: 1,
-      repos: [],
-      theme,
-      transparency,
-    }),
+  if (!("__TAURI_INTERNALS__" in window))
+    return Promise.resolve({ version: 1, repos: [], theme, transparency });
+  return enqueuePreference(() =>
+    invoke<Config>("save_appearance", { theme, transparency }),
   );
 }

@@ -10,6 +10,7 @@ import {
   mockCreateRepo,
   mockDetail,
 } from "./mock";
+import { enqueuePreference } from "./preferences";
 import type {
   Cache,
   CatalogRepo,
@@ -170,13 +171,7 @@ export function saveLocale(locale: Locale) {
       locale,
     });
   }
-  return invoke<Config>("save_locale", { locale }).catch(() => ({
-    version: 1,
-    repos: [],
-    theme: readStoredTheme(),
-    transparency: readStoredTransparency(),
-    locale,
-  }));
+  return enqueuePreference(() => invoke<Config>("save_locale", { locale }));
 }
 
 const MOCK_DIAGNOSTICS: Diagnostics = {
@@ -190,6 +185,14 @@ const MOCK_DIAGNOSTICS: Diagnostics = {
 };
 
 export function getDiagnostics() {
-  if (isMockMode()) return delay<Diagnostics>({ ...MOCK_DIAGNOSTICS });
+  if (isMockMode()) {
+    const missing =
+      new URLSearchParams(window.location.search).get("setup") === "missing";
+    return delay<Diagnostics>({
+      ...MOCK_DIAGNOSTICS,
+      ghVersion: missing ? null : MOCK_DIAGNOSTICS.ghVersion,
+      ghError: missing ? "gh was not found on this machine." : null,
+    });
+  }
   return invoke<Diagnostics>("get_diagnostics");
 }

@@ -3,11 +3,13 @@ import { Redirect, useRoute } from "wouter";
 import { AppearanceProvider } from "../components/Appearance";
 import { Chrome, type NavId } from "../components/Chrome";
 import { DetailSkeleton, ListSkeleton } from "../components/Skeleton";
+import { useI18n } from "../lib/i18n";
 import { CreateView } from "../views/CreateView";
 import { DetailTitle, DetailTrailing, DetailView } from "../views/DetailView";
 import { ErrorScreen } from "../views/ErrorScreen";
 import { ListTrailing, ListView } from "../views/ListView";
 import { PickerTrailing, PickerView } from "../views/PickerView";
+import { SettingsView } from "../views/SettingsView";
 import {
   decodeDetailParam,
   detailPath,
@@ -20,10 +22,13 @@ import { useTransitionNavigate } from "./useViewTransition";
 
 export function Shell() {
   useBoot();
+  const [isSettings] = useRoute("/settings");
   const { state } = useStore();
   return (
     <AppearanceProvider theme={state.theme} transparency={state.transparency}>
-      {!state.booted ? (
+      {isSettings ? (
+        <SettingsShell />
+      ) : !state.booted ? (
         <BootShell />
       ) : state.status && !state.status.ok ? (
         <SetupShell />
@@ -35,6 +40,7 @@ export function Shell() {
 }
 
 function BootShell() {
+  const { t } = useI18n();
   const { state, runRefresh } = useStore();
   const navigate = useTransitionNavigate();
   const login = state.status?.login ?? null;
@@ -43,6 +49,10 @@ function BootShell() {
       login={login}
       nav="overview"
       onNav={(id) => {
+        if (id === "settings") {
+          navigate("/settings");
+          return;
+        }
         if (!state.status?.ok) return;
         if (id === "create") navigate("/create");
         if (id === "overview") navigate("/");
@@ -51,7 +61,7 @@ function BootShell() {
       trackedCount={state.selectedNames.length}
       title={
         <h1 className="text-[15px] font-semibold tracking-[-0.01em]">
-          Overview
+          {t("Overview")}
         </h1>
       }
       trailing={
@@ -72,6 +82,7 @@ function BootShell() {
 }
 
 function SetupShell() {
+  const { t } = useI18n();
   const { state, retryBoot } = useStore();
   const navigate = useTransitionNavigate();
   if (!state.status) return null;
@@ -80,13 +91,17 @@ function SetupShell() {
       login={state.status.login}
       nav="overview"
       onNav={(id) => {
+        if (id === "settings") {
+          navigate("/settings");
+          return;
+        }
         if (!state.status?.ok) return;
         if (id === "create") navigate("/create");
         if (id === "overview") navigate("/");
         if (id === "repos") navigate("/repos");
       }}
       trackedCount={state.selectedNames.length}
-      title="Setup"
+      title={t("Setup")}
       trailing={null}
     >
       <ErrorScreen status={state.status} onRetry={retryBoot} />
@@ -95,6 +110,7 @@ function SetupShell() {
 }
 
 function MainShell() {
+  const { t } = useI18n();
   const { state, runRefresh, pickerDirty, pickerSave } = useStore();
   const navigate = useTransitionNavigate();
   const [isRepos] = useRoute("/repos");
@@ -129,7 +145,9 @@ function MainShell() {
     view === "create" ? "create" : view === "picker" ? "repos" : "overview";
 
   let title: ReactNode = (
-    <h1 className="text-[15px] font-semibold tracking-[-0.01em]">Overview</h1>
+    <h1 className="text-[15px] font-semibold tracking-[-0.01em]">
+      {t("Overview")}
+    </h1>
   );
   let trailing: ReactNode = (
     <ListTrailing
@@ -141,12 +159,14 @@ function MainShell() {
     />
   );
   if (view === "create") {
-    title = <h1 className="text-[15px] font-semibold">Create repository</h1>;
+    title = (
+      <h1 className="text-[15px] font-semibold">{t("Create repository")}</h1>
+    );
     trailing = null;
   } else if (view === "picker") {
     title = (
       <h1 className="text-[15px] font-semibold tracking-[-0.01em]">
-        Select repositories
+        {t("Select repositories")}
       </h1>
     );
     trailing = (
@@ -167,6 +187,10 @@ function MainShell() {
       login={login}
       nav={nav}
       onNav={(id) => {
+        if (id === "settings") {
+          navigate("/settings");
+          return;
+        }
         if (!state.status?.ok) return;
         if (id === "create") navigate("/create");
         if (id === "overview") goList();
@@ -278,5 +302,35 @@ function CreateBody() {
         navigate("/");
       }}
     />
+  );
+}
+
+function SettingsShell() {
+  const { t } = useI18n();
+  const { state } = useStore();
+  const navigate = useTransitionNavigate();
+  return (
+    <Chrome
+      login={state.status?.login}
+      nav="settings"
+      trackedCount={state.selectedNames.length}
+      title={
+        <h1 className="text-[15px] font-semibold">{t("settings.title")}</h1>
+      }
+      onNav={(id) => {
+        if (id === "settings") return;
+        navigate(
+          !state.status?.ok
+            ? "/setup"
+            : id === "overview"
+              ? "/"
+              : id === "repos"
+                ? "/repos"
+                : "/create",
+        );
+      }}
+    >
+      <SettingsView />
+    </Chrome>
   );
 }
