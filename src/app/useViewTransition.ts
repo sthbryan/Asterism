@@ -23,20 +23,11 @@ function getViewTransition(): StartViewTransition | null {
   return (fn as StartViewTransition).bind(document);
 }
 
-/**
- * Wouter `navigate` wrapped in `document.startViewTransition()` when
- * available. Falls back to a plain navigation (the existing CSS
- * `.t-page-slide` animation covers it) on browsers without support —
- * e.g. Tauri's WKWebView — and when `prefers-reduced-motion` is set.
- */
 export function useTransitionNavigate(): NavigateFn {
   const [path, navigate] = useLocation();
   return useCallback<NavigateFn>(
     (to, options) => {
-      if (to === path) {
-        navigate(to, options);
-        return;
-      }
+      if (to === path) return;
       const start = getViewTransition();
       if (!start) {
         navigate(to, options);
