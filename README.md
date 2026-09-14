@@ -22,9 +22,9 @@
 
 ---
 
-Asterism does not list every repository you own. You choose the set, the selection lives in `~/.config/asterism/config.json`, and the window shows stars, forks, and download totals for that set. Open a repo and you get traffic, languages, each release, and each asset.
+Asterism does not list every repository you own. You choose the set, the selection is saved locally for each GitHub account, and the window shows stars, forks, and download totals for that set. Open a repo and you get traffic, languages, each release, and each asset.
 
-It uses the GitHub CLI you already signed in with. If `gh` is missing or not authenticated, setup shows installation and sign-in instructions. Use **Check connection** to retry without restarting. Network failures show connection details instead of claiming the CLI is missing.
+It uses the GitHub CLI you already signed in with. Saved data opens before connecting, even when `gh` is missing or not authenticated. Use **Check connection** to retry without restarting. Network failures show connection details instead of claiming the CLI is missing.
 
 ---
 
@@ -51,8 +51,15 @@ The Create repository tab supports personal or organization ownership, private/p
 **`gh` is the client**  
 No extra GitHub token in the app. Asterism shells out to `gh` with the account already configured on the machine.
 
-**Selection survives a restart**  
-Config at `~/.config/asterism/config.json`. Last fetch at `~/.cache/asterism/cache.json`, so the list is not empty while a refresh runs.
+**Local data and offline mode**
+
+Asterism uses Tauri Plugin Store in the OS application-data directory. Settings shows the exact location. Preferences, projects, cached repository data, and snapshots are separate. Cache is isolated by GitHub host and account; authentication stays with `gh`.
+
+Previously fetched summaries, the catalog, and opened details can be read offline. Creating repositories requires a live connection; actions are never queued. Failed refreshes keep the last valid response and its date. Traffic is only the latest GitHub response, with its original 14-day period, not an accumulated visits/clones history.
+
+Cache is limited to 100 details and 16 MiB per account. Star/download/fork history retains up to 180 observations per series for 500 repositories. **Clear repository cache** in Settings keeps preferences, projects, and history. Local storage is not a remote backup: deleting app data removes it.
+
+On upgrade, the old `~/.config/asterism/config.json` and `~/.cache/asterism/{cache,history}.json` files are migrated without deleting the originals. They do not identify a GitHub account, so Settings lets you view them separately or explicitly import them into the connected account. Existing account data takes precedence.
 
 ---
 
@@ -79,7 +86,7 @@ bun run tauri dev
 | **From source** | `bun install`, then `bun run tauri dev` |
 | **Icons** | `bun run icons` |
 
-Asterism needs [GitHub CLI](https://cli.github.com) (`gh`) installed and signed in (`gh auth login`). It does not replace `gh`. It reads through it.
+To fetch new data or create repositories, Asterism needs [GitHub CLI](https://cli.github.com) (`gh`) installed and signed in (`gh auth login`). It does not replace `gh`. It reads through it.
 
 ---
 
@@ -87,8 +94,8 @@ Asterism needs [GitHub CLI](https://cli.github.com) (`gh`) installed and signed 
 
 - `src-tauri`: Tauri v2 host. Detects `gh`, loads config, fetches catalog, tracked stats, and repo detail off the UI thread.
 - `src`: React client. Overview, repo picker, and detail.
-- `~/.config/asterism/config.json`: tracked `owner/name` list.
-- `~/.cache/asterism/cache.json`: last successful fetch.
+- Tauri app data: versioned Plugin Store documents for preferences, projects, account caches, and bounded history.
+- Tests: `bun test tests` and `cargo test --manifest-path src-tauri/Cargo.toml`.
 
 `gh` owns auth and the GitHub API. The app is a thin desktop client over that CLI.
 
