@@ -1,3 +1,5 @@
+import { CaretDownIcon } from "@phosphor-icons/react";
+import { cn } from "cn";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 
 type SelectOption = {
@@ -100,9 +102,12 @@ export function Select({
         }}
       >
         <span className="truncate">{selectedOption?.label}</span>
-        <span
-          aria-hidden="true"
-          className={`h-2 w-2 shrink-0 rotate-45 border-r-2 border-b-2 border-mist transition-transform ${open ? "-translate-y-px rotate-[225deg]" : "-translate-y-0.5"}`}
+
+        <CaretDownIcon
+          className={cn(
+            "size-3.5 shrink-0 transition-transform mt-1",
+            open ? "-translate-y-px rotate-180" : "-translate-y-0.5",
+          )}
         />
       </button>
       {open && (
@@ -119,7 +124,12 @@ export function Select({
               type="button"
               role="option"
               aria-selected={index === selectedIndex}
-              className={`flex w-full items-center justify-between rounded px-2.5 py-2 text-left text-[13px] transition-colors ${index === activeIndex ? "bg-fill text-paper" : "text-mist hover:bg-wash hover:text-paper"}`}
+              className={cn(
+                "flex w-full items-center justify-between rounded px-2.5 py-2 text-left text-[13px] transition-colors",
+                index === activeIndex
+                  ? "bg-fill text-paper"
+                  : "text-mist hover:bg-wash hover:text-paper",
+              )}
               onMouseEnter={() => setActiveIndex(index)}
               onClick={() => choose(option)}
             >
@@ -127,7 +137,7 @@ export function Select({
               {index === selectedIndex && (
                 <span
                   aria-hidden="true"
-                  className="ml-3 h-2 w-3 rotate-[-45deg] border-b-2 border-l-2 border-accent"
+                  className="ml-3 h-2 w-3 -rotate-45 border-b-2 border-l-2 border-accent"
                 />
               )}
             </button>
