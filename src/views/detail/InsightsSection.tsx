@@ -1,6 +1,6 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useI18n } from "../../app/hooks";
 import { BarChart } from "../../components/Charts";
-import { useI18n } from "../../lib/i18n";
 import { langColor } from "../../lib/langcolors";
 import { platformItems, shortPath } from "../../lib/platform";
 import type { RepoDetail } from "../../lib/types";

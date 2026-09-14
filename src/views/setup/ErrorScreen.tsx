@@ -1,8 +1,8 @@
 import { WarningCircle } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
+import { useI18n } from "../../app/hooks";
 import { Button } from "../../components/Button";
-import { useI18n } from "../../lib/i18n";
 import type { Status } from "../../lib/types";
 
 export function ErrorScreen({

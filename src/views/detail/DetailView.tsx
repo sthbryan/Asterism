@@ -1,11 +1,10 @@
 import { WarningCircle } from "@phosphor-icons/react";
 import { useRoute } from "wouter";
-import { useDetail } from "../../app/hooks";
+import { useDetail, useI18n } from "../../app/hooks";
 import { decodeDetailParam } from "../../app/routes";
 import { useTransitionNavigate } from "../../app/useViewTransition";
 import { PageHeader } from "../../components/PageHeader";
 import { DetailSkeleton } from "../../components/Skeleton";
-import { useI18n } from "../../lib/i18n";
 import type { RepoDetail } from "../../lib/types";
 import { DetailTitle, DetailTrailing } from "./Header";
 import { HistoryCharts } from "./HistoryCharts";

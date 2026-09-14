@@ -1,5 +1,5 @@
+import { useI18n } from "../../app/hooks";
 import { Button } from "../../components/Button";
-import { useI18n } from "../../lib/i18n";
 
 export function PickerTrailing({
   dirty,

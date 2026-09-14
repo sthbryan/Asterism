@@ -1,8 +1,8 @@
 import { DownloadSimple, Eye } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { useI18n } from "../../app/hooks";
 import { ColumnChart } from "../../components/Charts";
 import { fmtCompact } from "../../lib/format";
-import { useI18n } from "../../lib/i18n";
 import { fillTrafficDays } from "../../lib/series";
 import type { RepoDetail } from "../../lib/types";
 

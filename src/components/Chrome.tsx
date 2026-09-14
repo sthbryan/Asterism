@@ -1,7 +1,7 @@
 import { ChartBar, FolderSimple, GearSix, Plus } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { useI18n } from "../app/hooks";
 import { dragWindow } from "../lib/drag";
-import { useI18n } from "../lib/i18n";
 
 import { Mark } from "./Mark";
 

@@ -1,5 +1,5 @@
 import { Globe, LockSimpleIcon } from "@phosphor-icons/react";
-import { useI18n } from "../../lib/i18n";
+import { useI18n } from "../../app/hooks";
 import type { RepoDetail } from "../../lib/types";
 import { Flag } from "./shared";
 

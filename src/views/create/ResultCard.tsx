@@ -1,8 +1,8 @@
 import { ArrowSquareOut, CheckCircle } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { useI18n } from "../../app/hooks";
 import { Button } from "../../components/Button";
 import { isMockMode } from "../../lib/api";
-import { useI18n } from "../../lib/i18n";
 import type { CreatedRepo } from "../../lib/types";
 
 export function ResultCard({

@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { useI18n } from "../../app/hooks";
 import { fmtAxisDate, fmtNum } from "../../lib/format";
-import { useI18n } from "../../lib/i18n";
 import { type ChartTone, STROKE } from "./plot";
 
 export function ColumnChart({

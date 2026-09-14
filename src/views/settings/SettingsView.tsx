@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../../app/hooks";
 import { useStore } from "../../app/store";
 import { useAppearance } from "../../components/Appearance";
 import { Button } from "../../components/Button";
@@ -6,7 +7,6 @@ import { PageHeader } from "../../components/PageHeader";
 import { Select } from "../../components/Select";
 import { Toggle } from "../../components/Toggle";
 import { getDiagnostics, isMockMode } from "../../lib/api";
-import { useI18n } from "../../lib/i18n";
 import type { Diagnostics, Locale, ThemePref } from "../../lib/types";
 
 export function SettingsView() {

@@ -1,6 +1,6 @@
 import { ArrowSquareOut, CaretLeft } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useI18n } from "../../lib/i18n";
+import { useI18n } from "../../app/hooks";
 
 export function DetailTitle({
   fullName,

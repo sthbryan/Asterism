@@ -1,6 +1,6 @@
+import { useI18n } from "../../app/hooks";
 import { Button } from "../../components/Button";
 import { Select } from "../../components/Select";
-import { useI18n } from "../../lib/i18n";
 import type { CreateFormApi } from "./useCreateForm";
 
 export function SetupSection({ form }: { form: CreateFormApi }) {

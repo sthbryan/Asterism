@@ -1,5 +1,5 @@
+import { useI18n } from "../../app/hooks";
 import { AreaChart } from "../../components/Charts";
-import { useI18n } from "../../lib/i18n";
 import type { RepoDetail } from "../../lib/types";
 
 export function HistoryCharts({ detail }: { detail: RepoDetail }) {

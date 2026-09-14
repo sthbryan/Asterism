@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
+import { useI18n } from "../app/hooks";
 import { fmtCompact, fmtSigned } from "../lib/format";
-import { useI18n } from "../lib/i18n";
 import { PopNumber } from "./PopNumber";
 
 export function KpiCard({

@@ -1,8 +1,8 @@
 import { CaretDown } from "@phosphor-icons/react";
 import { useState } from "react";
+import { useI18n } from "../../app/hooks";
 import { BarChart } from "../../components/Charts";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "../../lib/format";
-import { useI18n } from "../../lib/i18n";
 import type { RepoDetail } from "../../lib/types";
 import { Flag } from "./shared";
 

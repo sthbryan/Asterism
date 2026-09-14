@@ -14,6 +14,7 @@ import {
 } from "@phosphor-icons/react";
 import { useMemo, useState } from "react";
 import { VList } from "virtua";
+import { useI18n } from "../../app/hooks";
 import { detailPath } from "../../app/routes";
 import { useStore } from "../../app/store";
 import { useTransitionNavigate } from "../../app/useViewTransition";
@@ -25,7 +26,6 @@ import { KpiCard } from "../../components/KpiCard";
 import { PageHeader } from "../../components/PageHeader";
 import { ListSkeleton } from "../../components/Skeleton";
 import { fmtFetched, fmtNum, fmtSigned } from "../../lib/format";
-import { useI18n } from "../../lib/i18n";
 import { langColor } from "../../lib/langcolors";
 import { platformItems, sumPlatforms } from "../../lib/platform";
 import {

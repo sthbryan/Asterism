@@ -1,7 +1,7 @@
+import { useI18n } from "../../app/hooks";
 import { useStore } from "../../app/store";
 import { useTransitionNavigate } from "../../app/useViewTransition";
 import { PageHeader } from "../../components/PageHeader";
-import { useI18n } from "../../lib/i18n";
 import { CreateFormFields } from "./CreateFormFields";
 import { ResultCard } from "./ResultCard";
 import { useCreateForm } from "./useCreateForm";

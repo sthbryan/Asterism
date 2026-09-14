@@ -1,6 +1,6 @@
 import { DownloadSimple, Eye, GitFork, Star } from "@phosphor-icons/react";
+import { useI18n } from "../../app/hooks";
 import { KpiCard } from "../../components/KpiCard";
-import { useI18n } from "../../lib/i18n";
 import { pickKpiDelta, windowDelta } from "../../lib/series";
 import type { RepoDetail } from "../../lib/types";
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
+import { useI18n } from "../../app/hooks";
 import { fmtDate, fmtNum, fmtRepoSizeKb } from "../../lib/format";
-import { useI18n } from "../../lib/i18n";
 import type { RepoDetail } from "../../lib/types";
 import { HomepageValue } from "./shared";
 
