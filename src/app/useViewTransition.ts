@@ -42,15 +42,23 @@ export function useTransitionNavigate(): NavigateFn {
         navigate(to, options);
         return;
       }
-      start(() => {
-        try {
-          flushSync(() => {
+      const root = document.documentElement;
+      root.classList.add("vt-active");
+      const done = () => root.classList.remove("vt-active");
+      try {
+        start(() => {
+          try {
+            flushSync(() => {
+              navigate(to, options);
+            });
+          } catch {
             navigate(to, options);
-          });
-        } catch {
-          navigate(to, options);
-        }
-      });
+          }
+        }).finished.then(done, done);
+      } catch {
+        done();
+        navigate(to, options);
+      }
     },
     [navigate, path],
   );

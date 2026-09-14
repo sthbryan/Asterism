@@ -357,11 +357,17 @@ html[data-theme="light"] {
 
 /* View Transitions — progressive enhancement for route changes.
    Only applies where document.startViewTransition exists (Chromium);
-   elsewhere the .t-page-slide CSS animation above remains the fallback. */
+   elsewhere the .t-page-slide CSS animation above remains the fallback.
+   Opacity-only on the root snapshot: the sidebar must stay put, and the
+   inner .t-page-slide animation is paused while the transition runs
+   (html.vt-active, set by useTransitionNavigate) to avoid double motion. */
+html.vt-active .t-page-slide .t-page {
+  transition: none;
+}
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 180ms;
-  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  animation-duration: 140ms;
+  animation-timing-function: ease-out;
 }
 ::view-transition-old(root) {
   animation-name: t-vt-out;
@@ -372,21 +378,17 @@ html[data-theme="light"] {
 @keyframes t-vt-out {
   from {
     opacity: 1;
-    transform: translateX(0);
   }
   to {
     opacity: 0;
-    transform: translateX(calc(var(--distance-base, 8px) * -1));
   }
 }
 @keyframes t-vt-in {
   from {
     opacity: 0;
-    transform: translateX(var(--distance-base, 8px));
   }
   to {
     opacity: 1;
-    transform: translateX(0);
   }
 }
 
