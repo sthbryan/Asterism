@@ -7,8 +7,8 @@ mod platform;
 use std::collections::{HashMap, HashSet};
 
 use models::{
-    Cache, CatalogRepo, Config, CreateOptions, CreateRepoInput, CreatedRepo, RepoDetail, Status,
-    ThemePref, TrackedRepo,
+    Cache, CatalogRepo, Config, CreateOptions, CreateRepoInput, CreatedRepo, Diagnostics, Locale,
+    RepoDetail, Status, ThemePref, TrackedRepo,
 };
 
 async fn offload<T, F>(f: F) -> Result<T, String>
@@ -59,6 +59,47 @@ async fn save_appearance(theme: String, transparency: bool) -> Result<Config, St
 #[tauri::command]
 async fn get_cache() -> Result<Option<Cache>, String> {
     offload(config::load_cache).await?
+}
+
+fn normalize_locale(raw: &str) -> Locale {
+    match raw.trim().to_lowercase().as_str() {
+        "es" => Locale::Es,
+        _ => Locale::En,
+    }
+}
+
+#[tauri::command]
+async fn save_locale(locale: String) -> Result<Config, String> {
+    offload(move || {
+        let mut cfg = config::load_config()?;
+        cfg.locale = Some(normalize_locale(&locale));
+        config::save_config(cfg)
+    })
+    .await?
+}
+
+#[tauri::command]
+async fn get_diagnostics() -> Result<Diagnostics, String> {
+    offload(|| {
+        let (gh_version, gh_error) = gh::tool_version("gh", &["--version"]);
+        let (git_version, git_error) = gh::tool_version("git", &["--version"]);
+        Ok(Diagnostics {
+            gh_version,
+            gh_error,
+            git_version,
+            git_error,
+            config_path: config::config_path()
+                .map(|p| p.display().to_string())
+                .unwrap_or_default(),
+            cache_path: config::cache_path()
+                .map(|p| p.display().to_string())
+                .unwrap_or_default(),
+            history_path: config::history_path()
+                .map(|p| p.display().to_string())
+                .unwrap_or_default(),
+        })
+    })
+    .await?
 }
 
 #[tauri::command]
@@ -169,6 +210,8 @@ pub fn run() {
             get_config,
             save_config,
             save_appearance,
+            save_locale,
+            get_diagnostics,
             get_cache,
             list_catalog,
             list_create_options,
@@ -178,4 +221,35 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod locale_tests {
+    use super::normalize_locale;
+    use crate::models::{Config, Locale};
+
+    #[test]
+    fn unknown_locales_fall_back_to_english() {
+        assert_eq!(normalize_locale("es"), Locale::Es);
+        assert_eq!(normalize_locale(" es "), Locale::Es);
+        assert_eq!(normalize_locale("ES"), Locale::Es);
+        assert_eq!(normalize_locale("en"), Locale::En);
+        assert_eq!(normalize_locale("fr"), Locale::En);
+        assert_eq!(normalize_locale(""), Locale::En);
+    }
+
+    #[test]
+    fn legacy_configs_without_locale_still_parse() {
+        let cfg: Config = serde_json::from_str(
+            r#"{"version":1,"repos":["a/b"],"theme":"dark","transparency":false}"#,
+        )
+        .unwrap();
+        assert_eq!(cfg.locale, None);
+        let cfg: Config =
+            serde_json::from_str(r#"{"version":1,"repos":[],"locale":"es"}"#).unwrap();
+        assert_eq!(cfg.locale, Some(Locale::Es));
+        let cfg: Config =
+            serde_json::from_str(r#"{"version":1,"repos":[],"locale":"en"}"#).unwrap();
+        assert_eq!(cfg.locale, Some(Locale::En));
+    }
 }

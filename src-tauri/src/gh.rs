@@ -76,6 +76,51 @@ fn run_gh_json(args: &[&str]) -> Result<Value, String> {
     serde_json::from_str(trimmed).map_err(|e| format!("Could not parse gh JSON: {e}"))
 }
 
+fn first_line(output: &str) -> String {
+    output.lines().next().unwrap_or("").trim().to_string()
+}
+
+/// Runs `<program> <args>` (with the augmented PATH used for `gh`, so GUI
+/// launches find Homebrew binaries) and returns `(first stdout line, error)`.
+/// Never fails: a missing binary or a bad exit becomes `None + technical
+/// message` so diagnostics can report every tool independently.
+pub fn tool_version(program: &str, args: &[&str]) -> (Option<String>, Option<String>) {
+    let mut cmd = Command::new(program);
+    cmd.args(args)
+        .env("PATH", augmented_path())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .stdin(Stdio::null());
+    let output = match cmd.output() {
+        Ok(output) => output,
+        Err(err) if err.kind() == ErrorKind::NotFound => {
+            return (None, Some(format!("{program} was not found on this machine.")));
+        }
+        Err(err) => return (None, Some(format!("Could not run {program}: {err}"))),
+    };
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let msg = stderr.trim();
+        return (
+            None,
+            Some(if msg.is_empty() {
+                format!("{program} exited with status {}", output.status)
+            } else {
+                msg.to_string()
+            }),
+        );
+    }
+    let line = first_line(&String::from_utf8_lossy(&output.stdout));
+    if line.is_empty() {
+        (
+            None,
+            Some(format!("{program} returned empty version output.")),
+        )
+    } else {
+        (Some(line), None)
+    }
+}
+
 fn as_u64(value: &Value, key: &str) -> u64 {
     value
         .get(key)
@@ -849,5 +894,19 @@ mod create_tests {
             private: true, add_readme: true, gitignore: None, license: None,
         });
         assert_eq!(result.unwrap_err(), "Invalid repository owner.");
+    }
+
+    #[test]
+    fn missing_tool_reports_technical_error_without_failing() {
+        let (version, error) =
+            tool_version("asterism-definitely-missing-binary", &["--version"]);
+        assert_eq!(version, None);
+        assert!(error.unwrap().contains("was not found"));
+    }
+
+    #[test]
+    fn first_line_trims_to_a_single_line() {
+        assert_eq!(first_line("gh version 2.74.2 (2025-01-01)\nmore"), "gh version 2.74.2 (2025-01-01)");
+        assert_eq!(first_line("  \n"), "");
     }
 }

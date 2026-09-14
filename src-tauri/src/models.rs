@@ -18,6 +18,14 @@ pub enum ThemePref {
     System,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum Locale {
+    #[default]
+    En,
+    Es,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
@@ -27,6 +35,10 @@ pub struct Config {
     pub theme: ThemePref,
     #[serde(default)]
     pub transparency: bool,
+    /// Preferred UI language. `None` in legacy configs: the frontend then
+    /// falls back to system detection (`navigator.language`).
+    #[serde(default)]
+    pub locale: Option<Locale>,
 }
 
 impl Default for Config {
@@ -36,8 +48,21 @@ impl Default for Config {
             repos: Vec::new(),
             theme: ThemePref::Dark,
             transparency: false,
+            locale: None,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Diagnostics {
+    pub gh_version: Option<String>,
+    pub gh_error: Option<String>,
+    pub git_version: Option<String>,
+    pub git_error: Option<String>,
+    pub config_path: String,
+    pub cache_path: String,
+    pub history_path: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
