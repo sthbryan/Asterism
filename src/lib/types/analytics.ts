@@ -20,7 +20,12 @@ export type Traffic = {
   count: number;
   uniques: number;
   days?: TrafficDay[];
+  fetchedAt?: number | null;
+  sampleFrom?: number | null;
+  sampleTo?: number | null;
 };
+
+export type TrafficStatus = "ok" | "forbidden" | "error" | "unavailable";
 
 export type Referrer = {
   referrer: string;

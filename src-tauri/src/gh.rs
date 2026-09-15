@@ -355,10 +355,54 @@ fn parse_traffic_days(json: &Value, key: &str) -> Vec<TrafficDay> {
 }
 
 fn parse_traffic(json: &Value, series_key: &str) -> Traffic {
+    let days = parse_traffic_days(json, series_key);
+    let sample_from = days.first().map(|d| d.ts);
+    let sample_to = days.last().map(|d| d.ts);
     Traffic {
         count: as_u64(json, "count"),
         uniques: as_u64(json, "uniques"),
-        days: parse_traffic_days(json, series_key),
+        days,
+        fetched_at: Some(now_secs()),
+        sample_from,
+        sample_to,
+    }
+}
+
+fn traffic_status(err: &str) -> crate::models::TrafficStatus {
+    if err.contains("403") || err.to_ascii_lowercase().contains("forbidden") {
+        crate::models::TrafficStatus::Forbidden
+    } else {
+        crate::models::TrafficStatus::Error
+    }
+}
+
+#[cfg(test)]
+mod traffic_contract_tests {
+    use super::*;
+    use crate::models::TrafficStatus;
+
+    #[test]
+    fn uniques_are_period_total_not_daily_sum() {
+        let json = serde_json::json!({"count": 9, "uniques": 7,
+            "views": [{"timestamp":"2026-09-10T00:00:00Z","count":4,"uniques":3},
+                      {"timestamp":"2026-09-11T00:00:00Z","count":5,"uniques":3}]});
+        let t = parse_traffic(&json, "views");
+        assert_eq!(t.uniques, 7);
+        assert_eq!(t.days.iter().map(|d| d.uniques).sum::<u64>(), 6);
+        assert!(t.sample_from.is_some() && t.sample_to.is_some());
+    }
+
+    #[test]
+    fn legacy_traffic_deserializes_without_metadata() {
+        let t: Traffic = serde_json::from_value(serde_json::json!({"count": 2, "uniques": 1, "days": []})).unwrap();
+        assert_eq!(t.fetched_at, None);
+        assert_eq!(t.sample_from, None);
+    }
+
+    #[test]
+    fn status_distinguishes_forbidden_from_other_errors() {
+        assert_eq!(traffic_status("HTTP 403: Forbidden"), TrafficStatus::Forbidden);
+        assert_eq!(traffic_status("network timeout"), TrafficStatus::Error);
     }
 }
 
@@ -584,20 +628,20 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         }
     };
 
-    let views = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
-        Ok(json) => Some(parse_traffic(&json, "views")),
+    let (views, views_status) = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
+        Ok(json) => (Some(parse_traffic(&json, "views")), crate::models::TrafficStatus::Ok),
         Err(err) => {
             traffic_error = Some(err);
-            None
+            (None, traffic_status(traffic_error.as_deref().unwrap_or("")))
         }
     };
-    let clones = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]) {
-        Ok(json) => Some(parse_traffic(&json, "clones")),
+    let (clones, clones_status) = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]) {
+        Ok(json) => (Some(parse_traffic(&json, "clones")), crate::models::TrafficStatus::Ok),
         Err(err) => {
             if traffic_error.is_none() {
-                traffic_error = Some(err);
+                traffic_error = Some(err.clone());
             }
-            None
+            (None, traffic_status(&err))
         }
     };
     let referrers = match run_gh_json(&[
@@ -644,6 +688,8 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         views,
         clones,
         traffic_error,
+        views_status,
+        clones_status,
         releases,
         platforms,
         referrers,

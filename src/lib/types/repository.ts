@@ -5,6 +5,7 @@ import type {
   Referrer,
   SeriesPoint,
   Traffic,
+  TrafficStatus,
 } from "./analytics";
 import type { Release } from "./releases";
 
@@ -76,6 +77,8 @@ export type RepoDetail = {
   views: Traffic | null;
   clones: Traffic | null;
   trafficError: string | null;
+  viewsStatus?: TrafficStatus;
+  clonesStatus?: TrafficStatus;
   releases: Release[];
   platforms?: PlatformDownloads;
   referrers?: Referrer[];

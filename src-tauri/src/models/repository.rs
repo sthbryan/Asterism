@@ -113,6 +113,25 @@ pub struct Traffic {
     pub uniques: u64,
     #[serde(default)]
     pub days: Vec<TrafficDay>,
+    #[serde(default)]
+    pub fetched_at: Option<u64>,
+    #[serde(default)]
+    pub sample_from: Option<u64>,
+    #[serde(default)]
+    pub sample_to: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum TrafficStatus {
+    Ok,
+    Forbidden,
+    Error,
+    Unavailable,
+}
+
+impl Default for TrafficStatus {
+    fn default() -> Self { Self::Unavailable }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -188,6 +207,10 @@ pub struct RepoDetail {
     pub views: Option<Traffic>,
     pub clones: Option<Traffic>,
     pub traffic_error: Option<String>,
+    #[serde(default)]
+    pub views_status: TrafficStatus,
+    #[serde(default)]
+    pub clones_status: TrafficStatus,
     pub releases: Vec<Release>,
     #[serde(default)]
     pub platforms: PlatformDownloads,
