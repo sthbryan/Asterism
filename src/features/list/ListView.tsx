@@ -56,7 +56,10 @@ export function ListTrailing({
       ) : fetched ? (
         <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
           <span
-            className={cn("size-7 rounded-full", online ? "bg-ok" : "bg-faint")}
+            className={cn(
+              "size-1.5 rounded-full",
+              online ? "bg-ok" : "bg-faint",
+            )}
           />
           {t("list.updated", {
             value: fetchedAt
