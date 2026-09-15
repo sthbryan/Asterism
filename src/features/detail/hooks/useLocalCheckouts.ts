@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import type { LocalCheckout } from "@/lib/types";
@@ -23,6 +23,70 @@ function readEditor(): EditorTarget {
   }
 }
 
+type CheckoutsState = {
+  items: LocalCheckout[];
+  parent: string | null;
+  name: string;
+  busy: boolean;
+  error: string | null;
+};
+
+type CheckoutsAction =
+  | { type: "reset"; name: string }
+  | { type: "runStart" }
+  | { type: "runEnd" }
+  | { type: "runFailure"; error: string }
+  | { type: "listSuccess"; items: LocalCheckout[] }
+  | { type: "upsert"; item: LocalCheckout }
+  | { type: "setParent"; parent: string | null }
+  | { type: "setName"; name: string };
+
+function initCheckouts(fullName: string): CheckoutsState {
+  return {
+    items: [],
+    parent: null,
+    name: suggestFolderName(fullName),
+    busy: false,
+    error: null,
+  };
+}
+
+function checkoutsReducer(
+  state: CheckoutsState,
+  action: CheckoutsAction,
+): CheckoutsState {
+  switch (action.type) {
+    case "reset":
+      return {
+        items: [],
+        parent: null,
+        name: action.name,
+        busy: false,
+        error: null,
+      };
+    case "runStart":
+      return { ...state, busy: true, error: null };
+    case "runEnd":
+      return { ...state, busy: false };
+    case "runFailure":
+      return { ...state, error: action.error };
+    case "listSuccess":
+      return { ...state, items: action.items };
+    case "upsert":
+      return {
+        ...state,
+        items: [
+          ...state.items.filter((entry) => entry.path !== action.item.path),
+          action.item,
+        ],
+      };
+    case "setParent":
+      return { ...state, parent: action.parent };
+    case "setName":
+      return { ...state, name: action.name };
+  }
+}
+
 /**
  * Checkout list state and guarded actions for one repository.
  * Every action shares the same busy/error/generation handling so a stale
@@ -32,33 +96,33 @@ export function useLocalCheckouts(fullName: string) {
   const { t } = useI18n();
   const account = useStore((s) => s.account);
   const online = useStore((s) => s.status?.ok === true);
-  const [items, setItems] = useState<LocalCheckout[]>([]);
-  const [parent, setParent] = useState<string | null>(null);
-  const [name, setName] = useState(() => suggestFolderName(fullName));
-  const [busy, setBusy] = useState(false);
+  const [state, dispatch] = useReducer(
+    checkoutsReducer,
+    fullName,
+    initCheckouts,
+  );
+
   const [editor, setEditorState] = useState<EditorTarget>(readEditor);
-  const [error, setError] = useState<string | null>(null);
   const generation = useRef(0);
 
+  const { items, parent, name, busy, error } = state;
+
   useEffect(() => {
-    // The body does not read `account`, but the list must reload after an
-    // account switch, so it stays a dependency on purpose.
     void account;
     const request = ++generation.current;
     let active = true;
-    setItems([]);
-    setError(null);
-    setParent(null);
-    setBusy(false);
-    setName(suggestFolderName(fullName));
+    dispatch({ type: "reset", name: suggestFolderName(fullName) });
     void listLocalCheckouts()
       .then((rows) => {
         if (active && request === generation.current)
-          setItems(rows.filter((row) => row.fullName === fullName));
+          dispatch({
+            type: "listSuccess",
+            items: rows.filter((row) => row.fullName === fullName),
+          });
       })
       .catch((e) => {
         if (active && request === generation.current)
-          setError(localError(e, t));
+          dispatch({ type: "runFailure", error: localError(e, t) });
       });
     return () => {
       active = false;
@@ -68,23 +132,20 @@ export function useLocalCheckouts(fullName: string) {
 
   async function run(task: (request: number) => Promise<void>) {
     const request = generation.current;
-    setBusy(true);
-    setError(null);
+    dispatch({ type: "runStart" });
     try {
       await task(request);
     } catch (e) {
-      if (request === generation.current) setError(localError(e, t));
+      if (request === generation.current)
+        dispatch({ type: "runFailure", error: localError(e, t) });
     } finally {
-      if (request === generation.current) setBusy(false);
+      if (request === generation.current) dispatch({ type: "runEnd" });
     }
   }
 
   function upsert(item: LocalCheckout, request: number) {
     if (request !== generation.current) return;
-    setItems((old) => [
-      ...old.filter((entry) => entry.path !== item.path),
-      item,
-    ]);
+    dispatch({ type: "upsert", item });
   }
 
   async function link() {
@@ -102,7 +163,7 @@ export function useLocalCheckouts(fullName: string) {
       const item = await cloneLocalRepository(fullName, parent, folder);
       if (request !== generation.current) return;
       upsert(item, request);
-      setParent(null);
+      dispatch({ type: "setParent", parent: null });
     });
   }
 
@@ -113,19 +174,27 @@ export function useLocalCheckouts(fullName: string) {
       if (request !== generation.current) return;
       const rows = await listLocalCheckouts();
       if (request === generation.current)
-        setItems(rows.filter((row) => row.fullName === fullName));
+        dispatch({
+          type: "listSuccess",
+          items: rows.filter((row) => row.fullName === fullName),
+        });
     });
   }
 
   async function chooseCloneParent() {
     await run(async (request) => {
       const path = await chooseLocalFolder();
-      if (path && request === generation.current) setParent(path);
+      if (path && request === generation.current)
+        dispatch({ type: "setParent", parent: path });
     });
   }
 
   async function open(path: string, target: "folder" | EditorTarget) {
     await run(() => openLocalCheckout(fullName, path, target));
+  }
+
+  function setName(next: string) {
+    dispatch({ type: "setName", name: next });
   }
 
   function setEditor(next: EditorTarget) {
@@ -138,7 +207,7 @@ export function useLocalCheckouts(fullName: string) {
   }
 
   function cancelClone() {
-    setParent(null);
+    dispatch({ type: "setParent", parent: null });
   }
 
   return {
