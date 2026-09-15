@@ -10,7 +10,7 @@ where
     T: Send + 'static,
     F: FnOnce() -> T + Send + 'static,
 {
-    tauri::async_runtime::spawn_blocking(move || config::serialized(f))
+    tauri::async_runtime::spawn_blocking(f)
         .await
         .map_err(|e| format!("background task failed: {e}"))
 }

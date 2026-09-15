@@ -16,9 +16,9 @@ use std::{
 };
 use tauri::{AppHandle, Manager, Runtime};
 
-pub fn serialized<T>(f: impl FnOnce() -> T) -> T {
-    static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
-    let _guard = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+pub fn serialized_write<T>(f: impl FnOnce() -> T) -> T {
+    static WRITE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    let _guard = WRITE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
     f()
 }
 

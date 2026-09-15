@@ -1,5 +1,5 @@
 use super::*;
-use super::{bound_cache, serialized};
+use super::bound_cache;
 use crate::models::*;
 use std::{collections::BTreeMap, fs};
 fn fixture() -> (
@@ -178,7 +178,7 @@ fn concurrent_preference_and_project_updates_preserve_each_other() {
             let barrier = barrier.clone();
             std::thread::spawn(move || {
                 barrier.wait();
-                serialized(|| match i {
+                serialized_write(|| match i {
                     0 => db.save_locale(Locale::Es),
                     1 => db.save_appearance(ThemePref::System, true),
                     _ => db.save_repos(vec!["one/repo".into()]),

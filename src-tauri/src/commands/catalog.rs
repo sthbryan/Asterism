@@ -34,7 +34,7 @@ pub(crate) async fn list_catalog(
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
         let rows = gh::list_catalog()?;
-        config::serialized(move || config::storage()?.save_catalog(rows))
+        config::serialized_write(move || config::storage()?.save_catalog(rows))
     })
     .await?
 }
@@ -58,7 +58,7 @@ pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<
             .unwrap_or_default();
         let fetches = gh::refresh_tracked(cfg.repos);
         let now = history::now_secs();
-        config::serialized(move || {
+        config::serialized_write(move || {
             let db = config::storage()?;
             let mut store = db.load_history()?;
             let repos = merge_fetches(fetches, &prev, &mut store, now)?;
@@ -158,7 +158,7 @@ pub(crate) async fn get_repo_detail(
             downloads_delta: None,
             error: None,
         };
-        config::serialized(move || {
+        config::serialized_write(move || {
             let db = config::storage()?;
             let mut store = db.load_history()?;
             history::apply_fetch(&mut store, &snapshot, now);
