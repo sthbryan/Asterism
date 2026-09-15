@@ -1,10 +1,10 @@
 import {
-  ArrowSquareOut,
-  Code,
-  FolderOpen,
-  LinkSimple,
-  Plus,
-  Trash,
+  ArrowSquareOutIcon,
+  CodeIcon,
+  FolderOpenIcon,
+  LinkSimpleIcon,
+  PlusIcon,
+  TrashIcon,
 } from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
@@ -179,14 +179,14 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
         </h2>
         <div className="flex gap-2">
           <Button disabled={busy} onClick={() => void link()}>
-            <LinkSimple size={14} />
+            <LinkSimpleIcon size={14} />
             {t("local.link")}
           </Button>
           <Button
             disabled={busy || !online}
             onClick={() => void chooseCloneParent()}
           >
-            <Plus size={14} />
+            <PlusIcon size={14} />
             {t("local.clone")}
           </Button>
         </div>
@@ -225,7 +225,6 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label={t("local.name")}
-            className="mt-2"
           />
           <div className="mt-3 flex justify-end gap-2">
             <Button disabled={busy} size="md" onClick={() => setParent(null)}>
@@ -257,7 +256,10 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
               className="rounded-md border border-hairline px-3 py-2"
             >
               <div className="flex items-start gap-2">
-                <FolderOpen size={15} className="mt-0.5 shrink-0 text-faint" />
+                <FolderOpenIcon
+                  size={15}
+                  className="mt-0.5 shrink-0 text-faint"
+                />
                 <div className="min-w-0 flex-1">
                   <p
                     className="truncate text-[12.5px] font-medium"
@@ -281,7 +283,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
                       ).catch((e) => setError(localError(e, t)))
                     }
                   >
-                    <ArrowSquareOut size={14} aria-hidden />
+                    <ArrowSquareOutIcon size={14} aria-hidden />
                     {t("local.open")}
                   </Button>
                   <Button
@@ -292,7 +294,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
                       )
                     }
                   >
-                    <Code size={14} aria-hidden />
+                    <CodeIcon size={14} aria-hidden />
                     {t("local.editor")}
                   </Button>
                   <Button
@@ -300,7 +302,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
                     onClick={() => void unlink(item.path)}
                     aria-label={t("local.unlink")}
                   >
-                    <Trash size={14} />
+                    <TrashIcon size={14} />
                   </Button>
                 </div>
               </div>
