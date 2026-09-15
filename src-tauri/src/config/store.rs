@@ -1,99 +1,12 @@
-//! Versioned Plugin Store persistence. Callers serialize compound operations.
-use crate::{history, models::*};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use std::{
-    collections::BTreeMap,
-    fs,
-    path::{Path, PathBuf},
-    sync::OnceLock,
-};
-use tauri::{AppHandle, Manager, Runtime};
+use super::{AccountCache, Document, LocalState, Preferences, Projects, Storage, VERSION, MAX_HISTORY_REPOS, MAX_POINTS, account_file, bound_cache, legacy_read};
+use crate::models::*;
+use serde::{de::DeserializeOwned, Serialize};
+use std::{collections::BTreeMap, fs};
+use tauri::Runtime;
 use tauri_plugin_store::StoreBuilder;
 
-pub fn serialized<T>(f: impl FnOnce() -> T) -> T {
-    static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
-    let _guard = LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    f()
-}
-
-static APP: OnceLock<AppHandle> = OnceLock::new();
-const VERSION: u32 = 1;
-const MAX_CACHE_BYTES: usize = 16 * 1024 * 1024;
-const MAX_DETAILS: usize = 100;
-const MAX_POINTS: usize = 180;
-const MAX_HISTORY_REPOS: usize = 500;
-
-pub fn init(app: AppHandle) {
-    let _ = APP.set(app);
-}
-pub fn storage() -> Result<Storage<tauri::Wry>, String> {
-    let app = APP.get().ok_or("Storage is not initialized.")?.clone();
-    let root = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    let home = std::env::var_os("HOME")
-        .or_else(|| std::env::var_os("USERPROFILE"))
-        .map(PathBuf::from)
-        .ok_or("Could not resolve the home directory.")?;
-    Ok(Storage { app, root, home })
-}
-
-#[derive(Serialize, Deserialize)]
-struct Document<T> {
-    version: u32,
-    data: T,
-}
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default, rename_all = "camelCase")]
-struct Preferences {
-    theme: ThemePref,
-    transparency: bool,
-    locale: Option<Locale>,
-    last_account: Option<String>,
-    migrated: bool,
-}
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default)]
-struct Projects {
-    repos: Vec<String>,
-    folders: BTreeMap<String, Vec<String>>,
-    legacy_imported: bool,
-}
-#[derive(Default, Serialize, Deserialize)]
-#[serde(default)]
-struct AccountCache {
-    summary: Option<Cache>,
-    catalog: Option<Saved<Vec<CatalogRepo>>>,
-    details: BTreeMap<String, Saved<RepoDetail>>,
-    pull_requests: BTreeMap<String, serde_json::Value>,
-    pull_list: Option<Saved<Vec<PullRequestSummary>>>,
-    pull_result: Option<Saved<PullListResult>>,
-    pull_details: BTreeMap<String, Saved<PullRequestDetail>>,
-    pull_diffs: BTreeMap<String, Saved<String>>,
-}
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Saved<T> {
-    pub fetched_at: u64,
-    pub data: T,
-    pub warning: Option<String>,
-}
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LocalState {
-    pub account: Option<String>,
-    pub config: Config,
-    pub cache: Option<Cache>,
-    pub catalog: Option<Saved<Vec<CatalogRepo>>>,
-    pub legacy_available: bool,
-    pub data_path: String,
-}
-
-pub struct Storage<R: Runtime> {
-    app: AppHandle<R>,
-    root: PathBuf,
-    home: PathBuf,
-}
 impl<R: Runtime> Storage<R> {
-    fn read<T: DeserializeOwned>(&self, name: &str) -> Result<Option<T>, String> {
+    pub(crate) fn read<T: DeserializeOwned>(&self, name: &str) -> Result<Option<T>, String> {
         let path = self.root.join(name);
         match fs::read(&path) {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
@@ -120,7 +33,7 @@ impl<R: Runtime> Storage<R> {
         }
         Ok(Some(doc.data))
     }
-    fn write<T: Serialize>(&self, name: &str, data: &T) -> Result<(), String> {
+    pub(crate) fn write<T: Serialize>(&self, name: &str, data: &T) -> Result<(), String> {
         let path = self.root.join(name);
         self.read::<serde_json::Value>(name)?;
         let value = serde_json::to_value(Document {
@@ -147,19 +60,19 @@ impl<R: Runtime> Storage<R> {
             .map_err(|e| e.to_string())?;
         fs::rename(&pending, &path).map_err(|e| format!("Could not commit {}: {e}", path.display()))
     }
-    fn prefs(&self) -> Result<Preferences, String> {
+    pub(crate) fn prefs(&self) -> Result<Preferences, String> {
         Ok(self.read("preferences.json")?.unwrap_or_default())
     }
     pub fn account(&self) -> Result<Option<String>, String> {
         Ok(self.prefs()?.last_account)
     }
-    fn account_file(&self, kind: &str) -> Result<String, String> {
+    pub(crate) fn account_file(&self, kind: &str) -> Result<String, String> {
         Ok(account_file(
             &self.account()?.ok_or("No saved account is selected.")?,
             kind,
         ))
     }
-    fn projects(&self) -> Result<Projects, String> {
+    pub(crate) fn projects(&self) -> Result<Projects, String> {
         match self.account()? {
             Some(a) => Ok(self
                 .read(&account_file(&a, "projects"))?
@@ -178,13 +91,13 @@ impl<R: Runtime> Storage<R> {
         p.folders = folders;
         self.write(&self.account_file("projects")?, &p)
     }
-    fn cached(&self) -> Result<AccountCache, String> {
+    pub(crate) fn cached(&self) -> Result<AccountCache, String> {
         match self.account()? {
             Some(a) => Ok(self.read(&account_file(&a, "cache"))?.unwrap_or_default()),
             None => Ok(AccountCache::default()),
         }
     }
-    fn save_cached(&self, mut cache: AccountCache) -> Result<(), String> {
+    pub(crate) fn save_cached(&self, mut cache: AccountCache) -> Result<(), String> {
         bound_cache(&mut cache)?;
         self.write(&self.account_file("cache")?, &cache)
     }
@@ -226,7 +139,7 @@ impl<R: Runtime> Storage<R> {
         prefs.migrated = true;
         self.write("preferences.json", &prefs)
     }
-    fn seed<T: Serialize>(&self, name: &str, value: &T) -> Result<(), String> {
+    pub(crate) fn seed<T: Serialize>(&self, name: &str, value: &T) -> Result<(), String> {
         if self.read::<serde_json::Value>(name)?.is_none() {
             self.write(name, value)?;
         }
@@ -366,212 +279,4 @@ impl<R: Runtime> Storage<R> {
         }
         self.write(&self.account_file("history")?, &bounded)
     }
-    pub fn load_cache(&self) -> Result<Option<Cache>, String> {
-        let mut cache = self.cached()?.summary;
-        if let Some(c) = &mut cache {
-            let names = self.projects()?.repos;
-            c.repos.retain(|r| names.contains(&r.full_name));
-            c.history = self.load_history()?.repos;
-        }
-        Ok(cache)
-    }
-    pub fn save_cache(
-        &self,
-        repos: Vec<TrackedRepo>,
-        history: BTreeMap<String, RepoHistory>,
-    ) -> Result<Cache, String> {
-        let result = Cache {
-            fetched_at: history::now_secs(),
-            repos,
-            history,
-        };
-        let mut cache = self.cached()?;
-        cache.summary = Some(Cache {
-            history: BTreeMap::new(),
-            ..result.clone()
-        });
-        self.save_cached(cache)?;
-        Ok(result)
-    }
-    pub fn save_catalog(&self, rows: Vec<CatalogRepo>) -> Result<Vec<CatalogRepo>, String> {
-        let mut cache = self.cached()?;
-        cache.catalog = Some(Saved {
-            fetched_at: history::now_secs(),
-            data: rows.clone(),
-            warning: None,
-        });
-        self.save_cached(cache)?;
-        Ok(rows)
-    }
-    pub fn load_detail(&self, name: &str) -> Result<Option<Saved<RepoDetail>>, String> {
-        Ok(self.cached()?.details.get(name).cloned())
-    }
-    pub fn save_detail(&self, detail: RepoDetail) -> Result<Saved<RepoDetail>, String> {
-        let mut cache = self.cached()?;
-        let saved = Saved {
-            fetched_at: history::now_secs(),
-            data: detail,
-            warning: None,
-        };
-        cache
-            .details
-            .insert(saved.data.full_name.clone(), saved.clone());
-        self.save_cached(cache)?;
-        Ok(saved)
-    }
-    pub fn load_pull_list(&self) -> Result<Option<Saved<PullListResult>>, String> {
-        let cache = self.cached()?;
-        if let Some(result) = cache.pull_result {
-            return Ok(Some(result));
-        }
-        Ok(cache.pull_list.map(|legacy| Saved {
-            fetched_at: legacy.fetched_at,
-            data: PullListResult {
-                pulls: legacy.data,
-                errors: BTreeMap::new(),
-                fetched_at: legacy.fetched_at,
-                page: 1,
-                per_page: 30,
-                total: 0,
-                has_next_page: false,
-            },
-            warning: legacy.warning,
-        }))
-    }
-    pub fn save_pull_list(&self, result: PullListResult) -> Result<Saved<PullListResult>, String> {
-        let mut cache = self.cached()?;
-        let saved = Saved {
-            fetched_at: result.fetched_at,
-            data: result,
-            warning: None,
-        };
-        cache.pull_result = Some(saved.clone());
-        self.save_cached(cache)?;
-        Ok(saved)
-    }
-    pub fn load_pull_detail(
-        &self,
-        repo: &str,
-        number: u64,
-    ) -> Result<Option<Saved<PullRequestDetail>>, String> {
-        Ok(self
-            .cached()?
-            .pull_details
-            .get(&pull_detail_key(repo, number))
-            .cloned())
-    }
-    pub fn save_pull_detail(
-        &self,
-        detail: PullRequestDetail,
-    ) -> Result<Saved<PullRequestDetail>, String> {
-        let mut cache = self.cached()?;
-        let saved = Saved {
-            fetched_at: history::now_secs(),
-            data: detail,
-            warning: None,
-        };
-        cache.pull_details.insert(
-            pull_detail_key(&saved.data.summary.repo, saved.data.summary.number),
-            saved.clone(),
-        );
-        self.save_cached(cache)?;
-        Ok(saved)
-    }
-    pub fn load_pull_diff(&self, repo: &str, number: u64) -> Result<Option<Saved<String>>, String> {
-        Ok(self
-            .cached()?
-            .pull_diffs
-            .get(&pull_detail_key(repo, number))
-            .cloned())
-    }
-    pub fn save_pull_diff(
-        &self,
-        repo: &str,
-        number: u64,
-        diff: String,
-    ) -> Result<Saved<String>, String> {
-        let mut cache = self.cached()?;
-        let saved = Saved {
-            fetched_at: history::now_secs(),
-            data: diff,
-            warning: None,
-        };
-        cache
-            .pull_diffs
-            .insert(pull_detail_key(repo, number), saved.clone());
-        self.save_cached(cache)?;
-        Ok(saved)
-    }
-    pub fn clear_cache(&self) -> Result<LocalState, String> {
-        self.write(&self.account_file("cache")?, &AccountCache::default())?;
-        self.local_state()
-    }
-    pub fn config_path(&self) -> PathBuf {
-        self.root.join("preferences.json")
-    }
-    pub fn cache_path(&self) -> Result<PathBuf, String> {
-        Ok(self.root.join(self.account_file("cache")?))
-    }
-    pub fn history_path(&self) -> Result<PathBuf, String> {
-        Ok(self.root.join(self.account_file("history")?))
-    }
 }
-fn account_file(account: &str, kind: &str) -> String {
-    let encoded: String = account.bytes().map(|b| format!("{b:02x}")).collect();
-    format!("accounts/{encoded}/{kind}.json")
-}
-fn legacy_read<T: DeserializeOwned>(path: &Path) -> Result<Option<T>, String> {
-    match fs::read(path) {
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(e) => Err(format!("Could not read {}: {e}", path.display())),
-        Ok(raw) => serde_json::from_slice(&raw)
-            .map(Some)
-            .map_err(|e| format!("Invalid legacy data {}: {e}", path.display())),
-    }
-}
-fn bound_cache(cache: &mut AccountCache) -> Result<(), String> {
-    const MAX_PULL_DETAILS: usize = 200;
-    const MAX_PULL_DIFFS: usize = 40;
-    while cache.details.len() > MAX_DETAILS
-        || cache.pull_details.len() > MAX_PULL_DETAILS
-        || cache.pull_diffs.len() > MAX_PULL_DIFFS
-        || serde_json::to_vec(cache).map_err(|e| e.to_string())?.len() > MAX_CACHE_BYTES
-    {
-        if cache.pull_diffs.len() > MAX_PULL_DIFFS {
-            if let Some(key) = cache
-                .pull_diffs
-                .iter()
-                .min_by_key(|(_, v)| v.fetched_at)
-                .map(|(k, _)| k.clone())
-            {
-                cache.pull_diffs.remove(&key);
-                continue;
-            }
-        }
-        if cache.pull_details.len() > MAX_PULL_DETAILS {
-            if let Some(key) = cache
-                .pull_details
-                .iter()
-                .min_by_key(|(_, v)| v.fetched_at)
-                .map(|(k, _)| k.clone())
-            {
-                cache.pull_details.remove(&key);
-                continue;
-            }
-        }
-        if let Some(key) = cache
-            .details
-            .iter()
-            .min_by_key(|(_, v)| v.fetched_at)
-            .map(|(k, _)| k.clone())
-        {
-            cache.details.remove(&key);
-        } else {
-            return Err("Cache exceeds 16 MiB. Previous saved data was kept.".into());
-        }
-    }
-    Ok(())
-}
-
-#[cfg(test)]
-mod tests;
