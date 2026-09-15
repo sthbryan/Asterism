@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex, mpsc};
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
 
 use serde_json::Value;
@@ -219,4 +219,3 @@ where
 pub fn refresh_tracked(full_names: Vec<String>) -> Vec<TrackedRepo> {
     map_limited(full_names, 4, fetch_tracked)
 }
-

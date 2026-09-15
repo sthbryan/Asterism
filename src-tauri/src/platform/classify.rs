@@ -50,4 +50,3 @@ fn is_linux(n: &str) -> bool {
         || n.ends_with(".rpm")
         || n.ends_with(".appimage")
 }
-

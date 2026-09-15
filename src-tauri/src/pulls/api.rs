@@ -1,8 +1,8 @@
-use std::collections::BTreeMap;
+use super::parse::{parse_detail, parse_summary};
+use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_LIST_LIMIT, MAX_PAGE, MAX_PAGE_SIZE};
 use crate::gh::{run_gh_env, run_gh_json};
 use crate::models::{PullListResult, PullRequestDetail, PullRequestSummary};
-use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_LIST_LIMIT, MAX_PAGE, MAX_PAGE_SIZE};
-use super::parse::{parse_detail, parse_summary};
+use std::collections::BTreeMap;
 
 const SUMMARY_FIELDS: &str = "number,title,author,headRefName,baseRefName,isDraft,state,createdAt,updatedAt,mergedAt,url,additions,deletions,changedFiles,reviewDecision,statusCheckRollup,reviews,assignees,reviewRequests";
 
@@ -81,8 +81,6 @@ pub fn matches_filters(pull: &PullRequestSummary, filters: &PullRequestFilters) 
     }
     if let Some(want) = f.state {
         if want == "merged" {
-            
-            
             if pull.state != "MERGED" {
                 return false;
             }
@@ -156,4 +154,3 @@ pub fn cap_diff(mut diff: String) -> String {
     }
     diff
 }
-

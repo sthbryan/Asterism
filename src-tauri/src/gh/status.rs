@@ -55,4 +55,3 @@ pub fn remember_status(status: &Status) {
         *cache = Some((std::time::Instant::now(), status.clone()));
     }
 }
-

@@ -1,7 +1,7 @@
-use serde::{Deserialize, Serialize};
-use super::traffic::{Referrer, PopularPath, Traffic, TrafficStatus};
 use super::history_store::SeriesPoint;
 use super::tracked::PlatformDownloads;
+use super::traffic::{PopularPath, Referrer, Traffic, TrafficStatus};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

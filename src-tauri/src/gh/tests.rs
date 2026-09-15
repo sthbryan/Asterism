@@ -35,8 +35,8 @@ mod traffic_contract_tests {
 
 #[cfg(test)]
 mod create_tests {
-    use crate::gh::process::first_line;
     use crate::gh::create::{create_repo, validate_repo_name};
+    use crate::gh::process::first_line;
     use crate::gh::tool_version;
     use crate::models::CreateRepoInput;
 

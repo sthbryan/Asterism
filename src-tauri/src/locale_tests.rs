@@ -18,10 +18,8 @@ fn legacy_configs_without_locale_still_parse() {
     )
     .unwrap();
     assert_eq!(cfg.locale, None);
-    let cfg: Config =
-        serde_json::from_str(r#"{"version":1,"repos":[],"locale":"es"}"#).unwrap();
+    let cfg: Config = serde_json::from_str(r#"{"version":1,"repos":[],"locale":"es"}"#).unwrap();
     assert_eq!(cfg.locale, Some(Locale::Es));
-    let cfg: Config =
-        serde_json::from_str(r#"{"version":1,"repos":[],"locale":"en"}"#).unwrap();
+    let cfg: Config = serde_json::from_str(r#"{"version":1,"repos":[],"locale":"en"}"#).unwrap();
     assert_eq!(cfg.locale, Some(Locale::En));
 }

@@ -12,8 +12,8 @@ mod tests;
 pub use catalog::{list_catalog, refresh_tracked};
 pub use create::{create_repo, list_create_options};
 pub use detail::repo_detail;
-pub use status::{last_status, remember_status, status};
 pub(crate) use process::{run_gh_env, run_gh_json, tool_version};
+pub use status::{last_status, remember_status, status};
 
 fn as_u64(value: &Value, key: &str) -> u64 {
     value
@@ -51,4 +51,3 @@ pub fn host() -> String {
         .unwrap_or("github.com".into())
         .to_lowercase()
 }
-

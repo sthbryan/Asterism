@@ -3,4 +3,4 @@ pub mod core;
 mod tests;
 
 #[allow(unused_imports)]
-pub use core::{DAY, apply_fetch, day_bucket, downsample, now_secs, parse_iso_unix, upsert};
+pub use core::{apply_fetch, day_bucket, downsample, now_secs, parse_iso_unix, upsert, DAY};

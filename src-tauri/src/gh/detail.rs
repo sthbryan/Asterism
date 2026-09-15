@@ -109,7 +109,6 @@ fn parse_languages(json: &Value) -> Vec<LanguageShare> {
     langs
 }
 
-
 fn topics(value: &Value) -> Vec<String> {
     value
         .get("topics")
@@ -274,4 +273,3 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         download_history: Vec::new(),
     })
 }
-

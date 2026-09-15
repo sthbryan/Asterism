@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GitSyncStatus {
@@ -61,7 +60,6 @@ pub(crate) fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, Stri
         .lines()
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        
         .filter(|s| !s.ends_with("/HEAD"))
         .map(str::to_string)
         .collect())
@@ -89,7 +87,7 @@ pub(crate) fn worktree_counts(dir: &Path) -> Result<(u32, u32, u32), String> {
     if !out.status.success() {
         return Err(format!("GIT_FAILED:{}", stderr_text(&out)));
     }
-    
+
     let body = String::from_utf8_lossy(&out.stdout).into_owned();
     let mut staged = 0u32;
     let mut unstaged = 0u32;
@@ -149,7 +147,6 @@ pub(crate) fn last_fetch_at(dir: &Path) -> Option<u64> {
         .map(|d| d.as_secs())
 }
 
-
 pub fn sync_status_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let top = run_git(dir, &["rev-parse", "--show-toplevel"])?;
     if !top.status.success() {
@@ -197,4 +194,3 @@ pub fn sync_status_dir(dir: &Path) -> Result<GitSyncStatus, String> {
         last_fetch: last_fetch_at(dir),
     })
 }
-

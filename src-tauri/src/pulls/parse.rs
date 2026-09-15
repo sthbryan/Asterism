@@ -1,7 +1,7 @@
-use std::collections::BTreeMap;
-use serde_json::Value;
-use crate::models::{PullChecks, PullFile, PullRequestDetail, PullRequestSummary};
 use super::MAX_FILES;
+use crate::models::{PullChecks, PullFile, PullRequestDetail, PullRequestSummary};
+use serde_json::Value;
+use std::collections::BTreeMap;
 
 fn as_u64(value: &Value, key: &str) -> u64 {
     value
@@ -181,4 +181,3 @@ pub fn parse_detail(repo: &str, value: &Value) -> Option<PullRequestDetail> {
         diff_fetched_at: None,
     })
 }
-

@@ -108,4 +108,3 @@ pub fn apply_fetch(store: &mut HistoryStore, repo: &TrackedRepo, now: u64) {
     entry.downloads = downsample(&entry.downloads, MAX_POINTS);
     entry.forks = downsample(&entry.forks, MAX_POINTS);
 }
-

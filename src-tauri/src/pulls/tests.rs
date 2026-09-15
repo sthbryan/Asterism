@@ -2,7 +2,7 @@ use super::api::{cap_diff, paginate};
 use super::parse::{parse_detail, parse_summary};
 use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_FILES, MAX_LIST_LIMIT};
 use crate::models::{PullChecks, PullRequestSummary};
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::BTreeMap;
 
 #[test]

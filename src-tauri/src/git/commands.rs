@@ -76,4 +76,3 @@ pub(crate) async fn git_create_branch(
     })
     .await
 }
-

@@ -1,5 +1,5 @@
+use super::status::{run_git, stderr_text, sync_status_dir, GitSyncStatus};
 use std::path::Path;
-use super::status::{GitSyncStatus, run_git, stderr_text, sync_status_dir};
 
 pub(crate) fn classify_remote_error(stderr: &str) -> String {
     let lower = stderr.to_lowercase();
@@ -23,7 +23,6 @@ fn require_branch(status: &GitSyncStatus) -> Result<String, String> {
         .ok_or_else(|| "GIT_DETACHED".to_string())
 }
 
-
 pub fn fetch_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let out = run_git(dir, &["fetch", "--prune"])?;
     if !out.status.success() {
@@ -31,8 +30,6 @@ pub fn fetch_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     }
     sync_status_dir(dir)
 }
-
-
 
 pub fn pull_ff_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let status = sync_status_dir(dir)?;
@@ -61,9 +58,6 @@ pub fn pull_ff_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     sync_status_dir(dir)
 }
 
-
-
-
 pub fn push_dir(dir: &Path, remote: &str, set_upstream: bool) -> Result<GitSyncStatus, String> {
     let status = sync_status_dir(dir)?;
     let branch = require_branch(&status)?;
@@ -89,8 +83,6 @@ pub fn push_dir(dir: &Path, remote: &str, set_upstream: bool) -> Result<GitSyncS
     sync_status_dir(dir)
 }
 
-
-
 pub fn switch_branch_dir(dir: &Path, branch: &str) -> Result<GitSyncStatus, String> {
     if branch.trim().is_empty() {
         return Err("GIT_INVALID_BRANCH".into());
@@ -112,8 +104,6 @@ pub fn switch_branch_dir(dir: &Path, branch: &str) -> Result<GitSyncStatus, Stri
     }
     sync_status_dir(dir)
 }
-
-
 
 pub fn create_branch_dir(dir: &Path, branch: &str, switch: bool) -> Result<GitSyncStatus, String> {
     if branch.trim().is_empty() {
@@ -139,4 +129,3 @@ pub fn create_branch_dir(dir: &Path, branch: &str, switch: bool) -> Result<GitSy
     }
     sync_status_dir(dir)
 }
-
