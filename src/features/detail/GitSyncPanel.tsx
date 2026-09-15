@@ -1,3 +1,12 @@
+import {
+  ArrowDown,
+  ArrowsClockwise,
+  ArrowUp,
+  CaretDown,
+  GitBranch,
+  Plus,
+} from "@phosphor-icons/react";
+import { cn } from "cn";
 import { useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
@@ -122,159 +131,179 @@ export function GitSyncPanel({
       >
         {t("local.git.sync")}
         {badge ? ` · ${badge}` : ""}
+        <CaretDown
+          size={14}
+          aria-hidden
+          className={cn(
+            "transition-transform duration-200 ease-out",
+            open && "rotate-180",
+          )}
+        />
       </Button>
-      {open ? (
-        <div className="mt-2 space-y-2">
-          {busy && !status ? (
-            <p className="text-[12px] text-faint">{t("local.git.loading")}</p>
-          ) : null}
-          {status ? (
-            <>
-              <dl className="space-y-1 text-[12px]">
-                <div className="flex gap-2">
-                  <dt className="text-faint">{t("local.git.branch")}</dt>
-                  <dd className="font-medium">
-                    {status.detached
-                      ? `${t("local.git.detached")}${status.head ? ` · ${status.head}` : ""}`
-                      : (status.branch ?? "—")}
-                    {badge ? ` · ${badge}` : ""}
-                  </dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-faint">{t("local.git.upstream")}</dt>
-                  <dd>{status.upstream ?? "—"}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-faint">{t("local.git.changes")}</dt>
-                  <dd>
-                    {status.clean
-                      ? t("local.git.clean")
-                      : `${status.staged} ${t("local.git.staged")} · ${status.unstaged} ${t("local.git.unstaged")} · ${status.untracked} ${t("local.git.untracked")}`}
-                  </dd>
-                </div>
-              </dl>
-              <p className="text-[12px] text-faint">
-                {status.lastFetch
-                  ? t("local.git.lastFetch", {
-                      date: new Intl.DateTimeFormat(locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }).format(status.lastFetch * 1000),
-                    })
-                  : t("local.git.neverFetched")}
-              </p>
-              <div className="flex flex-wrap gap-1">
-                <Button
-                  disabled={busy}
-                  onClick={() => void run(() => gitFetch(fullName, path))}
-                >
-                  {t("local.git.fetch")}
-                </Button>
-                <Button
-                  disabled={busy || status.detached || !status.upstream}
-                  onClick={() => void run(() => gitPull(fullName, path))}
-                >
-                  {t("local.git.pull")}
-                </Button>
-                <Button
-                  disabled={busy || status.detached || !push}
-                  onClick={() =>
-                    void run(() =>
-                      gitPush(fullName, path, push?.setsUpstream ?? false),
-                    )
-                  }
-                >
-                  {push
-                    ? t(
-                        push.setsUpstream
-                          ? "local.git.pushSetUpstream"
-                          : "local.git.pushTo",
-                        { target: push.label },
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="space-y-2 pt-2">
+            {busy && !status ? (
+              <p className="text-[12px] text-faint">{t("local.git.loading")}</p>
+            ) : null}
+            {status ? (
+              <>
+                <dl className="space-y-1 text-[12px]">
+                  <div className="flex gap-2">
+                    <dt className="text-faint">{t("local.git.branch")}</dt>
+                    <dd className="font-medium">
+                      {status.detached
+                        ? `${t("local.git.detached")}${status.head ? ` · ${status.head}` : ""}`
+                        : (status.branch ?? "—")}
+                      {badge ? ` · ${badge}` : ""}
+                    </dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="text-faint">{t("local.git.upstream")}</dt>
+                    <dd>{status.upstream ?? "—"}</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="text-faint">{t("local.git.changes")}</dt>
+                    <dd>
+                      {status.clean
+                        ? t("local.git.clean")
+                        : `${status.staged} ${t("local.git.staged")} · ${status.unstaged} ${t("local.git.unstaged")} · ${status.untracked} ${t("local.git.untracked")}`}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="text-[12px] text-faint">
+                  {status.lastFetch
+                    ? t("local.git.lastFetch", {
+                        date: new Intl.DateTimeFormat(locale, {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(status.lastFetch * 1000),
+                      })
+                    : t("local.git.neverFetched")}
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  <Button
+                    disabled={busy}
+                    onClick={() => void run(() => gitFetch(fullName, path))}
+                  >
+                    <ArrowsClockwise size={14} aria-hidden />
+                    {t("local.git.fetch")}
+                  </Button>
+                  <Button
+                    disabled={busy || status.detached || !status.upstream}
+                    onClick={() => void run(() => gitPull(fullName, path))}
+                  >
+                    <ArrowDown size={14} aria-hidden />
+                    {t("local.git.pull")}
+                  </Button>
+                  <Button
+                    disabled={busy || status.detached || !push}
+                    onClick={() =>
+                      void run(() =>
+                        gitPush(fullName, path, push?.setsUpstream ?? false),
                       )
-                    : ""}
-                </Button>
-              </div>
-              <div className="flex flex-wrap items-center gap-1">
-                <Select
-                  value={switchTo}
-                  onChange={(value) => setSwitchTo(value)}
-                  options={status.localBranches.map((branch) => ({
-                    value: branch,
-                    label: branch,
-                  }))}
-                  className="min-w-28 flex-1"
-                  ariaLabel={t("local.git.switchToBranch")}
-                />
-                <Button
-                  disabled={
-                    busy ||
-                    !switchTo ||
-                    switchTo === status.branch ||
-                    !status.clean
-                  }
-                  size="md"
-                  onClick={() =>
-                    void run(() => gitSwitchBranch(fullName, path, switchTo))
-                  }
-                >
-                  {t("local.git.switch")}
-                </Button>
-              </div>
-              <div className="space-y-1">
+                    }
+                  >
+                    <ArrowUp size={14} aria-hidden />
+                    {push
+                      ? t(
+                          push.setsUpstream
+                            ? "local.git.pushSetUpstream"
+                            : "local.git.pushTo",
+                          { target: push.label },
+                        )
+                      : ""}
+                  </Button>
+                </div>
                 <div className="flex flex-wrap items-center gap-1">
-                  <Input
-                    value={newBranch}
-                    onChange={(e) => setNewBranch(e.target.value)}
-                    aria-label={t("local.git.newBranch")}
-                    placeholder={t("local.git.newBranch")}
+                  <Select
+                    value={switchTo}
+                    onChange={(value) => setSwitchTo(value)}
+                    options={status.localBranches.map((branch) => ({
+                      value: branch,
+                      label: branch,
+                    }))}
                     className="min-w-28 flex-1"
+                    ariaLabel={t("local.git.switchToBranch")}
                   />
                   <Button
                     disabled={
-                      busy || !isValidBranchName(newBranch) || !status.clean
+                      busy ||
+                      !switchTo ||
+                      switchTo === status.branch ||
+                      !status.clean
                     }
                     size="md"
-                    onClick={() => {
-                      const name = newBranch.trim();
-                      setNewBranch("");
-                      void run(() =>
-                        gitCreateBranch(fullName, path, name, switchNew),
-                      );
-                    }}
+                    onClick={() =>
+                      void run(() => gitSwitchBranch(fullName, path, switchTo))
+                    }
                   >
-                    {t("local.git.create")}
+                    <GitBranch size={14} aria-hidden />
+                    {t("local.git.switch")}
                   </Button>
                 </div>
-                <label
-                  htmlFor={`git-switch-new-${path}`}
-                  className="flex items-center gap-2 text-[12px] text-mist"
-                >
-                  <input
-                    id={`git-switch-new-${path}`}
-                    type="checkbox"
-                    checked={switchNew}
-                    onChange={(e) => setSwitchNew(e.target.checked)}
-                  />
-                  {t("local.git.switchToNew")}
-                </label>
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <Input
+                      value={newBranch}
+                      onChange={(e) => setNewBranch(e.target.value)}
+                      aria-label={t("local.git.newBranch")}
+                      placeholder={t("local.git.newBranch")}
+                      className="min-w-28 flex-1"
+                    />
+                    <Button
+                      disabled={
+                        busy || !isValidBranchName(newBranch) || !status.clean
+                      }
+                      size="md"
+                      onClick={() => {
+                        const name = newBranch.trim();
+                        setNewBranch("");
+                        void run(() =>
+                          gitCreateBranch(fullName, path, name, switchNew),
+                        );
+                      }}
+                    >
+                      <Plus size={14} aria-hidden />
+                      {t("local.git.create")}
+                    </Button>
+                  </div>
+                  <label
+                    htmlFor={`git-switch-new-${path}`}
+                    className="flex items-center gap-2 text-[12px] text-mist"
+                  >
+                    <input
+                      id={`git-switch-new-${path}`}
+                      type="checkbox"
+                      checked={switchNew}
+                      onChange={(e) => setSwitchNew(e.target.checked)}
+                    />
+                    {t("local.git.switchToNew")}
+                  </label>
+                </div>
+              </>
+            ) : null}
+            {error ? (
+              <div role="alert" className="text-[12.5px] text-accent-soft">
+                <p>{code ? t(`local.errors.${code}`) : String(error)}</p>
+                {detail ? (
+                  <details className="mt-1">
+                    <summary className="cursor-pointer text-[12px]">
+                      Details
+                    </summary>
+                    <p className="mt-1 break-words text-[12px]">{detail}</p>
+                  </details>
+                ) : null}
               </div>
-            </>
-          ) : null}
-          {error ? (
-            <div role="alert" className="text-[12.5px] text-accent-soft">
-              <p>{code ? t(`local.errors.${code}`) : String(error)}</p>
-              {detail ? (
-                <details className="mt-1">
-                  <summary className="cursor-pointer text-[12px]">
-                    Details
-                  </summary>
-                  <p className="mt-1 break-words text-[12px]">{detail}</p>
-                </details>
-              ) : null}
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
