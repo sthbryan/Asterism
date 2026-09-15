@@ -43,15 +43,17 @@ export function ListCharts({
           {starWindow?.partial ? (
             <p className="mt-1 text-[10.5px] text-faint">
               {t("list.partialCoverage", {
-                days: starWindow.observedFromTs
-                  ? Math.max(
-                      1,
-                      Math.round(
-                        (starWindow.observedToTs! - starWindow.observedFromTs) /
-                          86400,
-                      ),
-                    )
-                  : 0,
+                days:
+                  starWindow.observedFromTs && starWindow.observedToTs
+                    ? Math.max(
+                        1,
+                        Math.round(
+                          (starWindow.observedToTs -
+                            starWindow.observedFromTs) /
+                            86400,
+                        ),
+                      )
+                    : 0,
               })}
             </p>
           ) : null}
@@ -84,16 +86,17 @@ export function ListCharts({
           {downloadWindow?.partial ? (
             <p className="mt-1 text-[10.5px] text-faint">
               {t("list.partialCoverage", {
-                days: downloadWindow.observedFromTs
-                  ? Math.max(
-                      1,
-                      Math.round(
-                        (downloadWindow.observedToTs! -
-                          downloadWindow.observedFromTs) /
-                          86400,
-                      ),
-                    )
-                  : 0,
+                days:
+                  downloadWindow.observedFromTs && downloadWindow.observedToTs
+                    ? Math.max(
+                        1,
+                        Math.round(
+                          (downloadWindow.observedToTs -
+                            downloadWindow.observedFromTs) /
+                            86400,
+                        ),
+                      )
+                    : 0,
               })}
             </p>
           ) : null}
