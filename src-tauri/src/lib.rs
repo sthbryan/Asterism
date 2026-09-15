@@ -23,44 +23,44 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::get_local_state,
-            commands::use_legacy_data,
-            commands::import_legacy_data,
-            commands::clear_local_cache,
-            commands::get_status,
-            commands::get_config,
-            commands::save_config,
-            commands::save_appearance,
-            commands::save_locale,
-            commands::get_diagnostics,
-            commands::get_cache,
-            commands::list_catalog,
-            commands::list_create_options,
-            commands::create_repo,
-            commands::refresh_tracked,
-            commands::get_repo_detail,
-            commands::get_cached_detail,
-            commands::list_local_checkouts,
-            commands::link_local_checkout,
-            commands::unlink_local_checkout,
-            commands::clone_local_repository,
-            commands::open_local_checkout,
+            commands::state::get_local_state,
+            commands::state::use_legacy_data,
+            commands::state::import_legacy_data,
+            commands::state::clear_local_cache,
+            commands::status::get_status,
+            commands::status::get_config,
+            commands::status::save_config,
+            commands::status::save_appearance,
+            commands::status::save_locale,
+            commands::status::get_diagnostics,
+            commands::status::get_cache,
+            commands::catalog::list_catalog,
+            commands::catalog::list_create_options,
+            commands::catalog::create_repo,
+            commands::catalog::refresh_tracked,
+            commands::catalog::get_repo_detail,
+            commands::catalog::get_cached_detail,
+            commands::local::list_local_checkouts,
+            commands::local::link_local_checkout,
+            commands::local::unlink_local_checkout,
+            commands::local::clone_local_repository,
+            commands::local::open_local_checkout,
             git::git_sync_status,
             git::git_fetch,
             git::git_pull,
             git::git_push,
             git::git_switch_branch,
             git::git_create_branch,
-            commands::get_cached_pull_requests,
-            commands::refresh_pull_requests,
-            commands::list_pull_requests,
-            commands::list_pull_requests_filtered,
-            commands::get_cached_pull_request_detail,
-            commands::get_pull_request_detail,
-            commands::get_pull_request,
-            commands::get_cached_pull_request_diff,
-            commands::get_pull_request_diff,
-            commands::get_pull_diff
+            commands::pulls_cmds::get_cached_pull_requests,
+            commands::pulls_cmds::refresh_pull_requests,
+            commands::pulls_cmds::list_pull_requests,
+            commands::pulls_cmds::list_pull_requests_filtered,
+            commands::pulls_cmds::get_cached_pull_request_detail,
+            commands::pulls_cmds::get_pull_request_detail,
+            commands::pulls_cmds::get_pull_request,
+            commands::pulls_cmds::get_cached_pull_request_diff,
+            commands::pulls_cmds::get_pull_request_diff,
+            commands::pulls_cmds::get_pull_diff
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -68,7 +68,7 @@ pub fn run() {
 
 #[cfg(test)]
 mod locale_tests {
-    use super::commands::normalize_locale;
+    use super::commands::status::normalize_locale;
     use crate::models::{Config, Locale};
 
     #[test]
