@@ -4,12 +4,18 @@ use super::{
 };
 use crate::models::*;
 use serde::{de::DeserializeOwned, Serialize};
+use std::sync::OnceLock;
 use std::{collections::BTreeMap, fs};
 use tauri::Runtime;
 use tauri_plugin_store::StoreBuilder;
 
 impl<R: Runtime> Storage<R> {
     pub(crate) fn read<T: DeserializeOwned>(&self, name: &str) -> Result<Option<T>, String> {
+        static STORE_READ_LOCK: OnceLock<std::sync::Mutex<()>> = OnceLock::new();
+        let _guard = STORE_READ_LOCK
+            .get_or_init(|| std::sync::Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         let path = self.root.join(name);
         match fs::read(&path) {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
