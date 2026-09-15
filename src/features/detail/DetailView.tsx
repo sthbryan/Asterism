@@ -1,21 +1,12 @@
-import { WarningCircleIcon } from "@phosphor-icons/react";
+import { cn } from "cn";
 import { useRoute } from "wouter";
-import { useDetail, useI18n } from "@/app/hooks";
+import { useDetail } from "@/app/hooks";
 import { decodeDetailParam } from "@/app/routes";
-import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { DetailSkeleton } from "@/components/Skeleton";
-import type { RepoDetail } from "@/lib/types";
+import { DetailContent } from "./DetailContent";
 import { DetailTitle, DetailTrailing } from "./Header";
-import { HistoryCharts } from "./HistoryCharts";
-import { InsightsSection } from "./InsightsSection";
-import { Kpis } from "./Kpis";
-import { LocalProjectsSection } from "./LocalProjectsSection";
-import { MetaFacts } from "./MetaFacts";
-import { ReleasesTable } from "./ReleasesTable";
-import { RepoIntro } from "./RepoIntro";
-import { TrafficSection as TrafficSectionInner } from "./TrafficSection";
 
 export function DetailView() {
   const [, params] = useRoute("/repo/:fullName");
@@ -24,24 +15,17 @@ export function DetailView() {
 
   const { detail, loading, refreshing, error } = useDetail(fullName);
 
-  // Skeleton only on cold start; cached content renders instantly while
-  // the network refresh runs in the background.
+  const goToBack = () => navigate("/");
+
   const showSkeleton = loading && !detail;
 
   return (
     <>
       <PageHeader
-        title={
-          <DetailTitle
-            fullName={fullName}
-            onBack={() => {
-              navigate("/");
-            }}
-          />
-        }
+        title={<DetailTitle fullName={fullName} onBack={goToBack} />}
         trailing={<DetailTrailing fullName={fullName} />}
       />
-      <div className={`t-skel h-full ${showSkeleton ? "" : "is-revealed"}`}>
+      <div className={cn("t-skel h-full", showSkeleton ? "" : "is-revealed")}>
         <div className="t-skel-skeleton is-pulsing">
           <DetailSkeleton />
         </div>
@@ -54,85 +38,5 @@ export function DetailView() {
         </div>
       </div>
     </>
-  );
-}
-
-function DetailContent({
-  error,
-  detail,
-  refreshing,
-}: {
-  error: string | null;
-  detail: RepoDetail | null;
-  refreshing: boolean;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
-      {error ? (
-        <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
-          <WarningCircleIcon size={16} />
-          <div role="alert">
-            <p>{t("offline.noDetail")}</p>
-            <p className="mt-1 break-words">{error}</p>
-          </div>
-        </div>
-      ) : detail ? (
-        <DetailBody detail={detail} refreshing={refreshing} />
-      ) : null}
-    </div>
-  );
-}
-
-function DetailBody({
-  detail,
-  refreshing,
-}: {
-  detail: RepoDetail;
-  refreshing: boolean;
-}) {
-  const { t, locale } = useI18n();
-  const fetchedAt = useStore((s) => s.detailFetchedAt);
-  const warning = useStore((s) => s.detailWarning);
-  return (
-    <div>
-      {fetchedAt && (
-        <p className="mb-3 flex items-center gap-2 text-xs text-mist">
-          {t("offline.fetched", {
-            date: new Intl.DateTimeFormat(locale, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            }).format(fetchedAt * 1000),
-          })}
-          {refreshing && (
-            <span role="status" className="inline-flex items-center gap-1">
-              <span
-                aria-hidden
-                className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
-              />
-              {t("Refreshing…")}
-            </span>
-          )}
-        </p>
-      )}
-      {warning && (
-        <div role="status" className="mb-4 text-sm text-mist">
-          <p>{t("offline.partial")}</p>
-          <details>
-            <summary>{t("Connection details")}</summary>
-            <p className="mt-2 break-words">{warning}</p>
-          </details>
-        </div>
-      )}
-      <RepoIntro detail={detail} />
-      <LocalProjectsSection fullName={detail.fullName} />
-      <Kpis detail={detail} referenceTs={fetchedAt ?? undefined} />
-      <HistoryCharts detail={detail} referenceTs={fetchedAt ?? undefined} />
-      <TrafficSectionInner detail={detail} />
-      <InsightsSection detail={detail} />
-      <MetaFacts detail={detail} />
-      <ReleasesTable detail={detail} />
-    </div>
   );
 }
