@@ -11,6 +11,8 @@ mod pulls;
 mod git_sync_tests;
 #[cfg(test)]
 mod local_projects_tests;
+#[cfg(test)]
+mod locale_tests;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -45,12 +47,12 @@ pub fn run() {
             commands::local::unlink_local_checkout,
             commands::local::clone_local_repository,
             commands::local::open_local_checkout,
-            git::git_sync_status,
-            git::git_fetch,
-            git::git_pull,
-            git::git_push,
-            git::git_switch_branch,
-            git::git_create_branch,
+            git::commands::git_sync_status,
+            git::commands::git_fetch,
+            git::commands::git_pull,
+            git::commands::git_push,
+            git::commands::git_switch_branch,
+            git::commands::git_create_branch,
             commands::pulls_cmds::get_cached_pull_requests,
             commands::pulls_cmds::refresh_pull_requests,
             commands::pulls_cmds::list_pull_requests,
@@ -64,35 +66,4 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[cfg(test)]
-mod locale_tests {
-    use super::commands::status::normalize_locale;
-    use crate::models::{Config, Locale};
-
-    #[test]
-    fn unknown_locales_fall_back_to_english() {
-        assert_eq!(normalize_locale("es"), Locale::Es);
-        assert_eq!(normalize_locale(" es "), Locale::Es);
-        assert_eq!(normalize_locale("ES"), Locale::Es);
-        assert_eq!(normalize_locale("en"), Locale::En);
-        assert_eq!(normalize_locale("fr"), Locale::En);
-        assert_eq!(normalize_locale(""), Locale::En);
-    }
-
-    #[test]
-    fn legacy_configs_without_locale_still_parse() {
-        let cfg: Config = serde_json::from_str(
-            r#"{"version":1,"repos":["a/b"],"theme":"dark","transparency":false}"#,
-        )
-        .unwrap();
-        assert_eq!(cfg.locale, None);
-        let cfg: Config =
-            serde_json::from_str(r#"{"version":1,"repos":[],"locale":"es"}"#).unwrap();
-        assert_eq!(cfg.locale, Some(Locale::Es));
-        let cfg: Config =
-            serde_json::from_str(r#"{"version":1,"repos":[],"locale":"en"}"#).unwrap();
-        assert_eq!(cfg.locale, Some(Locale::En));
-    }
 }

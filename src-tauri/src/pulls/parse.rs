@@ -107,7 +107,7 @@ fn parse_reviews(value: &Value) -> (u32, u32) {
     (approvals, changes)
 }
 
-pub pub fn parse_summary(repo: &str, value: &Value) -> Option<PullRequestSummary> {
+pub fn parse_summary(repo: &str, value: &Value) -> Option<PullRequestSummary> {
     let number = value.get("number")?.as_u64()?;
     let title = as_string(value, "title").unwrap_or_else(|| format!("PR #{number}"));
     let mut state = as_string(value, "state")
@@ -167,7 +167,7 @@ fn parse_files(value: &Value) -> Vec<PullFile> {
         .collect()
 }
 
-pub pub fn parse_detail(repo: &str, value: &Value) -> Option<PullRequestDetail> {
+pub fn parse_detail(repo: &str, value: &Value) -> Option<PullRequestDetail> {
     let summary = parse_summary(repo, value)?;
     Some(PullRequestDetail {
         summary,

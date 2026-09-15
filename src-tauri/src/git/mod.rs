@@ -10,12 +10,16 @@
 //! can run concurrently. The pure `*_dir` helpers below take a directory and
 //! are covered by filesystem tests without any app state or network.
 
-mod status;
-mod ops;
-mod commands;
-mod concurrency;
+pub mod status;
+pub mod ops;
+pub mod commands;
+pub mod concurrency;
 
+#[allow(unused_imports)]
 pub use status::{GitSyncStatus, sync_status_dir};
+#[allow(unused_imports)]
 pub use ops::{create_branch_dir, fetch_dir, pull_ff_dir, push_dir, switch_branch_dir};
+#[allow(unused_imports)]
 pub use concurrency::{read_only, serialized_on};
+#[allow(unused_imports)]
 pub(crate) use commands::{git_create_branch, git_fetch, git_pull, git_push, git_switch_branch, git_sync_status};

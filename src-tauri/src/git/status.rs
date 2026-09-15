@@ -21,11 +21,11 @@ pub struct GitSyncStatus {
     pub last_fetch: Option<u64>,
 }
 
-fn git_missing(error: &std::io::Error) -> bool {
+pub(crate) fn git_missing(error: &std::io::Error) -> bool {
     error.kind() == std::io::ErrorKind::NotFound
 }
 
-fn run_git(dir: &Path, args: &[&str]) -> Result<std::process::Output, String> {
+pub(crate) fn run_git(dir: &Path, args: &[&str]) -> Result<std::process::Output, String> {
     Command::new("git")
         .args(["-C"])
         .arg(dir)
@@ -41,15 +41,15 @@ fn run_git(dir: &Path, args: &[&str]) -> Result<std::process::Output, String> {
         })
 }
 
-fn stdout_text(out: &std::process::Output) -> String {
+pub(crate) fn stdout_text(out: &std::process::Output) -> String {
     String::from_utf8_lossy(&out.stdout).trim().to_string()
 }
 
-fn stderr_text(out: &std::process::Output) -> String {
+pub(crate) fn stderr_text(out: &std::process::Output) -> String {
     String::from_utf8_lossy(&out.stderr).trim().to_string()
 }
 
-fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, String> {
+pub(crate) fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, String> {
     let out = run_git(
         dir,
         &["for-each-ref", "--format=%(refname:short)", namespace],
@@ -67,7 +67,7 @@ fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, String> {
         .collect())
 }
 
-fn current_upstream(dir: &Path) -> Option<String> {
+pub(crate) fn current_upstream(dir: &Path) -> Option<String> {
     let out = run_git(
         dir,
         &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
@@ -84,7 +84,7 @@ fn current_upstream(dir: &Path) -> Option<String> {
     }
 }
 
-fn worktree_counts(dir: &Path) -> Result<(u32, u32, u32), String> {
+pub(crate) fn worktree_counts(dir: &Path) -> Result<(u32, u32, u32), String> {
     let out = run_git(dir, &["status", "--porcelain=v1"])?;
     if !out.status.success() {
         return Err(format!("GIT_FAILED:{}", stderr_text(&out)));
@@ -113,7 +113,7 @@ fn worktree_counts(dir: &Path) -> Result<(u32, u32, u32), String> {
     Ok((staged, unstaged, untracked))
 }
 
-fn ahead_behind(dir: &Path) -> (Option<u64>, Option<u64>) {
+pub(crate) fn ahead_behind(dir: &Path) -> (Option<u64>, Option<u64>) {
     let out = run_git(dir, &["rev-list", "--left-right", "--count", "HEAD...@{u}"]).ok();
     let Some(out) = out else { return (None, None) };
     if !out.status.success() {
@@ -127,7 +127,7 @@ fn ahead_behind(dir: &Path) -> (Option<u64>, Option<u64>) {
     }
 }
 
-fn last_fetch_at(dir: &Path) -> Option<u64> {
+pub(crate) fn last_fetch_at(dir: &Path) -> Option<u64> {
     let out = run_git(dir, &["rev-parse", "--git-dir"]).ok()?;
     if !out.status.success() {
         return None;

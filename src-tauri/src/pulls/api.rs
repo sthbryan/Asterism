@@ -145,7 +145,7 @@ pub fn pull_diff(repo: &str, number: u64) -> Result<String, String> {
     Ok(cap_diff(diff))
 }
 
-pub(crate) fn cap_diff(mut diff: String) -> String {
+pub fn cap_diff(mut diff: String) -> String {
     if diff.len() > MAX_DIFF_CHARS {
         let mut end = MAX_DIFF_CHARS;
         while !diff.is_char_boundary(end) {

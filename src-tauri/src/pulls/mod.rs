@@ -1,9 +1,11 @@
-mod parse;
-mod api;
+pub mod parse;
+pub mod api;
 #[cfg(test)]
 mod tests;
 
+#[allow(unused_imports)]
 pub use parse::{parse_detail, parse_summary};
+#[allow(unused_imports)]
 pub use api::{cap_diff, list_repo_pulls_state, matches_filters, paginate, pull_detail, pull_diff};
 
 pub const MAX_LIST_LIMIT: u8 = 100;
