@@ -1,7 +1,6 @@
 use super::*;
-use super::bound_cache;
 use crate::models::*;
-use std::{collections::BTreeMap, fs};
+use std::fs;
 fn fixture() -> (
     tauri::App<tauri::test::MockRuntime>,
     Storage<tauri::test::MockRuntime>,
@@ -76,7 +75,7 @@ fn malformed_legacy_aborts_before_any_store_write() {
     fs::remove_dir_all(db.home.parent().unwrap()).unwrap();
 }
 #[test]
-fn explicit_saves_reload_and_cache_clear_preserves_preferences_projects_and_history() {
+fn explicit_saves_reload_preserves_preferences_projects_and_history() {
     let (_app, db) = fixture();
     db.activate("github.com/one".into()).unwrap();
     db.save_repos(vec!["one/private".into()]).unwrap();
@@ -92,9 +91,6 @@ fn explicit_saves_reload_and_cache_clear_preserves_preferences_projects_and_hist
     hist.repos
         .insert("one/private".into(), RepoHistory::default());
     db.save_history(&hist).unwrap();
-    db.save_cache(Vec::new(), hist.repos).unwrap();
-    db.clear_cache().unwrap();
-    assert!(db.load_cache().unwrap().is_none());
     assert_eq!(db.load_config().unwrap().repos, vec!["one/private"]);
     assert_eq!(db.load_config().unwrap().locale, Some(Locale::Es));
     assert!(db.load_config().unwrap().transparency);
@@ -105,7 +101,6 @@ fn explicit_saves_reload_and_cache_clear_preserves_preferences_projects_and_hist
     assert!(db.load_history().unwrap().repos.contains_key("one/private"));
     db.activate("enterprise.example/one".into()).unwrap();
     assert!(db.load_config().unwrap().repos.is_empty());
-    assert!(db.load_cache().unwrap().is_none());
     db.activate("github.com/two".into()).unwrap();
     assert!(db.load_history().unwrap().repos.is_empty());
     db.activate("github.com/one".into()).unwrap();
@@ -132,7 +127,7 @@ fn corrupt_future_and_failed_writes_preserve_previous_document() {
     fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
 }
 #[test]
-fn bounded_history_and_oversized_cache_keep_durable_data() {
+fn bounded_history_keeps_durable_data() {
     let (_app, db) = fixture();
     db.activate("github.com/one".into()).unwrap();
     let mut hist = HistoryStore::default();
@@ -152,15 +147,6 @@ fn bounded_history_and_oversized_cache_keep_durable_data() {
         .repos
         .values()
         .all(|s| s.downloads.len() == 180 && s.downloads[0].ts == 20));
-    db.save_cache(Vec::new(), BTreeMap::new()).unwrap();
-    let before = fs::read(db.cache_path().unwrap()).unwrap();
-    let mut cache = AccountCache::default();
-    cache.pull_requests.insert(
-        "large".into(),
-        serde_json::Value::String("x".repeat(MAX_CACHE_BYTES)),
-    );
-    assert!(db.save_cached(cache).is_err());
-    assert_eq!(fs::read(db.cache_path().unwrap()).unwrap(), before);
     fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
 }
 #[test]
@@ -196,58 +182,4 @@ fn concurrent_preference_and_project_updates_preserve_each_other() {
     assert!(cfg.transparency);
     assert_eq!(cfg.repos, vec!["one/repo"]);
     fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
-}
-fn detail(name: &str) -> RepoDetail {
-    serde_json::from_value(serde_json::json!({
-            "fullName":name, "description":null, "homepage":null, "private":true, "visibility":"private", "archived":false,
-            "isTemplate":false, "language":null, "languages":[], "stars":1, "forks":0, "watchers":1,"openIssues":0,"networkCount":0,"size":0,
-            "license":null,"defaultBranch":"main","topics":[],"createdAt":null,"updatedAt":null,"pushedAt":null,"downloads":2,
-            "views":{"count":3,"uniques":2,"days":[{"ts":100,"count":3,"uniques":2}]},"clones":null,"trafficError":null,"releases":[]
-        })).unwrap()
-}
-#[test]
-fn detail_and_catalog_survive_a_new_runtime_without_changing_traffic_dates() {
-    let (app, db) = fixture();
-    db.activate("github.com/one".into()).unwrap();
-    let original = db.save_detail(detail("one/private")).unwrap();
-    db.save_catalog(Vec::new()).unwrap();
-    let root = db.root.clone();
-    let home = db.home.clone();
-    drop(db);
-    drop(app);
-    let app = tauri::test::mock_builder()
-        .plugin(tauri_plugin_store::Builder::default().build())
-        .build(tauri::test::mock_context(tauri::test::noop_assets()))
-        .unwrap();
-    let db = Storage {
-        app: app.handle().clone(),
-        root,
-        home,
-    };
-    let restored = db.load_detail("one/private").unwrap().unwrap();
-    assert_eq!(restored.fetched_at, original.fetched_at);
-    assert_eq!(restored.data.views.unwrap().days[0].ts, 100);
-    assert!(db.local_state().unwrap().catalog.is_some());
-    db.activate("github.com/two".into()).unwrap();
-    assert!(db.load_detail("one/private").unwrap().is_none());
-    fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
-}
-#[test]
-fn oldest_details_are_evicted_when_count_limit_is_reached() {
-    let mut cache = AccountCache::default();
-    for i in 0..101 {
-        let name = format!("one/{i}");
-        cache.details.insert(
-            name.clone(),
-            Saved {
-                fetched_at: i,
-                data: detail(&name),
-                warning: None,
-            },
-        );
-    }
-    bound_cache(&mut cache).unwrap();
-    assert_eq!(cache.details.len(), 100);
-    assert!(!cache.details.contains_key("one/0"));
-    assert!(cache.details.contains_key("one/100"));
 }

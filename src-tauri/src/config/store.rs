@@ -1,4 +1,7 @@
-use super::{AccountCache, Document, LocalState, Preferences, Projects, Storage, VERSION, MAX_HISTORY_REPOS, MAX_POINTS, account_file, bound_cache, legacy_read};
+use super::{
+    account_file, legacy_read, Document, LocalState, Preferences, Projects, Storage,
+    MAX_HISTORY_REPOS, MAX_POINTS, VERSION,
+};
 use crate::models::*;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{collections::BTreeMap, fs};
@@ -91,16 +94,6 @@ impl<R: Runtime> Storage<R> {
         p.folders = folders;
         self.write(&self.account_file("projects")?, &p)
     }
-    pub(crate) fn cached(&self) -> Result<AccountCache, String> {
-        match self.account()? {
-            Some(a) => Ok(self.read(&account_file(&a, "cache"))?.unwrap_or_default()),
-            None => Ok(AccountCache::default()),
-        }
-    }
-    pub(crate) fn save_cached(&self, mut cache: AccountCache) -> Result<(), String> {
-        bound_cache(&mut cache)?;
-        self.write(&self.account_file("cache")?, &cache)
-    }
     pub fn migrate(&self) -> Result<(), String> {
         let mut prefs = self.prefs()?;
         if prefs.migrated {
@@ -108,30 +101,16 @@ impl<R: Runtime> Storage<R> {
         }
         let cfg: Config =
             legacy_read(&self.home.join(".config/asterism/config.json"))?.unwrap_or_default();
-        let mut cache: Option<Cache> = legacy_read(&self.home.join(".cache/asterism/cache.json"))?;
         let hist: HistoryStore =
             legacy_read(&self.home.join(".cache/asterism/history.json"))?.unwrap_or_default();
         if cfg.version > 1 || hist.version > 1 {
             return Err("Unsupported legacy data version. Original files were kept.".into());
-        }
-        if let Some(c) = &mut cache {
-            c.history = hist.repos.clone();
-            for repo in &mut c.repos {
-                repo.fetched_at = Some(c.fetched_at);
-            }
         }
         let projects = Projects {
             repos: cfg.repos,
             ..Default::default()
         };
         self.seed(&account_file("legacy", "projects"), &projects)?;
-        self.seed(
-            &account_file("legacy", "cache"),
-            &AccountCache {
-                summary: cache,
-                ..Default::default()
-            },
-        )?;
         self.seed(&account_file("legacy", "history"), &hist)?;
         prefs.theme = cfg.theme;
         prefs.transparency = cfg.transparency;
@@ -191,22 +170,14 @@ impl<R: Runtime> Storage<R> {
         let legacy: Projects = self
             .read(&account_file("legacy", "projects"))?
             .unwrap_or_default();
-        let legacy_cache: AccountCache = self
-            .read(&account_file("legacy", "cache"))?
-            .unwrap_or_default();
         let legacy_history: HistoryStore = self
             .read(&account_file("legacy", "history"))?
             .unwrap_or_default();
         Ok(LocalState {
             account: self.account()?,
             config,
-            cache: self.load_cache()?,
-            catalog: self.cached()?.catalog,
             legacy_available: !self.projects()?.legacy_imported
-                && (!legacy.repos.is_empty()
-                    || legacy_cache.summary.is_some()
-                    || !legacy_history.repos.is_empty()),
-            data_path: self.root.display().to_string(),
+                && (!legacy.repos.is_empty() || !legacy_history.repos.is_empty()),
         })
     }
     pub fn import_legacy(&self) -> Result<LocalState, String> {
@@ -220,21 +191,6 @@ impl<R: Runtime> Storage<R> {
         let old: Projects = self
             .read(&account_file("legacy", "projects"))?
             .unwrap_or_default();
-        let mut cache = self.cached()?;
-        let old_cache: AccountCache = self
-            .read(&account_file("legacy", "cache"))?
-            .unwrap_or_default();
-        if let Some(mut previous) = old_cache.summary {
-            if let Some(current) = &mut cache.summary {
-                previous
-                    .repos
-                    .retain(|r| !current.repos.iter().any(|c| c.full_name == r.full_name));
-                current.repos.extend(previous.repos);
-                current.fetched_at = current.fetched_at.min(previous.fetched_at);
-            } else {
-                cache.summary = Some(previous);
-            }
-        }
         let mut hist = self.load_history()?;
         let old_hist: HistoryStore = self
             .read(&account_file("legacy", "history"))?
@@ -242,7 +198,6 @@ impl<R: Runtime> Storage<R> {
         for (name, series) in old_hist.repos {
             hist.repos.entry(name).or_insert(series);
         }
-        self.save_cached(cache)?;
         self.save_history(&hist)?;
         projects.repos.extend(old.repos);
         projects.repos.sort();

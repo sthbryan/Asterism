@@ -3,8 +3,8 @@ use std::path::Path;
 use std::process::Command;
 
 use crate::config;
-use crate::models::TrackedRepo;
 use crate::history;
+use crate::models::TrackedRepo;
 
 use super::catalog::ensure_online;
 use super::local::{checkout_probe, remote_matches};
@@ -34,17 +34,6 @@ pub(crate) async fn import_legacy_data(
     })
     .await?
 }
-#[tauri::command]
-pub(crate) async fn clear_local_cache(
-    expected_account: Option<String>,
-) -> Result<config::LocalState, String> {
-    offload(move || {
-        ensure_scope(expected_account.as_deref())?;
-        config::storage()?.clear_cache()
-    })
-    .await?
-}
-
 pub(crate) fn ensure_scope(expected: Option<&str>) -> Result<(), String> {
     if config::storage()?.account()?.as_deref() != expected {
         return Err("Account changed. Reload the current account before continuing.".into());

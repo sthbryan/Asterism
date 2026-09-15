@@ -5,26 +5,11 @@ use crate::gh;
 use crate::history;
 use crate::models::{
     Cache, CatalogRepo, CreateOptions, CreateRepoInput, CreatedRepo, RepoDetail, Status,
-    TrackedRepo, Traffic, TrafficStatus,
+    TrackedRepo,
 };
 
 use super::state::{ensure_scope, merge_fetches};
 use super::status::{offload, offload_unlocked};
-
-pub(crate) fn merge_cached_traffic(
-    current: &mut Option<Traffic>,
-    status: &mut TrafficStatus,
-    saved: &mut Option<Traffic>,
-) {
-    if current.is_none() && !matches!(status, TrafficStatus::Ok) {
-        if let Some(cached) = saved.take() {
-            *current = Some(cached);
-            if matches!(status, TrafficStatus::Unavailable) {
-                *status = TrafficStatus::Ok;
-            }
-        }
-    }
-}
 
 #[tauri::command]
 pub(crate) async fn list_catalog(
@@ -33,8 +18,7 @@ pub(crate) async fn list_catalog(
     offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
-        let rows = gh::list_catalog()?;
-        config::serialized_write(move || config::storage()?.save_catalog(rows))
+        gh::list_catalog()
     })
     .await?
 }
@@ -46,16 +30,7 @@ pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<
         ensure_online()?;
         let db = config::storage()?;
         let cfg = db.load_config()?;
-        let previous = db.load_cache()?;
-        let prev: HashMap<String, TrackedRepo> = previous
-            .map(|cache| {
-                cache
-                    .repos
-                    .into_iter()
-                    .map(|repo| (repo.full_name.clone(), repo))
-                    .collect()
-            })
-            .unwrap_or_default();
+        let prev: HashMap<String, TrackedRepo> = HashMap::new();
         let fetches = gh::refresh_tracked(cfg.repos);
         let now = history::now_secs();
         config::serialized_write(move || {
@@ -63,7 +38,11 @@ pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<
             let mut store = db.load_history()?;
             let repos = merge_fetches(fetches, &prev, &mut store, now)?;
             db.save_history(&store)?;
-            db.save_cache(repos, store.repos)
+            Ok(Cache {
+                fetched_at: now,
+                repos,
+                history: store.repos,
+            })
         })
     })
     .await?
@@ -97,51 +76,12 @@ pub(crate) async fn create_repo(
 #[tauri::command]
 pub(crate) async fn get_repo_detail(
     full_name: String,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<config::Saved<RepoDetail>, String> {
     offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
-        let db = config::storage()?;
-        let old = db.load_detail(&full_name)?;
-        if offline {
-            return old.ok_or(
-                "This detail has not been saved. Connect and open it once to use it offline."
-                    .into(),
-            );
-        }
-        let mut detail = match ensure_online().and_then(|_| gh::repo_detail(full_name.clone())) {
-            Ok(detail) => detail,
-            Err(error) => {
-                return old
-                    .map(|mut saved| {
-                        saved.warning = Some(error.clone());
-                        saved
-                    })
-                    .ok_or(error)
-            }
-        };
-        if let (Some(_error), Some(mut saved)) = (&detail.traffic_error, old) {
-            let views_failed = !matches!(detail.views_status, crate::models::TrafficStatus::Ok)
-                && detail.views.is_none();
-            let clones_failed = !matches!(detail.clones_status, crate::models::TrafficStatus::Ok)
-                && detail.clones.is_none();
-
-            if views_failed {
-                merge_cached_traffic(
-                    &mut detail.views,
-                    &mut detail.views_status,
-                    &mut saved.data.views,
-                );
-            }
-            if clones_failed {
-                merge_cached_traffic(
-                    &mut detail.clones,
-                    &mut detail.clones_status,
-                    &mut saved.data.clones,
-                );
-            }
-        }
+        ensure_online()?;
+        let mut detail = gh::repo_detail(full_name.clone())?;
         let now = history::now_secs();
         let snapshot = TrackedRepo {
             fetched_at: Some(now),
@@ -167,7 +107,11 @@ pub(crate) async fn get_repo_detail(
                 detail.star_history = entry.stars.clone();
                 detail.download_history = entry.downloads.clone();
             }
-            db.save_detail(detail)
+            Ok(config::Saved {
+                fetched_at: now,
+                data: detail,
+                warning: None,
+            })
         })
     })
     .await?
@@ -195,15 +139,4 @@ pub(crate) fn ensure_online() -> Result<(), String> {
         return Err("GitHub account changed. Check connection to load that account’s data.".into());
     }
     Ok(())
-}
-#[tauri::command]
-pub(crate) async fn get_cached_detail(
-    full_name: String,
-    expected_account: Option<String>,
-) -> Result<Option<config::Saved<RepoDetail>>, String> {
-    offload_unlocked(move || {
-        ensure_scope(expected_account.as_deref())?;
-        config::storage()?.load_detail(&full_name)
-    })
-    .await?
 }

@@ -59,6 +59,5 @@ pub struct Diagnostics {
     pub git_version: Option<String>,
     pub git_error: Option<String>,
     pub config_path: String,
-    pub cache_path: String,
     pub history_path: String,
 }

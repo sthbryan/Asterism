@@ -134,7 +134,6 @@ fn merge_pull_fetches(
 fn pull_snapshot(
     expected_account: Option<&str>,
     filters: &PullRequestFilters,
-    previous: Option<PullListResult>,
 ) -> Result<config::Saved<PullListResult>, String> {
     ensure_scope(expected_account)?;
     let db = config::storage()?;
@@ -157,22 +156,15 @@ fn pull_snapshot(
     let result = merge_pull_fetches(
         &repos,
         fetches,
-        previous.as_ref(),
+        None,
         now,
         !normalized.repos.is_empty() || normalized.repo.is_some(),
     );
-    db.save_pull_list(result)
-}
-
-#[tauri::command]
-pub(crate) async fn get_cached_pull_requests(
-    expected_account: Option<String>,
-) -> Result<Option<config::Saved<PullListResult>>, String> {
-    offload(move || {
-        ensure_scope(expected_account.as_deref())?;
-        config::storage()?.load_pull_list()
+    Ok(config::Saved {
+        fetched_at: result.fetched_at,
+        data: result,
+        warning: None,
     })
-    .await?
 }
 
 #[tauri::command]
@@ -180,19 +172,13 @@ pub(crate) async fn refresh_pull_requests(
     filters: PullRequestFilters,
     expected_account: Option<String>,
 ) -> Result<config::Saved<PullListResult>, String> {
-    offload(move || {
-        let db = config::storage()?;
-        let old = db.load_pull_list()?.map(|saved| saved.data);
-        pull_snapshot(expected_account.as_deref(), &filters, old)
-    })
-    .await?
+    offload(move || pull_snapshot(expected_account.as_deref(), &filters)).await?
 }
 
 #[tauri::command]
 pub(crate) async fn list_pull_requests(
     repos: Vec<String>,
     _limit: u8,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<PullListResult, String> {
     offload(move || {
@@ -201,26 +187,7 @@ pub(crate) async fn list_pull_requests(
             repos,
             ..Default::default()
         };
-        let db = config::storage()?;
-        let cached = db.load_pull_list()?;
-        let snapshot = if offline {
-            cached
-                .map(|saved| saved.data)
-                .ok_or_else(|| "PR_OFFLINE_CACHE_MISSING".to_string())?
-        } else {
-            let old = cached.map(|saved| saved.data);
-            match pull_snapshot(expected_account.as_deref(), &filters, old.clone()) {
-                Ok(saved) => saved.data,
-                Err(error) => old
-                    .map(|mut result| {
-                        result.errors.insert("__account".into(), error.clone());
-                        result
-                    })
-                    .ok_or(error)?,
-            }
-        };
-
-        Ok(snapshot)
+        Ok(pull_snapshot(expected_account.as_deref(), &filters)?.data)
     })
     .await?
 }
@@ -230,12 +197,11 @@ pub(crate) async fn list_pull_requests_filtered(
     filters: PullRequestFilters,
     page: u32,
     per_page: u8,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<PullListResult, String> {
     let repos = filters.repos.clone();
     let limit = pulls::MAX_LIST_LIMIT;
-    let result = list_pull_requests(repos, limit, offline, expected_account).await?;
+    let result = list_pull_requests(repos, limit, expected_account).await?;
     let (page, per_page) = normalize_pull_page(page, per_page);
     Ok(pulls::paginate(
         result.pulls,
@@ -248,31 +214,9 @@ pub(crate) async fn list_pull_requests_filtered(
 }
 
 #[tauri::command]
-pub(crate) async fn get_cached_pull_request_detail(
-    repo: String,
-    number: u64,
-    expected_account: Option<String>,
-) -> Result<Option<config::Saved<PullRequestDetail>>, String> {
-    offload(move || {
-        ensure_scope(expected_account.as_deref())?;
-        if !valid_pull_repo(&repo) || number == 0 {
-            return Err("PR_INVALID_REQUEST".into());
-        }
-        let db = config::storage()?;
-        let repo = followed_pull_repos(&db, Some(&repo))?
-            .into_iter()
-            .next()
-            .ok_or_else(|| "PR_REPOSITORY_NOT_FOLLOWED".to_string())?;
-        db.load_pull_detail(&repo, number)
-    })
-    .await?
-}
-
-#[tauri::command]
 pub(crate) async fn get_pull_request_detail(
     repo: String,
     number: u64,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<config::Saved<PullRequestDetail>, String> {
     offload(move || {
@@ -285,20 +229,13 @@ pub(crate) async fn get_pull_request_detail(
             .into_iter()
             .next()
             .ok_or_else(|| "PR_REPOSITORY_NOT_FOLLOWED".to_string())?;
-        let old = db.load_pull_detail(&repo, number)?;
-        if offline {
-            return old.ok_or_else(|| "PR_OFFLINE_CACHE_MISSING".into());
-        }
-        let fresh = ensure_online().and_then(|_| pulls::pull_detail(&repo, number));
-        match fresh {
-            Ok(detail) => db.save_pull_detail(detail),
-            Err(error) => old
-                .map(|mut saved| {
-                    saved.warning = Some(error.clone());
-                    saved
-                })
-                .ok_or(error),
-        }
+        ensure_online()?;
+        let detail = pulls::pull_detail(&repo, number)?;
+        Ok(config::Saved {
+            fetched_at: history::now_secs(),
+            data: detail,
+            warning: None,
+        })
     })
     .await?
 }
@@ -307,38 +244,15 @@ pub(crate) async fn get_pull_request_detail(
 pub(crate) async fn get_pull_request(
     repo: String,
     number: u64,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<config::Saved<PullRequestDetail>, String> {
-    get_pull_request_detail(repo, number, offline, expected_account).await
-}
-
-#[tauri::command]
-pub(crate) async fn get_cached_pull_request_diff(
-    repo: String,
-    number: u64,
-    expected_account: Option<String>,
-) -> Result<Option<config::Saved<String>>, String> {
-    offload(move || {
-        ensure_scope(expected_account.as_deref())?;
-        if !valid_pull_repo(&repo) || number == 0 {
-            return Err("PR_INVALID_REQUEST".into());
-        }
-        let db = config::storage()?;
-        let repo = followed_pull_repos(&db, Some(&repo))?
-            .into_iter()
-            .next()
-            .ok_or_else(|| "PR_REPOSITORY_NOT_FOLLOWED".to_string())?;
-        db.load_pull_diff(&repo, number)
-    })
-    .await?
+    get_pull_request_detail(repo, number, expected_account).await
 }
 
 #[tauri::command]
 pub(crate) async fn get_pull_request_diff(
     repo: String,
     number: u64,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<config::Saved<String>, String> {
     offload(move || {
@@ -351,19 +265,13 @@ pub(crate) async fn get_pull_request_diff(
             .into_iter()
             .next()
             .ok_or_else(|| "PR_REPOSITORY_NOT_FOLLOWED".to_string())?;
-        let old = db.load_pull_diff(&repo, number)?;
-        if offline {
-            return old.ok_or_else(|| "PR_OFFLINE_CACHE_MISSING".into());
-        }
-        match ensure_online().and_then(|_| pulls::pull_diff(&repo, number)) {
-            Ok(diff) => db.save_pull_diff(&repo, number, diff),
-            Err(error) => old
-                .map(|mut saved| {
-                    saved.warning = Some(error.clone());
-                    saved
-                })
-                .ok_or(error),
-        }
+        ensure_online()?;
+        let diff = pulls::pull_diff(&repo, number)?;
+        Ok(config::Saved {
+            fetched_at: history::now_secs(),
+            data: diff,
+            warning: None,
+        })
     })
     .await?
 }
@@ -372,8 +280,7 @@ pub(crate) async fn get_pull_request_diff(
 pub(crate) async fn get_pull_diff(
     repo: String,
     number: u64,
-    offline: bool,
     expected_account: Option<String>,
 ) -> Result<config::Saved<String>, String> {
-    get_pull_request_diff(repo, number, offline, expected_account).await
+    get_pull_request_diff(repo, number, expected_account).await
 }

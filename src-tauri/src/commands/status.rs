@@ -1,6 +1,6 @@
 use crate::config;
 use crate::gh;
-use crate::models::{Cache, Config, Diagnostics, Locale, Status, ThemePref};
+use crate::models::{Config, Diagnostics, Locale, Status, ThemePref};
 
 use super::catalog::account_key;
 use super::state::ensure_scope;
@@ -70,11 +70,6 @@ pub(crate) async fn save_appearance(theme: String, transparency: bool) -> Result
     .await?
 }
 
-#[tauri::command]
-pub(crate) async fn get_cache() -> Result<Option<Cache>, String> {
-    offload(|| config::storage()?.load_cache()).await?
-}
-
 pub(crate) fn normalize_locale(raw: &str) -> Locale {
     match raw.trim().to_lowercase().as_str() {
         "es" => Locale::Es,
@@ -99,10 +94,6 @@ pub(crate) async fn get_diagnostics() -> Result<Diagnostics, String> {
             git_error,
             config_path: config::storage()
                 .map(|db| db.config_path())
-                .map(|p| p.display().to_string())
-                .unwrap_or_default(),
-            cache_path: config::storage()
-                .and_then(|db| db.cache_path())
                 .map(|p| p.display().to_string())
                 .unwrap_or_default(),
             history_path: config::storage()

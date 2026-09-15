@@ -1,23 +1,11 @@
 use std::collections::HashMap;
 
-use crate::models::{Traffic, TrafficStatus, TrackedRepo};
-
-use super::catalog::merge_cached_traffic;
 use super::state::merge_fetches;
+use crate::models::TrackedRepo;
 
 #[cfg(test)]
-mod offline_tests {
+mod refresh_tests {
     use super::*;
-    fn traffic(fetched_at: u64, sample_from: u64, sample_to: u64) -> Traffic {
-        Traffic {
-            count: 4,
-            uniques: 2,
-            days: vec![],
-            fetched_at: Some(fetched_at),
-            sample_from: Some(sample_from),
-            sample_to: Some(sample_to),
-        }
-    }
     fn repo(name: &str, error: Option<String>) -> TrackedRepo {
         TrackedRepo {
             full_name: name.into(),
@@ -58,7 +46,7 @@ mod offline_tests {
         assert!(history.repos.contains_key("one/fresh"));
     }
     #[test]
-    fn total_failure_does_not_produce_replacement_cache() {
+    fn total_failure_does_not_produce_replacement_snapshot() {
         let mut history = crate::models::HistoryStore::default();
         let result = merge_fetches(
             vec![repo("one/repo", Some("timeout".into()))],
@@ -68,39 +56,5 @@ mod offline_tests {
         );
         assert!(result.is_err());
         assert!(history.repos.is_empty());
-    }
-
-    #[test]
-    fn failed_views_use_cached_metadata_while_fresh_clones_stay() {
-        let mut views = None;
-        let mut views_status = TrafficStatus::Forbidden;
-        let mut cached_views = Some(traffic(100, 10, 20));
-        let fresh_clones = Some(traffic(500, 30, 40));
-        let mut clones = fresh_clones.clone();
-        let mut clones_status = TrafficStatus::Ok;
-        let mut cached_clones = Some(traffic(100, 10, 20));
-        merge_cached_traffic(&mut views, &mut views_status, &mut cached_views);
-        merge_cached_traffic(&mut clones, &mut clones_status, &mut cached_clones);
-        assert_eq!(views.unwrap().fetched_at, Some(100));
-        assert_eq!(views_status, TrafficStatus::Forbidden);
-        assert_eq!(clones.unwrap().fetched_at, fresh_clones.unwrap().fetched_at);
-        assert!(cached_clones.is_some());
-    }
-
-    #[test]
-    fn missing_cache_keeps_permission_status_and_auxiliary_error_does_not_replace_fresh_data() {
-        let mut views = None;
-        let mut status = TrafficStatus::Forbidden;
-        let mut no_cache = None;
-        merge_cached_traffic(&mut views, &mut status, &mut no_cache);
-        assert!(views.is_none());
-        assert_eq!(status, TrafficStatus::Forbidden);
-
-        let mut fresh = Some(traffic(500, 30, 40));
-        let mut saved = Some(traffic(100, 10, 20));
-        let mut fresh_status = TrafficStatus::Ok;
-        merge_cached_traffic(&mut fresh, &mut fresh_status, &mut saved);
-        assert_eq!(fresh.unwrap().fetched_at, Some(500));
-        assert!(saved.is_some());
     }
 }

@@ -78,8 +78,7 @@ pub struct PullRequestDetail {
     pub merge_state: Option<String>,
     #[serde(default)]
     pub files: Vec<PullFile>,
-    
-    
+
     #[serde(default)]
     pub diff: Option<String>,
     #[serde(default)]
@@ -110,8 +109,4 @@ fn default_page() -> u32 {
 
 fn default_per_page() -> u8 {
     30
-}
-
-pub fn pull_detail_key(repo: &str, number: u64) -> String {
-    format!("{repo}#{number}")
 }
