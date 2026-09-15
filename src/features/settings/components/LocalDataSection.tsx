@@ -1,12 +1,8 @@
-import { useState } from "react";
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { Button } from "@/components/Button";
-import {
-  clearLocalCache,
-  importLegacyData,
-  useLegacyData as viewLegacyData,
-} from "@/services/api";
+import { useLocalData } from "../hooks/useLocalData";
 
 export function LocalDataSection() {
   const { t } = useI18n();
@@ -15,32 +11,14 @@ export function LocalDataSection() {
   const legacy = useStore((s) => s.legacyAvailable);
   const status = useStore((s) => s.status);
   const connecting = useStore((s) => s.connecting);
-  const hydrate = useStore((s) => s.hydrateLocal);
-  const bootFail = useStore((s) => s.bootFail);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-  async function run(action: "clear" | "import" | "legacy") {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
-    setDone(false);
-    try {
-      const result = await (action === "clear"
-        ? clearLocalCache()
-        : action === "import"
-          ? importLegacyData()
-          : viewLegacyData());
-      hydrate(result);
-      if (action === "legacy")
-        bootFail({ ok: false, login: null, error: null, hint: null });
-      setDone(true);
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setBusy(false);
-    }
-  }
+  const { busy, error, done, run } = useLocalData();
+
+  const accountText = account
+    ? t("offline.account", {
+        account: account === "legacy" ? t("offline.legacyName") : account,
+      })
+    : null;
+
   return (
     <section
       aria-labelledby="local-heading"
@@ -52,14 +30,10 @@ export function LocalDataSection() {
       <p className="mt-2 text-sm text-mist">{t("offline.storageHint")}</p>
       <p className="mt-3 break-words font-mono text-xs">{dataPath}</p>
       <p className="mt-3 text-sm text-mist">{t("offline.retention")}</p>
-      {account && (
-        <p className="mt-3 break-words text-sm">
-          {t("offline.account", {
-            account: account === "legacy" ? t("offline.legacyName") : account,
-          })}
-        </p>
-      )}
-      {legacy && (
+      <When condition={Boolean(account)}>
+        <p className="mt-3 break-words text-sm">{accountText}</p>
+      </When>
+      <When condition={Boolean(legacy)}>
         <div className="mt-5 space-y-3">
           <p className="text-sm text-mist">{t("offline.legacyHint")}</p>
           <div className="flex flex-wrap gap-2">
@@ -69,17 +43,17 @@ export function LocalDataSection() {
             >
               {t("offline.viewLegacy")}
             </Button>
-            {status?.ok && (
+            <When condition={Boolean(status?.ok)}>
               <Button
                 disabled={busy || connecting}
                 onClick={() => void run("import")}
               >
                 {t("offline.import", { account: account ?? "" })}
               </Button>
-            )}
+            </When>
           </div>
         </div>
-      )}
+      </When>
       <div className="mt-5">
         <Button
           disabled={busy || connecting || !account}
@@ -89,16 +63,16 @@ export function LocalDataSection() {
         </Button>
         <p className="mt-2 text-sm text-mist">{t("offline.clearHint")}</p>
       </div>
-      {error && (
+      <When condition={Boolean(error)}>
         <p role="alert" className="mt-3 break-words text-sm text-accent-soft">
           {t("settings.saveError")} {error}
         </p>
-      )}
-      {done && (
+      </When>
+      <When condition={done}>
         <p role="status" className="mt-3 text-sm text-mist">
           {t("offline.saved")}
         </p>
-      )}
+      </When>
     </section>
   );
 }
