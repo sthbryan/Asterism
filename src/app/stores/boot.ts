@@ -61,6 +61,7 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
       detailWarning: null,
       detailFetchedAt: null,
       detailLoading: false,
+      detailRefreshing: false,
       refreshing: false,
       dataRevision: state.dataRevision + 1,
       banner: null,

@@ -31,6 +31,7 @@ export type ApiClient = {
     fullName: string,
     offline: boolean,
   ) => Promise<Saved<RepoDetail>>;
+  getCachedRepoDetail: (fullName: string) => Promise<Saved<RepoDetail> | null>;
   saveLocale: (locale: Locale) => Promise<Config>;
   getDiagnostics: () => Promise<Diagnostics>;
   listLocalCheckouts: () => Promise<LocalCheckout[]>;

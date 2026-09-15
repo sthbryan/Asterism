@@ -28,6 +28,11 @@ export const tauriClient: ApiClient = {
   refreshTracked: () => invoke("refresh_tracked", { expectedAccount: account }),
   getRepoDetail: (fullName, offline) =>
     invoke("get_repo_detail", { fullName, offline, expectedAccount: account }),
+  getCachedRepoDetail: (fullName) =>
+    invoke("get_cached_detail", {
+      fullName,
+      expectedAccount: account,
+    }),
   saveLocale: (locale) => {
     persistLocale(locale);
     return enqueuePreference(() => invoke("save_locale", { locale }));

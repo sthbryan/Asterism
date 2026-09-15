@@ -7,6 +7,7 @@ import type {
   LocalState,
   RepoDetail,
   RepoHistory,
+  Saved,
   Status,
   ThemePref,
   TrackedRepo,
@@ -39,7 +40,9 @@ export type StoreState = {
   catalogError: string | null;
   detail: RepoDetail | null;
   detailLoading: boolean;
+  detailRefreshing: boolean;
   detailError: string | null;
+  detailCache: Record<string, Saved<RepoDetail>>;
 };
 
 export type StoreActions = {

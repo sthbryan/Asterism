@@ -24,6 +24,8 @@ export const createRepo = (
 export const refreshTracked = () => client().refreshTracked();
 export const getRepoDetail = (fullName: string, offline = false) =>
   client().getRepoDetail(fullName, offline);
+export const getCachedRepoDetail = (fullName: string) =>
+  client().getCachedRepoDetail(fullName);
 export const saveLocale = (
   locale: Parameters<typeof tauriClient.saveLocale>[0],
 ) => client().saveLocale(locale);

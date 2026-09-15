@@ -23,7 +23,11 @@ export function DetailView() {
   const navigate = useTransitionNavigate();
   const fullName = decodeDetailParam(params?.fullName);
 
-  const { detail, loading, error } = useDetail(fullName);
+  const { detail, loading, refreshing, error } = useDetail(fullName);
+
+  // Skeleton only on cold start; cached content renders instantly while
+  // the network refresh runs in the background.
+  const showSkeleton = loading && !detail;
 
   return (
     <>
@@ -38,12 +42,16 @@ export function DetailView() {
         }
         trailing={<DetailTrailing fullName={fullName} />}
       />
-      <div className={`t-skel h-full ${loading ? "" : "is-revealed"}`}>
+      <div className={`t-skel h-full ${showSkeleton ? "" : "is-revealed"}`}>
         <div className="t-skel-skeleton is-pulsing">
           <DetailSkeleton />
         </div>
         <div className="t-skel-content">
-          <DetailContent error={error} detail={detail} />
+          <DetailContent
+            error={error}
+            detail={detail}
+            refreshing={refreshing}
+          />
         </div>
       </div>
     </>
@@ -53,9 +61,11 @@ export function DetailView() {
 function DetailContent({
   error,
   detail,
+  refreshing,
 }: {
   error: string | null;
   detail: RepoDetail | null;
+  refreshing: boolean;
 }) {
   const { t } = useI18n();
 
@@ -70,13 +80,19 @@ function DetailContent({
           </div>
         </div>
       ) : detail ? (
-        <DetailBody detail={detail} />
+        <DetailBody detail={detail} refreshing={refreshing} />
       ) : null}
     </div>
   );
 }
 
-function DetailBody({ detail }: { detail: RepoDetail }) {
+function DetailBody({
+  detail,
+  refreshing,
+}: {
+  detail: RepoDetail;
+  refreshing: boolean;
+}) {
   const { t, locale } = useI18n();
   const fetchedAt = useStore((s) => s.detailFetchedAt);
   const warning = useStore((s) => s.detailWarning);
@@ -84,13 +100,22 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
   return (
     <div>
       {fetchedAt && (
-        <p className="mb-3 text-xs text-mist">
+        <p className="mb-3 flex items-center gap-2 text-xs text-mist">
           {t("offline.fetched", {
             date: new Intl.DateTimeFormat(locale, {
               dateStyle: "medium",
               timeStyle: "short",
             }).format(fetchedAt * 1000),
           })}
+          {refreshing && (
+            <span role="status" className="inline-flex items-center gap-1">
+              <span
+                aria-hidden
+                className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
+              />
+              {t("Refreshing…")}
+            </span>
+          )}
         </p>
       )}
       {warning && (

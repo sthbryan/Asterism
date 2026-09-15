@@ -202,6 +202,7 @@ export const mockClient: ApiClient = {
       350,
     );
   },
+  getCachedRepoDetail: () => delay(null, 25),
   saveLocale: (locale: Locale) => {
     persistLocale(locale);
     return delay({
