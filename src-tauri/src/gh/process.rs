@@ -62,8 +62,6 @@ pub(crate) fn run_gh_env(args: &[&str], extra_env: &[(&str, &str)]) -> Result<St
                 if Instant::now() >= deadline {
                     let _ = child.kill();
                     let _ = child.wait();
-                    let _ = stdout_reader.join();
-                    let _ = stderr_reader.join();
                     return Err(format!(
                         "gh did not answer within {} seconds and was stopped.",
                         GH_TIMEOUT.as_secs()

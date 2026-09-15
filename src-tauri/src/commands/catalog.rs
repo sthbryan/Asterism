@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::OnceLock;
 
 use crate::config;
 use crate::gh;
@@ -10,6 +11,8 @@ use crate::models::{
 
 use super::state::{ensure_scope, merge_fetches};
 use super::status::{offload, offload_unlocked};
+
+static DETAIL_GATE: OnceLock<tauri::async_runtime::Mutex<()>> = OnceLock::new();
 
 #[tauri::command]
 pub(crate) async fn list_catalog(
@@ -78,6 +81,10 @@ pub(crate) async fn get_repo_detail(
     full_name: String,
     expected_account: Option<String>,
 ) -> Result<config::Saved<RepoDetail>, String> {
+    let _detail_guard = DETAIL_GATE
+        .get_or_init(|| tauri::async_runtime::Mutex::new(()))
+        .lock()
+        .await;
     offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;

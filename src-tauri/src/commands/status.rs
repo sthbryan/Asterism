@@ -11,8 +11,8 @@ where
     F: FnOnce() -> T + Send + 'static,
 {
     tauri::async_runtime::spawn_blocking(f)
-        .await
-        .map_err(|e| format!("background task failed: {e}"))
+    .await
+    .map_err(|e| format!("background task failed: {e}"))
 }
 
 pub(crate) async fn offload_unlocked<T, F>(f: F) -> Result<T, String>
@@ -21,8 +21,8 @@ where
     F: FnOnce() -> T + Send + 'static,
 {
     tauri::async_runtime::spawn_blocking(f)
-        .await
-        .map_err(|e| format!("background task failed: {e}"))
+    .await
+    .map_err(|e| format!("background task failed: {e}"))
 }
 
 #[tauri::command]

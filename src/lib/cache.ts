@@ -11,7 +11,10 @@ export function isCacheFresh(
   ttlMs: number,
   now = Date.now(),
 ): boolean {
-  return Number.isFinite(fetchedAt) && now - fetchedAt < ttlMs;
+  if (!Number.isFinite(fetchedAt)) return false;
+  const timestampMs =
+    fetchedAt < 1_000_000_000_000 ? fetchedAt * 1_000 : fetchedAt;
+  return now >= timestampMs && now - timestampMs < ttlMs;
 }
 
 /** Stable versioned resource key. The namespace is passed separately to storage. */

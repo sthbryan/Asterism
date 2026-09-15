@@ -9,16 +9,11 @@ export function useDetail(fullName: string) {
   const refreshing = useStore((s) => s.detailRefreshing);
   const error = useStore((s) => s.detailError);
   const fetchDetail = useStore((s) => s.fetchDetail);
-  const clearDetail = useStore((s) => s.clearDetail);
 
   useEffect(() => {
     if (!fullName || !booted) return;
-    clearDetail();
     void fetchDetail(fullName);
-    return () => {
-      clearDetail();
-    };
-  }, [fullName, fetchDetail, clearDetail, booted]);
+  }, [fullName, fetchDetail, booted]);
 
   return { detail, loading, refreshing, error };
 }
