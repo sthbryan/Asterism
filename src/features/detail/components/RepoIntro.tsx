@@ -1,7 +1,7 @@
 import { GlobeIcon, LockSimpleIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import type { RepoDetail } from "@/lib/types";
-import { Flag } from "./shared";
+import { Flag } from "./Flag";
 
 export function RepoIntro({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();

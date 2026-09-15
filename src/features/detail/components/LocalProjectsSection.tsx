@@ -3,8 +3,8 @@ import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Select } from "@/components/Select";
+import { useLocalCheckouts } from "../hooks/useLocalCheckouts";
 import { LocalCheckoutCard } from "./LocalCheckoutCard";
-import { useLocalCheckouts } from "./useLocalCheckouts";
 
 export function LocalProjectsSection({ fullName }: { fullName: string }) {
   const { t } = useI18n();

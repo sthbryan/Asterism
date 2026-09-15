@@ -2,14 +2,6 @@ import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { hrefFromMaybeUrl } from "@/lib/format";
 
-export function Flag({ children }: { children: string }) {
-  return (
-    <span className="shrink-0 rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase text-mist">
-      {children}
-    </span>
-  );
-}
-
 export function HomepageValue({ value }: { value: string | null }) {
   if (!value) return "—";
   const href = hrefFromMaybeUrl(value);

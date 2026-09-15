@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { fmtDate, fmtNum, fmtRepoSizeKb } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
-import { HomepageValue } from "./shared";
+import { HomepageValue } from "./HomepageValue";
 
 export function MetaFacts({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();

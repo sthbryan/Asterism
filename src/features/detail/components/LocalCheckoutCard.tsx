@@ -7,9 +7,9 @@ import {
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import type { LocalCheckout } from "@/lib/types";
+import type { EditorTarget } from "../hooks/useLocalCheckouts";
+import { statusKey } from "../utils/localUtils";
 import { GitSyncPanel } from "./GitSyncPanel";
-import { statusKey } from "./localUtils";
-import type { EditorTarget } from "./useLocalCheckouts";
 
 type CheckoutCardProps = {
   fullName: string;

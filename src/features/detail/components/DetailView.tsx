@@ -6,7 +6,8 @@ import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { DetailSkeleton } from "@/components/Skeleton";
 import { DetailContent } from "./DetailContent";
-import { DetailTitle, DetailTrailing } from "./Header";
+import { DetailTitle } from "./DetailTitle";
+import { DetailTrailing } from "./DetailTrailing";
 
 export function DetailView() {
   const [, params] = useRoute("/repo/:fullName");

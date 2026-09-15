@@ -10,52 +10,12 @@ import {
 } from "@phosphor-icons/react";
 import { cn } from "cn";
 import type { ReactNode } from "react";
-import { useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Select } from "@/components/Select";
-import { aheadBehindText, isValidBranchName, pushTarget } from "@/lib/git";
-import type { GitSyncStatus } from "@/lib/types";
-import {
-  gitCreateBranch,
-  gitFetch,
-  gitPull,
-  gitPush,
-  gitSwitchBranch,
-  gitSyncStatus,
-} from "@/services/api";
-
-const GIT_CODES = [
-  "GIT_UNAVAILABLE",
-  "GIT_NOT_GIT",
-  "GIT_FAILED",
-  "GIT_REMOTE_FAILED",
-  "GIT_AUTH_FAILED",
-  "GIT_DIRTY",
-  "GIT_DIVERGED",
-  "GIT_NO_UPSTREAM",
-  "GIT_PUSH_REJECTED",
-  "GIT_DETACHED",
-  "GIT_BRANCH_EXISTS",
-  "GIT_BRANCH_NOT_FOUND",
-  "GIT_INVALID_BRANCH",
-  "GIT_SWITCH_FAILED",
-  "GIT_CREATE_FAILED",
-];
-
-const DETAIL_CODES = new Set([
-  "GIT_REMOTE_FAILED",
-  "GIT_AUTH_FAILED",
-  "GIT_FAILED",
-  "GIT_SWITCH_FAILED",
-  "GIT_CREATE_FAILED",
-]);
-
-function gitErrorCode(error: unknown): string | null {
-  const text = String(error);
-  return GIT_CODES.find((code) => text.includes(code)) ?? null;
-}
+import { isValidBranchName } from "@/lib/git";
+import { useGitSync } from "../hooks/useGitSync";
 
 export function GitSyncPanel({
   fullName,
@@ -65,64 +25,31 @@ export function GitSyncPanel({
   path: string;
 }) {
   const { t, locale } = useI18n();
-  const [open, setOpen] = useState(false);
-  const [status, setStatus] = useState<GitSyncStatus | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [active, setActive] = useState<string | null>(null);
-  const [progressKey, setProgressKey] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [switchTo, setSwitchTo] = useState("");
-  const [newBranch, setNewBranch] = useState("");
-  const [switchNew, setSwitchNew] = useState(true);
-  const generation = useRef(0);
-
-  async function load() {
-    const request = ++generation.current;
-    setBusy(true);
-    setError(null);
-    try {
-      const next = await gitSyncStatus(fullName, path);
-      if (request === generation.current) {
-        setStatus(next);
-        setSwitchTo(next.branch ?? "");
-      }
-    } catch (e) {
-      if (request === generation.current) setError(String(e));
-    } finally {
-      if (request === generation.current) setBusy(false);
-    }
-  }
-
-  async function run(
-    id: string,
-    progress: string,
-    done: (next: GitSyncStatus) => string,
-    op: () => Promise<GitSyncStatus>,
-  ) {
-    const request = generation.current;
-    setBusy(true);
-    setActive(id);
-    setProgressKey(progress);
-    setNotice(null);
-    setError(null);
-    try {
-      const next = await op();
-      if (request === generation.current) {
-        setStatus(next);
-        setSwitchTo(next.branch ?? "");
-        setNotice(done(next));
-      }
-    } catch (e) {
-      if (request === generation.current) setError(String(e));
-    } finally {
-      if (request === generation.current) {
-        setBusy(false);
-        setActive(null);
-        setProgressKey(null);
-      }
-    }
-  }
+  const {
+    open,
+    status,
+    busy,
+    active,
+    progressKey,
+    notice,
+    error,
+    code,
+    detail,
+    push,
+    badge,
+    switchTo,
+    setSwitchTo,
+    newBranch,
+    setNewBranch,
+    switchNew,
+    setSwitchNew,
+    toggle,
+    doFetch,
+    doPull,
+    doPush,
+    doSwitch,
+    doCreate,
+  } = useGitSync(fullName, path);
 
   function actionIcon(id: string, icon: ReactNode) {
     return active === id ? (
@@ -131,22 +58,6 @@ export function GitSyncPanel({
       icon
     );
   }
-
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && !status) void load();
-  }
-
-  const code = error ? gitErrorCode(error) : null;
-  const detail =
-    error && code && DETAIL_CODES.has(code)
-      ? String(error)
-          .replace(code, "")
-          .replace(/^[:\s]+/, "")
-      : "";
-  const push = status ? pushTarget(status) : null;
-  const badge = status ? aheadBehindText(status.ahead, status.behind) : null;
 
   return (
     <div className="mt-2 border-t border-hairline pt-2">
@@ -214,17 +125,7 @@ export function GitSyncPanel({
                     : t("local.git.neverFetched")}
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  <Button
-                    disabled={busy}
-                    onClick={() =>
-                      void run(
-                        "fetch",
-                        "local.git.fetching",
-                        () => t("local.git.fetched"),
-                        () => gitFetch(fullName, path),
-                      )
-                    }
-                  >
+                  <Button disabled={busy} onClick={() => void doFetch()}>
                     {actionIcon(
                       "fetch",
                       <ArrowsClockwiseIcon size={14} aria-hidden />,
@@ -233,14 +134,7 @@ export function GitSyncPanel({
                   </Button>
                   <Button
                     disabled={busy || status.detached || !status.upstream}
-                    onClick={() =>
-                      void run(
-                        "pull",
-                        "local.git.pulling",
-                        () => t("local.git.pulled"),
-                        () => gitPull(fullName, path),
-                      )
-                    }
+                    onClick={() => void doPull()}
                   >
                     {actionIcon(
                       "pull",
@@ -250,18 +144,7 @@ export function GitSyncPanel({
                   </Button>
                   <Button
                     disabled={busy || status.detached || !push}
-                    onClick={() =>
-                      void run(
-                        "push",
-                        "local.git.pushing",
-                        (next) =>
-                          t("local.git.pushed", {
-                            target: next.upstream ?? push?.label ?? "",
-                          }),
-                        () =>
-                          gitPush(fullName, path, push?.setsUpstream ?? false),
-                      )
-                    }
+                    onClick={() => void doPush()}
                   >
                     {actionIcon("push", <ArrowUpIcon size={14} aria-hidden />)}
                     {push
@@ -314,17 +197,7 @@ export function GitSyncPanel({
                       !status.clean
                     }
                     size="md"
-                    onClick={() =>
-                      void run(
-                        "switch",
-                        "local.git.switching",
-                        (next) =>
-                          t("local.git.switched", {
-                            branch: next.branch ?? switchTo,
-                          }),
-                        () => gitSwitchBranch(fullName, path, switchTo),
-                      )
-                    }
+                    onClick={() => void doSwitch()}
                   >
                     {actionIcon(
                       "switch",
@@ -348,17 +221,7 @@ export function GitSyncPanel({
                       }
                       size="md"
                       className="mt-2"
-                      onClick={() => {
-                        const name = newBranch.trim();
-                        setNewBranch("");
-                        void run(
-                          "create",
-                          "local.git.creating",
-                          () => t("local.git.created", { branch: name }),
-                          () =>
-                            gitCreateBranch(fullName, path, name, switchNew),
-                        );
-                      }}
+                      onClick={() => void doCreate()}
                     >
                       {actionIcon("create", <PlusIcon size={14} aria-hidden />)}
                       {t("local.git.create")}

@@ -4,7 +4,7 @@ import { useI18n } from "@/app/hooks";
 import { BarChart } from "@/components/Charts";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
-import { Flag } from "./shared";
+import { Flag } from "./Flag";
 
 export function ReleasesTable({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();

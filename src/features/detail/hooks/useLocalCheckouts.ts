@@ -10,7 +10,7 @@ import {
   openLocalCheckout,
   unlinkLocalCheckout,
 } from "@/services/api";
-import { localError, suggestFolderName } from "./localUtils";
+import { localError, suggestFolderName } from "../utils/localUtils";
 
 export type EditorTarget = "vscode" | "cursor" | "zed";
 
