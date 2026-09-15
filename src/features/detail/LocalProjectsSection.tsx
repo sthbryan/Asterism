@@ -221,11 +221,12 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
             className="mt-2"
           />
           <div className="mt-3 flex justify-end gap-2">
-            <Button disabled={busy} onClick={() => setParent(null)}>
+            <Button disabled={busy} size="md" onClick={() => setParent(null)}>
               {t("Cancel")}
             </Button>
             <Button
               variant="primary"
+              size="md"
               disabled={busy || !online || !name.trim()}
               onClick={() => void clone()}
             >

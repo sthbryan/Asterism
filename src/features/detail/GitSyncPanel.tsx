@@ -212,6 +212,7 @@ export function GitSyncPanel({
                     switchTo === status.branch ||
                     !status.clean
                   }
+                  size="md"
                   onClick={() =>
                     void run(() => gitSwitchBranch(fullName, path, switchTo))
                   }
@@ -232,6 +233,7 @@ export function GitSyncPanel({
                     disabled={
                       busy || !isValidBranchName(newBranch) || !status.clean
                     }
+                    size="md"
                     onClick={() => {
                       const name = newBranch.trim();
                       setNewBranch("");
