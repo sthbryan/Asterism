@@ -64,6 +64,12 @@ struct AccountCache {
     catalog: Option<Saved<Vec<CatalogRepo>>>,
     details: BTreeMap<String, Saved<RepoDetail>>,
     pull_requests: BTreeMap<String, serde_json::Value>,
+    pull_list: Option<Saved<Vec<PullRequestSummary>>>,
+    /// Versioned list cache including per-repository errors and pagination
+    /// metadata. `pull_list` is retained so older stores remain readable.
+    pull_result: Option<Saved<PullListResult>>,
+    pull_details: BTreeMap<String, Saved<PullRequestDetail>>,
+    pull_diffs: BTreeMap<String, Saved<String>>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -420,6 +426,91 @@ impl<R: Runtime> Storage<R> {
         self.save_cached(cache)?;
         Ok(saved)
     }
+    pub fn load_pull_list(&self) -> Result<Option<Saved<PullListResult>>, String> {
+        let cache = self.cached()?;
+        if let Some(result) = cache.pull_result {
+            return Ok(Some(result));
+        }
+        // Stores created by the initial PR prototype only had a list. Treat it
+        // as a successful, empty-error snapshot during the transition.
+        Ok(cache.pull_list.map(|legacy| Saved {
+            fetched_at: legacy.fetched_at,
+            data: PullListResult {
+                pulls: legacy.data,
+                errors: BTreeMap::new(),
+                fetched_at: legacy.fetched_at,
+                page: 1,
+                per_page: 30,
+                total: 0,
+                has_next_page: false,
+            },
+            warning: legacy.warning,
+        }))
+    }
+    pub fn save_pull_list(&self, result: PullListResult) -> Result<Saved<PullListResult>, String> {
+        let mut cache = self.cached()?;
+        let saved = Saved {
+            fetched_at: result.fetched_at,
+            data: result,
+            warning: None,
+        };
+        cache.pull_result = Some(saved.clone());
+        self.save_cached(cache)?;
+        Ok(saved)
+    }
+    pub fn load_pull_detail(
+        &self,
+        repo: &str,
+        number: u64,
+    ) -> Result<Option<Saved<PullRequestDetail>>, String> {
+        Ok(self
+            .cached()?
+            .pull_details
+            .get(&pull_detail_key(repo, number))
+            .cloned())
+    }
+    pub fn save_pull_detail(
+        &self,
+        detail: PullRequestDetail,
+    ) -> Result<Saved<PullRequestDetail>, String> {
+        let mut cache = self.cached()?;
+        let saved = Saved {
+            fetched_at: history::now_secs(),
+            data: detail,
+            warning: None,
+        };
+        cache.pull_details.insert(
+            pull_detail_key(&saved.data.summary.repo, saved.data.summary.number),
+            saved.clone(),
+        );
+        self.save_cached(cache)?;
+        Ok(saved)
+    }
+    pub fn load_pull_diff(&self, repo: &str, number: u64) -> Result<Option<Saved<String>>, String> {
+        Ok(self
+            .cached()?
+            .pull_diffs
+            .get(&pull_detail_key(repo, number))
+            .cloned())
+    }
+    pub fn save_pull_diff(
+        &self,
+        repo: &str,
+        number: u64,
+        diff: String,
+    ) -> Result<Saved<String>, String> {
+        let mut cache = self.cached()?;
+        let saved = Saved {
+            fetched_at: history::now_secs(),
+            data: diff,
+            warning: None,
+        };
+        cache
+            .pull_diffs
+            .insert(pull_detail_key(repo, number), saved.clone());
+        self.save_cached(cache)?;
+        Ok(saved)
+    }
     pub fn clear_cache(&self) -> Result<LocalState, String> {
         self.write(&self.account_file("cache")?, &AccountCache::default())?;
         self.local_state()
@@ -448,9 +539,35 @@ fn legacy_read<T: DeserializeOwned>(path: &Path) -> Result<Option<T>, String> {
     }
 }
 fn bound_cache(cache: &mut AccountCache) -> Result<(), String> {
+    const MAX_PULL_DETAILS: usize = 200;
+    const MAX_PULL_DIFFS: usize = 40;
     while cache.details.len() > MAX_DETAILS
+        || cache.pull_details.len() > MAX_PULL_DETAILS
+        || cache.pull_diffs.len() > MAX_PULL_DIFFS
         || serde_json::to_vec(cache).map_err(|e| e.to_string())?.len() > MAX_CACHE_BYTES
     {
+        if cache.pull_diffs.len() > MAX_PULL_DIFFS {
+            if let Some(key) = cache
+                .pull_diffs
+                .iter()
+                .min_by_key(|(_, v)| v.fetched_at)
+                .map(|(k, _)| k.clone())
+            {
+                cache.pull_diffs.remove(&key);
+                continue;
+            }
+        }
+        if cache.pull_details.len() > MAX_PULL_DETAILS {
+            if let Some(key) = cache
+                .pull_details
+                .iter()
+                .min_by_key(|(_, v)| v.fetched_at)
+                .map(|(k, _)| k.clone())
+            {
+                cache.pull_details.remove(&key);
+                continue;
+            }
+        }
         if let Some(key) = cache
             .details
             .iter()

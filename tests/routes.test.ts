@@ -15,6 +15,8 @@ describe("routes", () => {
     expect(paths).toContain("/create");
     expect(paths).toContain("/settings");
     expect(paths).toContain("/setup");
+    expect(paths).toContain("/pulls");
+    expect(paths).toContain("/pull/:repo/:number");
   });
 
   test("getNavForPath maps routes to active nav ids", () => {
@@ -24,6 +26,8 @@ describe("routes", () => {
     expect(getNavForPath("/create")).toBe("create");
     expect(getNavForPath("/settings")).toBe("settings");
     expect(getNavForPath("/setup")).toBe("overview");
+    expect(getNavForPath("/pulls")).toBe("pulls");
+    expect(getNavForPath("/pull/owner%2Frepo/42")).toBe("pulls");
   });
 
   test("detailPath encodes repository full names", () => {

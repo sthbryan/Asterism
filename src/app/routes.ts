@@ -7,8 +7,9 @@ import {
   SettingsView,
   SetupView,
 } from "@/features";
+import { PullDetailView, PullsView } from "@/features/pulls";
 
-export type NavId = "overview" | "repos" | "create" | "settings";
+export type NavId = "overview" | "repos" | "pulls" | "create" | "settings";
 
 export type AppRoute = {
   path: string;
@@ -19,6 +20,8 @@ export type AppRoute = {
 export const ROUTES: AppRoute[] = [
   { path: "/", component: ListView, nav: "overview" },
   { path: "/repos", component: PickerView, nav: "repos" },
+  { path: "/pulls", component: PullsView, nav: "pulls" },
+  { path: "/pull/:repo/:number", component: PullDetailView, nav: "pulls" },
   { path: "/repo/:fullName", component: DetailView, nav: "overview" },
   { path: "/create", component: CreateView, nav: "create" },
   { path: "/settings", component: SettingsView, nav: "settings" },
@@ -29,6 +32,7 @@ export function getNavForPath(path: string): NavId {
   if (path.startsWith("/settings")) return "settings";
   if (path.startsWith("/create")) return "create";
   if (path.startsWith("/repos")) return "repos";
+  if (path.startsWith("/pull")) return "pulls";
   return "overview";
 }
 

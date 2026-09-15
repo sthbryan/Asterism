@@ -42,6 +42,7 @@ function AppLayout() {
     if (id === "create") navigate("/create");
     if (id === "overview") navigate("/");
     if (id === "repos") navigate("/repos");
+    if (id === "pulls") navigate("/pulls");
   };
 
   return (

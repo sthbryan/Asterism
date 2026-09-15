@@ -95,4 +95,25 @@ export const tauriClient: ApiClient = {
     const selected = await open({ directory: true, multiple: false });
     return typeof selected === "string" ? selected : null;
   },
+  listPullRequests: (repos, limit = 100, offline = false) =>
+    invoke("list_pull_requests", {
+      repos,
+      limit,
+      offline,
+      expectedAccount: account,
+    }),
+  getPullRequest: (repo, number, offline = false) =>
+    invoke("get_pull_request", {
+      repo,
+      number,
+      offline,
+      expectedAccount: account,
+    }),
+  getPullDiff: (repo, number, offline = false) =>
+    invoke("get_pull_diff", {
+      repo,
+      number,
+      offline,
+      expectedAccount: account,
+    }),
 };

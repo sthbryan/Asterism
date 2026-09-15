@@ -5,6 +5,7 @@ mod git;
 mod history;
 mod models;
 mod platform;
+mod pulls;
 
 #[cfg(test)]
 mod git_sync_tests;
@@ -49,7 +50,17 @@ pub fn run() {
             git::git_pull,
             git::git_push,
             git::git_switch_branch,
-            git::git_create_branch
+            git::git_create_branch,
+            commands::get_cached_pull_requests,
+            commands::refresh_pull_requests,
+            commands::list_pull_requests,
+            commands::list_pull_requests_filtered,
+            commands::get_cached_pull_request_detail,
+            commands::get_pull_request_detail,
+            commands::get_pull_request,
+            commands::get_cached_pull_request_diff,
+            commands::get_pull_request_diff,
+            commands::get_pull_diff
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -22,6 +22,9 @@ import type {
   LocalCheckout,
   Locale,
   LocalState,
+  PullListResult,
+  PullRequestDetail,
+  PullRequestSummary,
 } from "@/lib/types";
 import type { ApiClient } from "./types";
 
@@ -50,6 +53,180 @@ function cacheFor(repos: string[], fetchedAt: number): Cache {
 }
 
 let mockRepos = [...MOCK_CONFIG.repos];
+
+const PULL_NOW = new Date("2026-09-12T12:00:00Z");
+const mockPull = (
+  repo: string,
+  number: number,
+  title: string,
+  author: string,
+  headRef: string,
+  baseRef: string,
+  options: Partial<PullRequestSummary> = {},
+): PullRequestSummary => ({
+  repo,
+  number,
+  title,
+  author,
+  headRef,
+  baseRef,
+  draft: false,
+  state: "OPEN",
+  createdAt: new Date(PULL_NOW.getTime() - number * 86400000).toISOString(),
+  updatedAt: PULL_NOW.toISOString(),
+  url: `https://github.com/${repo}/pull/${number}`,
+  additions: 0,
+  deletions: 0,
+  changedFiles: 1,
+  reviewDecision: null,
+  checks: { passing: 2, failing: 0, pending: 0 },
+  approvals: 0,
+  changesRequested: 0,
+  assignees: [],
+  reviewRequests: [],
+  ...options,
+});
+
+const MOCK_PULLS: PullRequestDetail[] = [
+  {
+    ...mockPull(
+      "sthbryan/asterism",
+      42,
+      "Add the pull request inbox",
+      "sthbryan",
+      "feat/pull-inbox",
+      "main",
+      {
+        additions: 342,
+        deletions: 28,
+        changedFiles: 12,
+        reviewDecision: "REVIEW_REQUIRED",
+        checks: { passing: 3, failing: 0, pending: 1 },
+        reviewRequests: ["octocat"],
+        assignees: ["sthbryan"],
+      },
+    ),
+    body: "A focused inbox for the repositories you follow.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [
+      { path: "src/features/pulls/index.tsx", additions: 180, deletions: 0 },
+      { path: "src/services/api/types.ts", additions: 44, deletions: 2 },
+    ],
+  },
+  {
+    ...mockPull(
+      "sthbryan/asterism",
+      39,
+      "Polish offline states",
+      "octocat",
+      "fix/offline",
+      "main",
+      {
+        additions: 86,
+        deletions: 19,
+        changedFiles: 4,
+        checks: { passing: 2, failing: 0, pending: 0 },
+        approvals: 2,
+        reviewDecision: "APPROVED",
+      },
+    ),
+    body: "Keep saved data visible while reconnecting.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [{ path: "src/app/stores/boot.ts", additions: 86, deletions: 19 }],
+  },
+  {
+    ...mockPull(
+      "sthbryan/hyperion",
+      18,
+      "Handle retry-after headers",
+      "sthbryan",
+      "fix/rate-limit",
+      "main",
+      {
+        additions: 21,
+        deletions: 4,
+        changedFiles: 2,
+        checks: { passing: 1, failing: 1, pending: 0 },
+        reviewDecision: "CHANGES_REQUESTED",
+        changesRequested: 1,
+      },
+    ),
+    body: "Respect the API limit when retrying requests.",
+    mergeable: "CONFLICTING",
+    mergeState: "DIRTY",
+    files: [{ path: "src/gh.rs", additions: 21, deletions: 4 }],
+  },
+  {
+    ...mockPull(
+      "acme/nebula-api",
+      7,
+      "Document billing webhooks",
+      "ada",
+      "docs/webhooks",
+      "main",
+      {
+        draft: true,
+        additions: 120,
+        deletions: 0,
+        changedFiles: 8,
+        checks: { passing: 0, failing: 0, pending: 2 },
+        assignees: ["ada"],
+      },
+    ),
+    body: "Draft documentation for the public webhook contract.",
+    mergeable: null,
+    mergeState: "BLOCKED",
+    files: [{ path: "docs/webhooks.md", additions: 120, deletions: 0 }],
+  },
+  {
+    ...mockPull(
+      "acme/atlas-web",
+      103,
+      "Refresh dashboard dependencies",
+      "lin",
+      "deps/dashboard",
+      "develop",
+      {
+        additions: 55,
+        deletions: 55,
+        changedFiles: 15,
+        checks: { passing: 4, failing: 0, pending: 0 },
+        approvals: 1,
+        reviewDecision: "APPROVED",
+      },
+    ),
+    body: "Update the dashboard dependency set.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [{ path: "package.json", additions: 55, deletions: 55 }],
+  },
+  {
+    ...mockPull(
+      "sthbryan/portfolio",
+      12,
+      "Fix navigation on small screens",
+      "sthbryan",
+      "fix/mobile-nav",
+      "main",
+      {
+        state: "CLOSED",
+        mergedAt: "2026-09-10T15:00:00Z",
+        additions: 18,
+        deletions: 7,
+        changedFiles: 2,
+        approvals: 1,
+      },
+    ),
+    body: "Closed externally after the change was shipped separately.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [{ path: "src/mobile.ts", additions: 18, deletions: 7 }],
+  },
+];
+
+const pullSavedAt = Math.floor(PULL_NOW.getTime() / 1000);
 const mockCheckouts: Record<string, LocalCheckout[]> = {
   "sthbryan/asterism": [
     {
@@ -328,4 +505,64 @@ export const mockClient: ApiClient = {
     return delay({ ...next }, 300);
   },
   chooseLocalFolder: () => delay("/Users/demo/projects"),
+  listPullRequests: (repos, limit = 100, offline = false) => {
+    const mode = new URLSearchParams(window.location.search).get("pulls");
+    if (mode === "error" && !offline)
+      return Promise.reject("GitHub unavailable");
+    const requested = repos.length ? repos : mockRepos;
+    const errors: Record<string, string> = {};
+    if (mode === "partial" && requested.includes("acme/nebula-api"))
+      errors["acme/nebula-api"] = "Permission denied for this repository.";
+    const pulls = MOCK_PULLS.filter(
+      (pull) => requested.includes(pull.repo) && !errors[pull.repo],
+    ).slice(0, Math.max(1, Math.min(limit, 100)));
+    const result: PullListResult = {
+      pulls,
+      errors,
+      fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+    };
+    return delay(result, 420);
+  },
+  getPullRequest: (repo, number, offline = false) => {
+    const mode = new URLSearchParams(window.location.search).get("pulls");
+    if (mode === "error" && !offline)
+      return Promise.reject("GitHub unavailable");
+    const pull = MOCK_PULLS.find(
+      (item) => item.repo === repo && item.number === number,
+    );
+    if (!pull)
+      return Promise.reject("This pull request is not available locally.");
+    return delay(
+      {
+        data: pull,
+        fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+        warning: null,
+      },
+      360,
+    );
+  },
+  getPullDiff: (repo, number, offline = false) => {
+    const mode = new URLSearchParams(window.location.search).get("pulls");
+    if (mode === "error" && !offline)
+      return Promise.reject("GitHub unavailable");
+    const pull = MOCK_PULLS.find(
+      (item) => item.repo === repo && item.number === number,
+    );
+    if (!pull)
+      return Promise.reject("This pull request is not available locally.");
+    const diff = pull.files
+      .map(
+        (file) =>
+          `diff --git a/${file.path} b/${file.path}\n--- a/${file.path}\n+++ b/${file.path}\n@@ -1,1 +1,${Math.max(1, file.additions)} @@\n+Updated by Pull Request #${number}\n`,
+      )
+      .join("\n");
+    return delay(
+      {
+        data: diff,
+        fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+        warning: null,
+      },
+      500,
+    );
+  },
 };

@@ -12,8 +12,7 @@ use crate::models::{
 
 mod process;
 
-use process::run_gh_json;
-pub(crate) use process::{run_gh_env, tool_version};
+pub(crate) use process::{run_gh_env, run_gh_json, tool_version};
 
 pub struct TrackedFetch {
     pub repo: TrackedRepo,

@@ -65,3 +65,12 @@ export const gitCreateBranch = (
   switchTo: boolean,
 ) => client().gitCreateBranch(fullName, path, branch, switchTo);
 export const chooseLocalFolder = () => client().chooseLocalFolder();
+export const listPullRequests = (
+  repos: string[],
+  limit = 100,
+  offline = false,
+) => client().listPullRequests(repos, limit, offline);
+export const getPullRequest = (repo: string, number: number, offline = false) =>
+  client().getPullRequest(repo, number, offline);
+export const getPullDiff = (repo: string, number: number, offline = false) =>
+  client().getPullDiff(repo, number, offline);

@@ -3,6 +3,7 @@ import enCreate from "./locales/en/create.json";
 import enDetail from "./locales/en/detail.json";
 import enList from "./locales/en/list.json";
 import enPicker from "./locales/en/picker.json";
+import enPulls from "./locales/en/pulls.json";
 import enSettings from "./locales/en/settings.json";
 import enSetup from "./locales/en/setup.json";
 import esCommon from "./locales/es/common.json";
@@ -10,6 +11,7 @@ import esCreate from "./locales/es/create.json";
 import esDetail from "./locales/es/detail.json";
 import esList from "./locales/es/list.json";
 import esPicker from "./locales/es/picker.json";
+import esPulls from "./locales/es/pulls.json";
 import esSettings from "./locales/es/settings.json";
 import esSetup from "./locales/es/setup.json";
 
@@ -35,6 +37,7 @@ export const en = composeLocale({
   setup: enSetup,
   settings: enSettings,
 });
+en.pulls = enPulls.pulls;
 
 export const es = composeLocale({
   common: esCommon,
@@ -45,3 +48,4 @@ export const es = composeLocale({
   setup: esSetup,
   settings: esSettings,
 });
+es.pulls = esPulls.pulls;

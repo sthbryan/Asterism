@@ -55,7 +55,7 @@ pub(crate) fn run_gh_env(args: &[&str], extra_env: &[(&str, &str)]) -> Result<St
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
-pub(super) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
+pub(crate) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
     let raw = run_gh(args)?;
     let trimmed = raw.trim();
     if trimmed.is_empty() {

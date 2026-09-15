@@ -63,7 +63,10 @@ fn stderr_text(out: &std::process::Output) -> String {
 }
 
 fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, String> {
-    let out = run_git(dir, &["for-each-ref", "--format=%(refname:short)", namespace])?;
+    let out = run_git(
+        dir,
+        &["for-each-ref", "--format=%(refname:short)", namespace],
+    )?;
     if !out.status.success() {
         return Err(format!("GIT_FAILED:{}", stderr_text(&out)));
     }
@@ -78,8 +81,11 @@ fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, String> {
 }
 
 fn current_upstream(dir: &Path) -> Option<String> {
-    let out = run_git(dir, &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])
-        .ok()?;
+    let out = run_git(
+        dir,
+        &["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+    )
+    .ok()?;
     if !out.status.success() {
         return None;
     }
@@ -165,7 +171,11 @@ pub fn sync_status_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let branch_out = run_git(dir, &["branch", "--show-current"])?;
     let branch = if branch_out.status.success() {
         let name = stdout_text(&branch_out);
-        if name.is_empty() { None } else { Some(name) }
+        if name.is_empty() {
+            None
+        } else {
+            Some(name)
+        }
     } else {
         None
     };
@@ -217,7 +227,10 @@ fn classify_remote_error(stderr: &str) -> String {
 }
 
 fn require_branch(status: &GitSyncStatus) -> Result<String, String> {
-    status.branch.clone().ok_or_else(|| "GIT_DETACHED".to_string())
+    status
+        .branch
+        .clone()
+        .ok_or_else(|| "GIT_DETACHED".to_string())
 }
 
 /// Fetch the default remote with pruning, then return a fresh status.
@@ -312,11 +325,7 @@ pub fn switch_branch_dir(dir: &Path, branch: &str) -> Result<GitSyncStatus, Stri
 
 /// Create a local branch, optionally switching to it. Switching with a dirty
 /// worktree is refused; creating without switching never touches the worktree.
-pub fn create_branch_dir(
-    dir: &Path,
-    branch: &str,
-    switch: bool,
-) -> Result<GitSyncStatus, String> {
+pub fn create_branch_dir(dir: &Path, branch: &str, switch: bool) -> Result<GitSyncStatus, String> {
     if branch.trim().is_empty() {
         return Err("GIT_INVALID_BRANCH".into());
     }
@@ -362,11 +371,8 @@ pub(crate) async fn git_sync_status(
     path: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir = crate::commands::require_ready_checkout(
-        &full_name,
-        &path,
-        expected_account.as_deref(),
-    )?;
+    let dir =
+        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
     read_only(move || sync_status_dir(&dir)).await
 }
 
@@ -376,11 +382,8 @@ pub(crate) async fn git_fetch(
     path: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir = crate::commands::require_ready_checkout(
-        &full_name,
-        &path,
-        expected_account.as_deref(),
-    )?;
+    let dir =
+        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
     serialized_on(dir.clone(), move || fetch_dir(&dir)).await
 }
 
@@ -390,11 +393,8 @@ pub(crate) async fn git_pull(
     path: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir = crate::commands::require_ready_checkout(
-        &full_name,
-        &path,
-        expected_account.as_deref(),
-    )?;
+    let dir =
+        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
     serialized_on(dir.clone(), move || pull_ff_dir(&dir)).await
 }
 
@@ -405,11 +405,8 @@ pub(crate) async fn git_push(
     set_upstream: bool,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir = crate::commands::require_ready_checkout(
-        &full_name,
-        &path,
-        expected_account.as_deref(),
-    )?;
+    let dir =
+        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
     let remote = crate::commands::matching_remote_name(&full_name, &dir)
         .ok_or_else(|| "LOCAL_REMOTE_MISMATCH".to_string())?;
     serialized_on(dir.clone(), move || push_dir(&dir, &remote, set_upstream)).await
@@ -422,11 +419,8 @@ pub(crate) async fn git_switch_branch(
     branch: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir = crate::commands::require_ready_checkout(
-        &full_name,
-        &path,
-        expected_account.as_deref(),
-    )?;
+    let dir =
+        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
     serialized_on(dir.clone(), move || switch_branch_dir(&dir, &branch)).await
 }
 
@@ -438,11 +432,8 @@ pub(crate) async fn git_create_branch(
     switch: bool,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir = crate::commands::require_ready_checkout(
-        &full_name,
-        &path,
-        expected_account.as_deref(),
-    )?;
+    let dir =
+        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
     serialized_on(dir.clone(), move || {
         create_branch_dir(&dir, &branch, switch)
     })

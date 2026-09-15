@@ -11,6 +11,12 @@ import { normalizeLocale } from "../src/lib/i18n/locale";
 import { enqueuePreference } from "../src/lib/preferences";
 
 describe("translations", () => {
+  test("pull request namespace resolves user-facing labels", () => {
+    expect(translate("es", "pulls.title")).toBe("Pull requests");
+    expect(translate("en", "pulls.refresh")).toBe("Refresh");
+    expect(translate("es", "offline.checking")).toBe("Comprobando conexión…");
+  });
+
   test("both languages contain the same nonempty messages and placeholders", () => {
     function compareTrees(english: unknown, spanish: unknown) {
       expect(typeof spanish).toBe(typeof english);

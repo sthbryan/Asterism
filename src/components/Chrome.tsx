@@ -2,6 +2,7 @@ import {
   ChartBarIcon,
   FolderSimpleIcon,
   GearSixIcon,
+  GitPullRequestIcon,
   PlusIcon,
 } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
@@ -10,7 +11,7 @@ import { dragWindow } from "@/lib/drag";
 
 import { Mark } from "./Mark";
 
-export type NavId = "overview" | "repos" | "create" | "settings";
+export type NavId = "overview" | "repos" | "pulls" | "create" | "settings";
 
 function initials(login: string | null | undefined) {
   if (!login) return "··";
@@ -76,6 +77,12 @@ export function Chrome({
             label={t("Repositories")}
             onClick={() => onNav("repos")}
             badge={trackedCount}
+          />
+          <NavButton
+            active={nav === "pulls"}
+            icon={<GitPullRequestIcon size={16} />}
+            label={t("pulls.title")}
+            onClick={() => onNav("pulls")}
           />
           <NavButton
             active={nav === "create"}

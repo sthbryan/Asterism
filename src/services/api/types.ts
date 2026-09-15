@@ -10,6 +10,8 @@ import type {
   LocalCheckout,
   Locale,
   LocalState,
+  PullListResult,
+  PullRequestDetail,
   RepoDetail,
   Saved,
   Status,
@@ -68,4 +70,19 @@ export type ApiClient = {
     target: "folder" | "vscode" | "cursor" | "zed",
   ) => Promise<void>;
   chooseLocalFolder: () => Promise<string | null>;
+  listPullRequests: (
+    repos: string[],
+    limit?: number,
+    offline?: boolean,
+  ) => Promise<PullListResult>;
+  getPullRequest: (
+    repo: string,
+    number: number,
+    offline?: boolean,
+  ) => Promise<Saved<PullRequestDetail>>;
+  getPullDiff: (
+    repo: string,
+    number: number,
+    offline?: boolean,
+  ) => Promise<Saved<string>>;
 };
