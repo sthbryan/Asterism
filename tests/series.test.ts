@@ -41,22 +41,25 @@ describe("series windows", () => {
     expect(windowDelta([{ ts: 1, value: 5 }], 7)).toBeNull();
   });
 
-  test("aggregates only observed values instead of inventing zeroes", () => {
+  test("aggregates the complete history across repositories", () => {
     const history = {
       a: { stars: [{ ts: 0, value: 10 }], downloads: [], forks: [] },
       b: { stars: [{ ts: 3 * day, value: 5 }], downloads: [], forks: [] },
     };
     expect(aggregateHistory(history, ["a", "b"], "stars")).toEqual([
+      { ts: 0, value: 10 },
       { ts: 3 * day, value: 15 },
     ]);
   });
 
-  test("does not aggregate when a selected repo has no history", () => {
+  test("keeps available history when a selected repo has no samples", () => {
     const history = {
       a: { stars: [{ ts: 0, value: 10 }], downloads: [], forks: [] },
       b: { stars: [], downloads: [], forks: [] },
     };
-    expect(aggregateHistory(history, ["a", "b"], "stars")).toEqual([]);
+    expect(aggregateHistory(history, ["a", "b"], "stars")).toEqual([
+      { ts: 0, value: 10 },
+    ]);
   });
 
   test("preserves old windows as partial coverage rather than current data", () => {

@@ -118,7 +118,6 @@ export function ListView() {
               <ListCharts
                 starSeries={starSeries}
                 downloadSeries={downloadSeries}
-                referenceTs={fetchedAt ?? undefined}
               />
             </When>
             <If condition={repos.length === 0}>

@@ -6,8 +6,8 @@ export function dayBucket(ts: number) {
   return Math.floor(ts / DAY) * DAY;
 }
 
-function valueAt(series: SeriesPoint[], ts: number): number | null {
-  let last: number | null = null;
+function valueAt(series: SeriesPoint[], ts: number) {
+  let last = 0;
   for (const point of series) {
     if (point.ts <= ts) last = point.value;
     else break;
@@ -20,31 +20,21 @@ export function aggregateHistory(
   names: string[],
   key: "stars" | "downloads" | "forks",
 ): SeriesPoint[] {
-  const requestedSeries = names.map((name) => history[name]?.[key] ?? []);
-
-  if (requestedSeries.some((series) => series.length === 0)) return [];
-  const seriesList = requestedSeries.map((series) =>
-    [...series].sort((a, b) => a.ts - b.ts),
-  );
+  const seriesList = names
+    .map((name) => history[name]?.[key] ?? [])
+    .filter((series) => series.length > 0)
+    .map((series) => [...series].sort((a, b) => a.ts - b.ts));
   if (seriesList.length === 0) return [];
-
-  const comparableFrom = dayBucket(
-    Math.max(...seriesList.map((series) => series[0].ts)),
-  );
 
   const stamps = new Set<number>();
   for (const series of seriesList) {
     for (const point of series) stamps.add(dayBucket(point.ts));
   }
   const timestamps = [...stamps].sort((a, b) => a - b);
-  return timestamps.flatMap((ts) => {
-    const values = seriesList
-      .map((series) => valueAt(series, ts))
-      .filter((value): value is number => value != null);
-    return ts >= comparableFrom && values.length === seriesList.length
-      ? [{ ts, value: values.reduce((a, b) => a + b, 0) }]
-      : [];
-  });
+  return timestamps.map((ts) => ({
+    ts,
+    value: seriesList.reduce((sum, series) => sum + valueAt(series, ts), 0),
+  }));
 }
 
 export function fillTrafficDays(

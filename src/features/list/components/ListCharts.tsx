@@ -2,27 +2,19 @@ import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { AreaChart } from "@/components/Charts";
 import { fmtSigned } from "@/lib/format";
-import { delta, seriesWindow } from "@/lib/series";
+import { delta } from "@/lib/series";
 import type { SeriesPoint } from "@/lib/types";
-
-const PERIOD_DAYS = 30;
 
 export function ListCharts({
   starSeries,
   downloadSeries,
-  referenceTs,
 }: {
   starSeries: SeriesPoint[];
   downloadSeries: SeriesPoint[];
-  referenceTs?: number;
 }) {
   const { t } = useI18n();
-  const starWindow = seriesWindow(starSeries, PERIOD_DAYS, referenceTs);
-  const downloadWindow = seriesWindow(downloadSeries, PERIOD_DAYS, referenceTs);
-  const stars = starWindow?.points ?? [];
-  const downloads = downloadWindow?.points ?? [];
-  const starDelta = delta(stars);
-  const downloadDelta = delta(downloads);
+  const starDelta = delta(starSeries);
+  const downloadDelta = delta(downloadSeries);
   return (
     <div className="mt-3">
       <div className="grid gap-3 lg:grid-cols-2">
@@ -38,30 +30,11 @@ export function ListCharts({
             </When>
           </div>
           <p className="mt-1 text-[11.5px] leading-snug text-faint">
-            {t(
-              "Reconstructed from GitHub stargazers, then updated on each refresh.",
-            )}
+            {t("Star growth across tracked repositories.")}
           </p>
-          <When condition={Boolean(starWindow?.partial)}>
-            <p className="mt-1 text-[10.5px] text-faint">
-              {t("list.partialCoverage", {
-                days:
-                  starWindow?.observedFromTs && starWindow?.observedToTs
-                    ? Math.max(
-                        1,
-                        Math.round(
-                          (starWindow.observedToTs -
-                            starWindow.observedFromTs) /
-                            86400,
-                        ),
-                      )
-                    : 0,
-              })}
-            </p>
-          </When>
           <div className="mt-3">
             <AreaChart
-              points={stars}
+              points={starSeries}
               tone="paper"
               empty={t(
                 "Open a repository or refresh to reconstruct star history from GitHub.",
@@ -81,30 +54,11 @@ export function ListCharts({
             </When>
           </div>
           <p className="mt-1 text-[11.5px] leading-snug text-faint">
-            {t(
-              "GitHub does not publish download history. Asterism records a snapshot each refresh.",
-            )}
+            {t("Download growth across tracked repositories.")}
           </p>
-          <When condition={Boolean(downloadWindow?.partial)}>
-            <p className="mt-1 text-[10.5px] text-faint">
-              {t("list.partialCoverage", {
-                days:
-                  downloadWindow?.observedFromTs && downloadWindow?.observedToTs
-                    ? Math.max(
-                        1,
-                        Math.round(
-                          (downloadWindow.observedToTs -
-                            downloadWindow.observedFromTs) /
-                            86400,
-                        ),
-                      )
-                    : 0,
-              })}
-            </p>
-          </When>
           <div className="mt-3">
             <AreaChart
-              points={downloads}
+              points={downloadSeries}
               tone="accent"
               empty={t("This chart fills in from the next refresh onward.")}
             />

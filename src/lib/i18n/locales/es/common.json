@@ -6,7 +6,7 @@
   "Create a repository on GitHub and start tracking it in Asterism.": "Crea un repositorio en GitHub y empieza a seguirlo en Asterism.",
   "Create repository": "Crear repositorio",
   "Default branch": "Rama predeterminada",
-  "GitHub does not publish download history. Asterism records a snapshot each refresh.": "GitHub no publica el historial de descargas. Asterism guarda una muestra en cada actualización.",
+  "Download growth across tracked repositories.": "Crecimiento de descargas en los repositorios seguidos.",
   "GitHub only exposes the last 14 days": "GitHub solo proporciona los últimos 14 días",
   "GitHub · connected": "GitHub · conectado",
   "Loading repository options…": "Cargando opciones del repositorio…",

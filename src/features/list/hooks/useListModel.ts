@@ -1,16 +1,9 @@
 import { useMemo } from "react";
 import { langColor } from "@/lib/langcolors";
 import { platformItems, sumPlatforms } from "@/lib/platform";
-import {
-  aggregateHistory,
-  pickKpiDelta,
-  sumDeltas,
-  windowDelta,
-} from "@/lib/series";
+import { aggregateHistory, pickKpiDelta, sumDeltas } from "@/lib/series";
 import type { RepoHistory, TrackedRepo } from "@/lib/types";
 import type { ListSort } from "./useListControls";
-
-const PERIOD_DAYS = 30;
 
 export type ListModelArgs = {
   repos: TrackedRepo[];
@@ -20,7 +13,7 @@ export type ListModelArgs = {
 };
 
 /**
- * Derived overview data: totals, 30-day KPI deltas, download chart,
+ * Derived overview data: totals, sync deltas, download chart,
  * sidebar aggregates and filtered/sorted table rows.
  * Pure derivations live here so the view only composes UI.
  */
@@ -47,19 +40,14 @@ export function useListModel({ repos, history, query, sort }: ListModelArgs) {
 
   const kpis = useMemo(
     () => ({
-      star: pickKpiDelta(
-        windowDelta(starSeries, PERIOD_DAYS),
-        sumDeltas(repos.map((repo) => repo.starsDelta)),
-        PERIOD_DAYS,
-      ),
+      star: pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.starsDelta))),
       fork: pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta))),
       download: pickKpiDelta(
-        windowDelta(downloadSeries, PERIOD_DAYS),
+        null,
         sumDeltas(repos.map((repo) => repo.downloadsDelta)),
-        PERIOD_DAYS,
       ),
     }),
-    [starSeries, downloadSeries, repos],
+    [repos],
   );
 
   const chart = useMemo(() => {

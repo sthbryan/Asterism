@@ -53,8 +53,8 @@ export function DetailBody({
       </When>
       <RepoIntro detail={detail} />
       <LocalProjectsSection fullName={detail.fullName} />
-      <Kpis detail={detail} referenceTs={fetchedAt ?? undefined} />
-      <HistoryCharts detail={detail} referenceTs={fetchedAt ?? undefined} />
+      <Kpis detail={detail} />
+      <HistoryCharts detail={detail} />
       <TrafficSectionInner detail={detail} />
       <InsightsSection detail={detail} />
       <MetaFacts detail={detail} />

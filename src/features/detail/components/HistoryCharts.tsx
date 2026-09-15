@@ -1,31 +1,11 @@
-import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { AreaChart } from "@/components/Charts";
-import { seriesWindow } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
-const PERIOD_DAYS = 30;
-
-export function HistoryCharts({
-  detail,
-  referenceTs,
-}: {
-  detail: RepoDetail;
-  referenceTs?: number;
-}) {
+export function HistoryCharts({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();
-  const starWindow = seriesWindow(
-    detail.starHistory ?? [],
-    PERIOD_DAYS,
-    referenceTs,
-  );
-  const downloadWindow = seriesWindow(
-    detail.downloadHistory ?? [],
-    PERIOD_DAYS,
-    referenceTs,
-  );
-  const stars = starWindow?.points ?? [];
-  const downloads = downloadWindow?.points ?? [];
+  const stars = detail.starHistory ?? [];
+  const downloads = detail.downloadHistory ?? [];
   return (
     <div className="mt-3">
       <div className="grid gap-3 lg:grid-cols-2">
@@ -34,27 +14,8 @@ export function HistoryCharts({
             {t("Stars over time")}
           </div>
           <p className="mt-1 text-[11.5px] leading-snug text-faint">
-            {t(
-              "Reconstructed from GitHub stargazers, then kept in sync on each refresh.",
-            )}
+            {t("Star growth for this repository.")}
           </p>
-          <When condition={starWindow?.partial}>
-            <p className="mt-1 text-[10.5px] text-faint">
-              {t("detail.partialCoverage", {
-                days:
-                  starWindow?.observedFromTs && starWindow?.observedToTs
-                    ? Math.max(
-                        1,
-                        Math.round(
-                          (starWindow.observedToTs -
-                            starWindow.observedFromTs) /
-                            86400,
-                        ),
-                      )
-                    : 0,
-              })}
-            </p>
-          </When>
           <div className="mt-3">
             <AreaChart
               points={stars}
@@ -68,27 +29,8 @@ export function HistoryCharts({
             {t("Downloads over time")}
           </div>
           <p className="mt-1 text-[11.5px] leading-snug text-faint">
-            {t(
-              "GitHub only reports current totals. Asterism snapshots them so the series grows from here.",
-            )}
+            {t("Download growth for this repository.")}
           </p>
-          <When condition={downloadWindow?.partial}>
-            <p className="mt-1 text-[10.5px] text-faint">
-              {t("detail.partialCoverage", {
-                days:
-                  downloadWindow?.observedFromTs && downloadWindow?.observedToTs
-                    ? Math.max(
-                        1,
-                        Math.round(
-                          (downloadWindow.observedToTs -
-                            downloadWindow.observedFromTs) /
-                            86400,
-                        ),
-                      )
-                    : 0,
-              })}
-            </p>
-          </When>
           <div className="mt-3">
             <AreaChart
               points={downloads}
