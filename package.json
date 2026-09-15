@@ -28,6 +28,7 @@
     "cn": "^0.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "react-if": "^4.1.6",
     "tailwindcss": "4.3.3",
     "virtua": "^0.51.3",
     "wouter": "^3.11.0",
