@@ -45,4 +45,23 @@ export const openLocalCheckout = (
   path: string,
   target: "folder" | "vscode" | "cursor" | "zed",
 ) => client().openLocalCheckout(fullName, path, target);
+export const gitSyncStatus = (fullName: string, path: string) =>
+  client().gitSyncStatus(fullName, path);
+export const gitFetch = (fullName: string, path: string) =>
+  client().gitFetch(fullName, path);
+export const gitPull = (fullName: string, path: string) =>
+  client().gitPull(fullName, path);
+export const gitPush = (fullName: string, path: string, setUpstream: boolean) =>
+  client().gitPush(fullName, path, setUpstream);
+export const gitSwitchBranch = (
+  fullName: string,
+  path: string,
+  branch: string,
+) => client().gitSwitchBranch(fullName, path, branch);
+export const gitCreateBranch = (
+  fullName: string,
+  path: string,
+  branch: string,
+  switchTo: boolean,
+) => client().gitCreateBranch(fullName, path, branch, switchTo);
 export const chooseLocalFolder = () => client().chooseLocalFolder();

@@ -6,6 +6,7 @@ import type {
   CreateOptions,
   CreateRepoInput,
   Diagnostics,
+  GitSyncStatus,
   LocalCheckout,
   Locale,
   LocalState,
@@ -42,6 +43,25 @@ export type ApiClient = {
     directoryName: string,
   ) => Promise<LocalCheckout>;
   unlinkLocalCheckout: (fullName: string, path: string) => Promise<void>;
+  gitSyncStatus: (fullName: string, path: string) => Promise<GitSyncStatus>;
+  gitFetch: (fullName: string, path: string) => Promise<GitSyncStatus>;
+  gitPull: (fullName: string, path: string) => Promise<GitSyncStatus>;
+  gitPush: (
+    fullName: string,
+    path: string,
+    setUpstream: boolean,
+  ) => Promise<GitSyncStatus>;
+  gitSwitchBranch: (
+    fullName: string,
+    path: string,
+    branch: string,
+  ) => Promise<GitSyncStatus>;
+  gitCreateBranch: (
+    fullName: string,
+    path: string,
+    branch: string,
+    switchTo: boolean,
+  ) => Promise<GitSyncStatus>;
   openLocalCheckout: (
     fullName: string,
     path: string,

@@ -14,6 +14,7 @@ import {
   openLocalCheckout,
   unlinkLocalCheckout,
 } from "@/services/api";
+import { GitSyncPanel } from "./GitSyncPanel";
 
 const statusKey: Record<LocalCheckoutStatus, string> = {
   ready: "local.ready",
@@ -293,6 +294,9 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
                   </Button>
                 </div>
               </div>
+              {item.status === "ready" ? (
+                <GitSyncPanel fullName={fullName} path={item.path} />
+              ) : null}
             </div>
           ))
         )}

@@ -62,6 +62,34 @@ export const tauriClient: ApiClient = {
       target,
       expectedAccount: account,
     }),
+  gitSyncStatus: (fullName, path) =>
+    invoke("git_sync_status", { fullName, path, expectedAccount: account }),
+  gitFetch: (fullName, path) =>
+    invoke("git_fetch", { fullName, path, expectedAccount: account }),
+  gitPull: (fullName, path) =>
+    invoke("git_pull", { fullName, path, expectedAccount: account }),
+  gitPush: (fullName, path, setUpstream) =>
+    invoke("git_push", {
+      fullName,
+      path,
+      setUpstream,
+      expectedAccount: account,
+    }),
+  gitSwitchBranch: (fullName, path, branch) =>
+    invoke("git_switch_branch", {
+      fullName,
+      path,
+      branch,
+      expectedAccount: account,
+    }),
+  gitCreateBranch: (fullName, path, branch, switchTo) =>
+    invoke("git_create_branch", {
+      fullName,
+      path,
+      branch,
+      switch: switchTo,
+      expectedAccount: account,
+    }),
   chooseLocalFolder: async () => {
     const { open } = await import("@tauri-apps/plugin-dialog");
     const selected = await open({ directory: true, multiple: false });
