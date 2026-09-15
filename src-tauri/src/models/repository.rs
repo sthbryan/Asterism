@@ -130,8 +130,20 @@ pub enum TrafficStatus {
     Unavailable,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LocalCheckout {
+    pub full_name: String,
+    pub path: String,
+    pub status: String,
+    pub branch: Option<String>,
+    pub remote_url: Option<String>,
+}
+
 impl Default for TrafficStatus {
-    fn default() -> Self { Self::Unavailable }
+    fn default() -> Self {
+        Self::Unavailable
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

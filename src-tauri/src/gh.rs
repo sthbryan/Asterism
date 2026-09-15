@@ -394,14 +394,19 @@ mod traffic_contract_tests {
 
     #[test]
     fn legacy_traffic_deserializes_without_metadata() {
-        let t: Traffic = serde_json::from_value(serde_json::json!({"count": 2, "uniques": 1, "days": []})).unwrap();
+        let t: Traffic =
+            serde_json::from_value(serde_json::json!({"count": 2, "uniques": 1, "days": []}))
+                .unwrap();
         assert_eq!(t.fetched_at, None);
         assert_eq!(t.sample_from, None);
     }
 
     #[test]
     fn status_distinguishes_forbidden_from_other_errors() {
-        assert_eq!(traffic_status("HTTP 403: Forbidden"), TrafficStatus::Forbidden);
+        assert_eq!(
+            traffic_status("HTTP 403: Forbidden"),
+            TrafficStatus::Forbidden
+        );
         assert_eq!(traffic_status("network timeout"), TrafficStatus::Error);
     }
 }
@@ -628,22 +633,30 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         }
     };
 
-    let (views, views_status) = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
-        Ok(json) => (Some(parse_traffic(&json, "views")), crate::models::TrafficStatus::Ok),
-        Err(err) => {
-            traffic_error = Some(err);
-            (None, traffic_status(traffic_error.as_deref().unwrap_or("")))
-        }
-    };
-    let (clones, clones_status) = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]) {
-        Ok(json) => (Some(parse_traffic(&json, "clones")), crate::models::TrafficStatus::Ok),
-        Err(err) => {
-            if traffic_error.is_none() {
-                traffic_error = Some(err.clone());
+    let (views, views_status) =
+        match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
+            Ok(json) => (
+                Some(parse_traffic(&json, "views")),
+                crate::models::TrafficStatus::Ok,
+            ),
+            Err(err) => {
+                traffic_error = Some(err);
+                (None, traffic_status(traffic_error.as_deref().unwrap_or("")))
             }
-            (None, traffic_status(&err))
-        }
-    };
+        };
+    let (clones, clones_status) =
+        match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]) {
+            Ok(json) => (
+                Some(parse_traffic(&json, "clones")),
+                crate::models::TrafficStatus::Ok,
+            ),
+            Err(err) => {
+                if traffic_error.is_none() {
+                    traffic_error = Some(err.clone());
+                }
+                (None, traffic_status(&err))
+            }
+        };
     let referrers = match run_gh_json(&[
         "api",
         &format!("/repos/{full_name}/traffic/popular/referrers"),

@@ -17,6 +17,7 @@ import type {
   Cache,
   Config,
   Diagnostics,
+  LocalCheckout,
   Locale,
   LocalState,
 } from "@/lib/types";
@@ -47,6 +48,24 @@ function cacheFor(repos: string[], fetchedAt: number): Cache {
 }
 
 let mockRepos = [...MOCK_CONFIG.repos];
+const mockCheckouts: Record<string, LocalCheckout[]> = {
+  "sthbryan/asterism": [
+    {
+      fullName: "sthbryan/asterism",
+      path: "/Users/demo/asterism",
+      status: "ready",
+      branch: "main",
+      remoteUrl: "https://github.com/sthbryan/asterism.git",
+    },
+    {
+      fullName: "sthbryan/asterism",
+      path: "/Users/demo/asterism-old",
+      status: "missing",
+      branch: "main",
+      remoteUrl: "https://github.com/sthbryan/asterism.git",
+    },
+  ],
+};
 
 const MOCK_DIAGNOSTICS: Diagnostics = {
   ghVersion: "gh version 2.74.2 (mock)",
@@ -201,4 +220,35 @@ export const mockClient: ApiClient = {
       ghError: missing ? "gh was not found on this machine." : null,
     });
   },
+  listLocalCheckouts: () => delay(Object.values(mockCheckouts).flat()),
+  linkLocalCheckout: (fullName, path) => {
+    const checkout: LocalCheckout = {
+      fullName,
+      path,
+      status: "ready",
+      branch: "main",
+      remoteUrl: `https://github.com/${fullName}.git`,
+    };
+    mockCheckouts[fullName] = [...(mockCheckouts[fullName] ?? []), checkout];
+    return delay(checkout);
+  },
+  cloneLocalRepository: (fullName, parentPath, directoryName) => {
+    const checkout: LocalCheckout = {
+      fullName,
+      path: `${parentPath}/${directoryName}`,
+      status: "ready",
+      branch: "main",
+      remoteUrl: `https://github.com/${fullName}.git`,
+    };
+    mockCheckouts[fullName] = [...(mockCheckouts[fullName] ?? []), checkout];
+    return delay(checkout, 600);
+  },
+  unlinkLocalCheckout: (fullName, path) => {
+    mockCheckouts[fullName] = (mockCheckouts[fullName] ?? []).filter(
+      (item) => item.path !== path,
+    );
+    return delay(undefined);
+  },
+  openLocalCheckout: () => delay(undefined),
+  chooseLocalFolder: () => delay("/Users/demo/projects"),
 };

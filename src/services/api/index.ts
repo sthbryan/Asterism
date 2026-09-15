@@ -28,3 +28,19 @@ export const saveLocale = (
   locale: Parameters<typeof tauriClient.saveLocale>[0],
 ) => client().saveLocale(locale);
 export const getDiagnostics = () => client().getDiagnostics();
+export const listLocalCheckouts = () => client().listLocalCheckouts();
+export const linkLocalCheckout = (fullName: string, path: string) =>
+  client().linkLocalCheckout(fullName, path);
+export const cloneLocalRepository = (
+  fullName: string,
+  parentPath: string,
+  directoryName: string,
+) => client().cloneLocalRepository(fullName, parentPath, directoryName);
+export const unlinkLocalCheckout = (fullName: string, path: string) =>
+  client().unlinkLocalCheckout(fullName, path);
+export const openLocalCheckout = (
+  fullName: string,
+  path: string,
+  target: "folder" | "vscode" | "cursor" | "zed",
+) => client().openLocalCheckout(fullName, path, target);
+export const chooseLocalFolder = () => client().chooseLocalFolder();

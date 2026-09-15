@@ -33,4 +33,33 @@ export const tauriClient: ApiClient = {
     return enqueuePreference(() => invoke("save_locale", { locale }));
   },
   getDiagnostics: () => invoke("get_diagnostics"),
+  listLocalCheckouts: () =>
+    invoke("list_local_checkouts", { expectedAccount: account }),
+  linkLocalCheckout: (fullName, path) =>
+    invoke("link_local_checkout", { fullName, path, expectedAccount: account }),
+  cloneLocalRepository: (fullName, parentPath, directoryName) =>
+    invoke("clone_local_repository", {
+      fullName,
+      parentPath,
+      directoryName,
+      expectedAccount: account,
+    }),
+  unlinkLocalCheckout: (fullName, path) =>
+    invoke("unlink_local_checkout", {
+      fullName,
+      path,
+      expectedAccount: account,
+    }),
+  openLocalCheckout: (fullName, path, target) =>
+    invoke("open_local_checkout", {
+      fullName,
+      path,
+      target,
+      expectedAccount: account,
+    }),
+  chooseLocalFolder: async () => {
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const selected = await open({ directory: true, multiple: false });
+    return typeof selected === "string" ? selected : null;
+  },
 };

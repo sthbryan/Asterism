@@ -5,10 +5,14 @@ mod history;
 mod models;
 mod platform;
 
+#[cfg(test)]
+mod local_projects_tests;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             config::init(app.handle().clone());
@@ -30,7 +34,12 @@ pub fn run() {
             commands::list_create_options,
             commands::create_repo,
             commands::refresh_tracked,
-            commands::get_repo_detail
+            commands::get_repo_detail,
+            commands::list_local_checkouts,
+            commands::link_local_checkout,
+            commands::unlink_local_checkout,
+            commands::clone_local_repository,
+            commands::open_local_checkout
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

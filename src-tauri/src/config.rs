@@ -165,6 +165,17 @@ impl<R: Runtime> Storage<R> {
             None => Ok(Projects::default()),
         }
     }
+    pub fn checkout_folders(&self) -> Result<BTreeMap<String, Vec<String>>, String> {
+        Ok(self.projects()?.folders)
+    }
+    pub fn save_checkout_folders(
+        &self,
+        folders: BTreeMap<String, Vec<String>>,
+    ) -> Result<(), String> {
+        let mut p = self.projects()?;
+        p.folders = folders;
+        self.write(&self.account_file("projects")?, &p)
+    }
     fn cached(&self) -> Result<AccountCache, String> {
         match self.account()? {
             Some(a) => Ok(self.read(&account_file(&a, "cache"))?.unwrap_or_default()),

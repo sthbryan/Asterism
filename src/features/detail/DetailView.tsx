@@ -12,6 +12,7 @@ import { DetailTitle, DetailTrailing } from "./Header";
 import { HistoryCharts } from "./HistoryCharts";
 import { InsightsSection } from "./InsightsSection";
 import { Kpis } from "./Kpis";
+import { LocalProjectsSection } from "./LocalProjectsSection";
 import { MetaFacts } from "./MetaFacts";
 import { ReleasesTable } from "./ReleasesTable";
 import { RepoIntro } from "./RepoIntro";
@@ -102,6 +103,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         </div>
       )}
       <RepoIntro detail={detail} />
+      <LocalProjectsSection fullName={detail.fullName} />
       <Kpis
         detail={detail}
         period={period}

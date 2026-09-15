@@ -6,6 +6,7 @@ import type {
   CreateOptions,
   CreateRepoInput,
   Diagnostics,
+  LocalCheckout,
   Locale,
   LocalState,
   RepoDetail,
@@ -32,4 +33,18 @@ export type ApiClient = {
   ) => Promise<Saved<RepoDetail>>;
   saveLocale: (locale: Locale) => Promise<Config>;
   getDiagnostics: () => Promise<Diagnostics>;
+  listLocalCheckouts: () => Promise<LocalCheckout[]>;
+  linkLocalCheckout: (fullName: string, path: string) => Promise<LocalCheckout>;
+  cloneLocalRepository: (
+    fullName: string,
+    parentPath: string,
+    directoryName: string,
+  ) => Promise<LocalCheckout>;
+  unlinkLocalCheckout: (fullName: string, path: string) => Promise<void>;
+  openLocalCheckout: (
+    fullName: string,
+    path: string,
+    target: "folder" | "vscode" | "cursor" | "zed",
+  ) => Promise<void>;
+  chooseLocalFolder: () => Promise<string | null>;
 };
