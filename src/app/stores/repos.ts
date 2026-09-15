@@ -17,6 +17,16 @@ let overviewCacheInFlight: Promise<PersistentCache<Cache> | null> | null = null;
 const OVERVIEW_CACHE_NAMESPACE = "overview";
 const OVERVIEW_CACHE_VERSION = 1;
 
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string) {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 function cacheForSelection(cache: Cache, selectedNames: string[]): Cache {
   const selected = new Set(selectedNames);
   const repos = cache.repos.filter((repo) => selected.has(repo.fullName));
@@ -82,7 +92,11 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
         return;
       }
 
-      const persisted = await readOverviewCache(account).catch(() => null);
+      const persisted = await withTimeout(
+        readOverviewCache(account),
+        10_000,
+        "Overview cache",
+      ).catch(() => null);
       if (revision !== get().dataRevision) return;
       const selectedNames = get().selectedNames;
       if (persisted?.version === 1) {
@@ -107,7 +121,11 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
         }
       }
 
-      const cache = await refreshTracked();
+      const cache = await withTimeout(
+        refreshTracked(),
+        90_000,
+        "Overview refresh",
+      );
       if (revision !== get().dataRevision) return;
       set({
         refreshing: false,
