@@ -1,2 +1,2 @@
-export { ErrorScreen } from "./ErrorScreen";
-export { SetupView } from "./SetupView";
+export { ErrorScreen } from "./components/ErrorScreen";
+export { SetupView } from "./components/SetupView";

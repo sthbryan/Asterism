@@ -1,3 +1,4 @@
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { PageHeader } from "@/components/PageHeader";
@@ -8,10 +9,12 @@ export function SetupView() {
   const status = useStore((s) => s.status);
   const retryBoot = useStore((s) => s.retryBoot);
 
-  if (!status) return null;
+  const screen = status ? (
+    <ErrorScreen status={status} onRetry={retryBoot} />
+  ) : null;
 
   return (
-    <>
+    <When condition={Boolean(status)}>
       <PageHeader
         title={
           <h1 className="text-[15px] font-semibold tracking-[-0.01em]">
@@ -19,7 +22,7 @@ export function SetupView() {
           </h1>
         }
       />
-      <ErrorScreen status={status} onRetry={retryBoot} />
-    </>
+      {screen}
+    </When>
   );
 }

@@ -1,6 +1,7 @@
 import { WarningCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import type { Status } from "@/lib/types";
@@ -38,9 +39,9 @@ export function ErrorScreen({
                   "Asterism could not connect to your GitHub account. Check your connection and GitHub CLI sign-in, then try again.",
                 )}
         </p>
-        {!storage && (
+        <When condition={!storage}>
           <ol className="mt-6 space-y-4 text-sm">
-            {missing && (
+            <When condition={missing}>
               <li>
                 1.{" "}
                 <button
@@ -55,26 +56,26 @@ export function ErrorScreen({
                   {t("Open GitHub CLI installation instructions")}
                 </button>
               </li>
-            )}
+            </When>
             <li>
               {missing ? "2." : "1."} {t("In your terminal, run")}{" "}
               <code className="rounded bg-fill px-2 py-1">
                 {missing ? "gh auth login" : "gh auth status"}
               </code>
             </li>
-            {!missing && (
+            <When condition={!missing}>
               <li>
                 {t("2. If you need to sign in, run")}{" "}
                 <code className="rounded bg-fill px-2 py-1">gh auth login</code>
               </li>
-            )}
+            </When>
             <li>{t("3. Return here and check the connection.")}</li>
           </ol>
-        )}
+        </When>
         <Button variant="primary" className="mt-6" onClick={onRetry}>
           {t("Check connection")}
         </Button>
-        {status.error && (
+        <When condition={Boolean(status.error)}>
           <details className="mt-5 text-xs text-mist">
             <summary className="cursor-pointer">
               {t("Connection details")}
@@ -83,12 +84,12 @@ export function ErrorScreen({
               {status.error}
             </p>
           </details>
-        )}
-        {actionError && (
+        </When>
+        <When condition={Boolean(actionError)}>
           <p role="alert" className="mt-3 text-sm text-accent-soft">
             {t("errors.request")} {actionError}
           </p>
-        )}
+        </When>
       </div>
     </div>
   );
