@@ -65,8 +65,6 @@ struct AccountCache {
     details: BTreeMap<String, Saved<RepoDetail>>,
     pull_requests: BTreeMap<String, serde_json::Value>,
     pull_list: Option<Saved<Vec<PullRequestSummary>>>,
-    /// Versioned list cache including per-repository errors and pagination
-    /// metadata. `pull_list` is retained so older stores remain readable.
     pull_result: Option<Saved<PullListResult>>,
     pull_details: BTreeMap<String, Saved<PullRequestDetail>>,
     pull_diffs: BTreeMap<String, Saved<String>>,
@@ -97,7 +95,6 @@ pub struct Storage<R: Runtime> {
 impl<R: Runtime> Storage<R> {
     fn read<T: DeserializeOwned>(&self, name: &str) -> Result<Option<T>, String> {
         let path = self.root.join(name);
-        // StoreBuilder ignores load errors; preflight protects corrupt/future data.
         match fs::read(&path) {
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
             Err(e) => return Err(format!("Could not read {}: {e}", path.display())),
@@ -125,7 +122,6 @@ impl<R: Runtime> Storage<R> {
     }
     fn write<T: Serialize>(&self, name: &str, data: &T) -> Result<(), String> {
         let path = self.root.join(name);
-        // Never overwrite data from a newer version or a damaged store.
         self.read::<serde_json::Value>(name)?;
         let value = serde_json::to_value(Document {
             version: VERSION,
@@ -197,7 +193,6 @@ impl<R: Runtime> Storage<R> {
         if prefs.migrated {
             return Ok(());
         }
-        // Parse every source before the first write. Originals remain untouched.
         let cfg: Config =
             legacy_read(&self.home.join(".config/asterism/config.json"))?.unwrap_or_default();
         let mut cache: Option<Cache> = legacy_read(&self.home.join(".cache/asterism/cache.json"))?;
@@ -316,7 +311,6 @@ impl<R: Runtime> Storage<R> {
         let old_cache: AccountCache = self
             .read(&account_file("legacy", "cache"))?
             .unwrap_or_default();
-        // Existing account observations always win. Import only missing repositories.
         if let Some(mut previous) = old_cache.summary {
             if let Some(current) = &mut cache.summary {
                 previous
@@ -335,7 +329,6 @@ impl<R: Runtime> Storage<R> {
         for (name, series) in old_hist.repos {
             hist.repos.entry(name).or_insert(series);
         }
-        // Marker is written last, making interrupted imports repeatable.
         self.save_cached(cache)?;
         self.save_history(&hist)?;
         projects.repos.extend(old.repos);
@@ -411,7 +404,7 @@ impl<R: Runtime> Storage<R> {
         Ok(rows)
     }
     pub fn load_detail(&self, name: &str) -> Result<Option<Saved<RepoDetail>>, String> {
-        Ok(self.cached()?.details.remove(name))
+        Ok(self.cached()?.details.get(name).cloned())
     }
     pub fn save_detail(&self, detail: RepoDetail) -> Result<Saved<RepoDetail>, String> {
         let mut cache = self.cached()?;
@@ -431,8 +424,6 @@ impl<R: Runtime> Storage<R> {
         if let Some(result) = cache.pull_result {
             return Ok(Some(result));
         }
-        // Stores created by the initial PR prototype only had a list. Treat it
-        // as a successful, empty-error snapshot during the transition.
         Ok(cache.pull_list.map(|legacy| Saved {
             fetched_at: legacy.fetched_at,
             data: PullListResult {

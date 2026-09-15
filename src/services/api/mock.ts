@@ -25,6 +25,7 @@ import type {
   PullListResult,
   PullRequestDetail,
   PullRequestSummary,
+  Saved,
 } from "@/lib/types";
 import type { ApiClient } from "./types";
 
@@ -227,6 +228,14 @@ const MOCK_PULLS: PullRequestDetail[] = [
 ];
 
 const pullSavedAt = Math.floor(PULL_NOW.getTime() / 1000);
+let mockPullListCache: Saved<PullListResult> | null = null;
+const mockPullDetailCache: Record<string, Saved<PullRequestDetail>> = {};
+const mockPullDiffCache: Record<string, Saved<string>> = {};
+
+function pullCacheKey(repo: string, number: number): string {
+  return `${repo}#${number}`;
+}
+
 const mockCheckouts: Record<string, LocalCheckout[]> = {
   "sthbryan/asterism": [
     {
@@ -308,6 +317,11 @@ export const mockClient: ApiClient = {
   importLegacyData: () => delay({ ...localState(), legacyAvailable: false }),
   clearLocalCache: () => {
     cleared = true;
+    mockPullListCache = null;
+    for (const key of Object.keys(mockPullDetailCache))
+      delete mockPullDetailCache[key];
+    for (const key of Object.keys(mockPullDiffCache))
+      delete mockPullDiffCache[key];
     return delay(localState());
   },
   getStatus: () => {
@@ -406,6 +420,21 @@ export const mockClient: ApiClient = {
     );
   },
   getCachedRepoDetail: () => delay(null, 25),
+  getCachedPullRequests: () => delay(mockPullListCache, 25),
+  refreshPullRequests: async (filters = {}) => {
+    const result = await mockClient.listPullRequests(
+      filters.repos ?? (filters.repo ? [filters.repo] : []),
+      100,
+      false,
+    );
+    const saved: Saved<PullListResult> = {
+      data: result,
+      fetchedAt: result.fetchedAt,
+      warning: null,
+    };
+    mockPullListCache = saved;
+    return delay(saved, 20);
+  },
   saveLocale: (locale: Locale) => {
     persistLocale(locale);
     return delay({
@@ -520,7 +549,18 @@ export const mockClient: ApiClient = {
       pulls,
       errors,
       fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+      page: 1,
+      perPage: Math.max(1, Math.min(limit, 100)),
+      total: pulls.length,
+      hasNextPage: false,
     };
+    if (!offline) {
+      mockPullListCache = {
+        data: result,
+        fetchedAt: result.fetchedAt,
+        warning: null,
+      };
+    }
     return delay(result, 420);
   },
   getPullRequest: (repo, number, offline = false) => {
@@ -532,15 +572,16 @@ export const mockClient: ApiClient = {
     );
     if (!pull)
       return Promise.reject("This pull request is not available locally.");
-    return delay(
-      {
-        data: pull,
-        fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
-        warning: null,
-      },
-      360,
-    );
+    const saved = {
+      data: pull,
+      fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+      warning: null,
+    } satisfies Saved<PullRequestDetail>;
+    if (!offline) mockPullDetailCache[pullCacheKey(repo, number)] = saved;
+    return delay(saved, 360);
   },
+  getCachedPullRequest: (repo, number) =>
+    delay(mockPullDetailCache[pullCacheKey(repo, number)] ?? null, 25),
   getPullDiff: (repo, number, offline = false) => {
     const mode = new URLSearchParams(window.location.search).get("pulls");
     if (mode === "error" && !offline)
@@ -556,13 +597,14 @@ export const mockClient: ApiClient = {
           `diff --git a/${file.path} b/${file.path}\n--- a/${file.path}\n+++ b/${file.path}\n@@ -1,1 +1,${Math.max(1, file.additions)} @@\n+Updated by Pull Request #${number}\n`,
       )
       .join("\n");
-    return delay(
-      {
-        data: diff,
-        fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
-        warning: null,
-      },
-      500,
-    );
+    const saved = {
+      data: diff,
+      fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+      warning: null,
+    } satisfies Saved<string>;
+    if (!offline) mockPullDiffCache[pullCacheKey(repo, number)] = saved;
+    return delay(saved, 500);
   },
+  getCachedPullDiff: (repo, number) =>
+    delay(mockPullDiffCache[pullCacheKey(repo, number)] ?? null, 25),
 };

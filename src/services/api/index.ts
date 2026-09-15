@@ -26,6 +26,10 @@ export const getRepoDetail = (fullName: string, offline = false) =>
   client().getRepoDetail(fullName, offline);
 export const getCachedRepoDetail = (fullName: string) =>
   client().getCachedRepoDetail(fullName);
+export const getCachedPullRequests = () => client().getCachedPullRequests();
+export const refreshPullRequests = (
+  filters: Parameters<typeof tauriClient.refreshPullRequests>[0] = {},
+) => client().refreshPullRequests(filters);
 export const saveLocale = (
   locale: Parameters<typeof tauriClient.saveLocale>[0],
 ) => client().saveLocale(locale);
@@ -72,5 +76,9 @@ export const listPullRequests = (
 ) => client().listPullRequests(repos, limit, offline);
 export const getPullRequest = (repo: string, number: number, offline = false) =>
   client().getPullRequest(repo, number, offline);
+export const getCachedPullRequest = (repo: string, number: number) =>
+  client().getCachedPullRequest(repo, number);
 export const getPullDiff = (repo: string, number: number, offline = false) =>
   client().getPullDiff(repo, number, offline);
+export const getCachedPullDiff = (repo: string, number: number) =>
+  client().getCachedPullDiff(repo, number);

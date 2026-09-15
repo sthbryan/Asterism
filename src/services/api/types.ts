@@ -12,6 +12,7 @@ import type {
   LocalState,
   PullListResult,
   PullRequestDetail,
+  PullRequestFilters,
   RepoDetail,
   Saved,
   Status,
@@ -35,6 +36,10 @@ export type ApiClient = {
     offline: boolean,
   ) => Promise<Saved<RepoDetail>>;
   getCachedRepoDetail: (fullName: string) => Promise<Saved<RepoDetail> | null>;
+  getCachedPullRequests: () => Promise<Saved<PullListResult> | null>;
+  refreshPullRequests: (
+    filters?: PullRequestFilters,
+  ) => Promise<Saved<PullListResult>>;
   saveLocale: (locale: Locale) => Promise<Config>;
   getDiagnostics: () => Promise<Diagnostics>;
   listLocalCheckouts: () => Promise<LocalCheckout[]>;
@@ -80,9 +85,17 @@ export type ApiClient = {
     number: number,
     offline?: boolean,
   ) => Promise<Saved<PullRequestDetail>>;
+  getCachedPullRequest: (
+    repo: string,
+    number: number,
+  ) => Promise<Saved<PullRequestDetail> | null>;
   getPullDiff: (
     repo: string,
     number: number,
     offline?: boolean,
   ) => Promise<Saved<string>>;
+  getCachedPullDiff: (
+    repo: string,
+    number: number,
+  ) => Promise<Saved<string> | null>;
 };

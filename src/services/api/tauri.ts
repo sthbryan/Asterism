@@ -33,6 +33,13 @@ export const tauriClient: ApiClient = {
       fullName,
       expectedAccount: account,
     }),
+  getCachedPullRequests: () =>
+    invoke("get_cached_pull_requests", { expectedAccount: account }),
+  refreshPullRequests: (filters = {}) =>
+    invoke("refresh_pull_requests", {
+      filters,
+      expectedAccount: account,
+    }),
   saveLocale: (locale) => {
     persistLocale(locale);
     return enqueuePreference(() => invoke("save_locale", { locale }));
@@ -109,11 +116,23 @@ export const tauriClient: ApiClient = {
       offline,
       expectedAccount: account,
     }),
+  getCachedPullRequest: (repo, number) =>
+    invoke("get_cached_pull_request_detail", {
+      repo,
+      number,
+      expectedAccount: account,
+    }),
   getPullDiff: (repo, number, offline = false) =>
     invoke("get_pull_diff", {
       repo,
       number,
       offline,
+      expectedAccount: account,
+    }),
+  getCachedPullDiff: (repo, number) =>
+    invoke("get_cached_pull_request_diff", {
+      repo,
+      number,
       expectedAccount: account,
     }),
 };

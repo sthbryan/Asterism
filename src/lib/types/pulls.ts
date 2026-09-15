@@ -39,6 +39,17 @@ export type PullRequestDetail = PullRequestSummary & {
   mergeable: string | null;
   mergeState: string | null;
   files: PullFile[];
+  diff?: string | null;
+  diffFetchedAt?: number | null;
+};
+
+export type PullRequestFilters = {
+  repos?: string[];
+  repo?: string | null;
+  author?: string | null;
+  assignee?: string | null;
+  reviewRequested?: string | null;
+  state?: string | null;
 };
 
 export type PullListResult = {
