@@ -1,9 +1,26 @@
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import { Select } from "@/components/Select";
-import type { CreateFormApi } from "./useCreateForm";
+import type { CreateFormApi } from "../hooks/useCreateForm";
 
-export function SetupSection({ form }: { form: CreateFormApi }) {
+type SetupForm = Pick<
+  CreateFormApi,
+  | "options"
+  | "readme"
+  | "setReadme"
+  | "gitignore"
+  | "setGitignore"
+  | "license"
+  | "setLicense"
+  | "track"
+  | "setTrack"
+  | "busy"
+  | "owner"
+  | "cleanName"
+  | "invalidName"
+>;
+
+export function SetupSection({ form }: { form: SetupForm }) {
   const { t } = useI18n();
   const {
     options,

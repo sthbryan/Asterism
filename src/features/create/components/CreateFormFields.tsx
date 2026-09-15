@@ -1,10 +1,11 @@
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { Select } from "@/components/Select";
 import { isMockMode } from "@/services/api";
+import type { CreateFormApi } from "../hooks/useCreateForm";
 import { SetupSection } from "./SetupSection";
-import type { CreateFormApi } from "./useCreateForm";
 import { VisibilitySection } from "./VisibilitySection";
 
 export function CreateFormFields({ form }: { form: CreateFormApi }) {
@@ -38,27 +39,27 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
       <p className="mt-2 text-[13px] leading-relaxed text-mist">
         {t("Create a repository on GitHub and start tracking it in Asterism.")}
       </p>
-      {isMockMode() && (
+      <When condition={isMockMode()}>
         <p className="mt-3 text-sm text-mist">
           {t("Demo mode — no repository will be created on GitHub.")}
         </p>
-      )}
-      {loading && (
+      </When>
+      <When condition={loading}>
         <p role="status" className="mt-5 text-sm text-mist">
           {t("Loading repository options…")}
         </p>
-      )}
-      {error && (
+      </When>
+      <When condition={Boolean(error)}>
         <div role="alert" className="mt-5 text-sm text-accent-soft">
           <p>{t("errors.request")}</p>
           <p className="mt-1 whitespace-pre-wrap break-words">{error}</p>
-          {!options && (
+          <When condition={!options}>
             <Button className="mt-3" onClick={retry} type="button">
               {t("Retry loading")}
             </Button>
-          )}
+          </When>
         </div>
-      )}
+      </When>
       <fieldset
         disabled={busy || loading || !options}
         className="mt-7 space-y-6 disabled:opacity-60"

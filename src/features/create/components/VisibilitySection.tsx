@@ -1,7 +1,9 @@
 import { useI18n } from "@/app/hooks";
-import type { CreateFormApi } from "./useCreateForm";
+import type { CreateFormApi } from "../hooks/useCreateForm";
 
-export function VisibilitySection({ form }: { form: CreateFormApi }) {
+type VisibilityForm = Pick<CreateFormApi, "visibility" | "setVisibility">;
+
+export function VisibilitySection({ form }: { form: VisibilityForm }) {
   const { t } = useI18n();
   const { visibility, setVisibility } = form;
   return (

@@ -1,1 +1,1 @@
-export { CreateView } from "./CreateView";
+export { CreateView } from "./components/CreateView";

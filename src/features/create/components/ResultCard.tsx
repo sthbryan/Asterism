@@ -1,5 +1,6 @@
 import { ArrowSquareOutIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import type { CreatedRepo } from "@/lib/types";
@@ -32,16 +33,16 @@ export function ResultCard({
           demo: t(isMockMode() ? "create.demoSuffix" : "create.githubSuffix"),
         })}
       </p>
-      {error && (
+      <When condition={Boolean(error)}>
         <p role="alert" className="mt-4 text-sm text-accent-soft">
           {error}
         </p>
-      )}
+      </When>
       <div className="mt-6 flex flex-wrap gap-2">
         <Button variant="primary" onClick={onOverview}>
           {t("View overview")}
         </Button>
-        {!isMockMode() && (
+        <When condition={!isMockMode()}>
           <Button
             onClick={() => {
               void openUrl(created.htmlUrl).catch((err) =>
@@ -52,7 +53,7 @@ export function ResultCard({
             {t("Open on GitHub")}
             <ArrowSquareOutIcon size={14} />
           </Button>
-        )}
+        </When>
         <Button disabled={busy} onClick={onReset}>
           {t("Create another")}
         </Button>
