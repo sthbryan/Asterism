@@ -592,6 +592,17 @@ fn ensure_online() -> Result<(), String> {
     Ok(())
 }
 #[tauri::command]
+pub(crate) async fn get_cached_detail(
+    full_name: String,
+    expected_account: Option<String>,
+) -> Result<Option<config::Saved<RepoDetail>>, String> {
+    offload(move || {
+        ensure_scope(expected_account.as_deref())?;
+        config::storage()?.load_detail(&full_name)
+    })
+    .await?
+}
+#[tauri::command]
 pub(crate) async fn get_local_state() -> Result<config::LocalState, String> {
     offload(|| config::storage()?.local_state()).await?
 }

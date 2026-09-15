@@ -35,6 +35,7 @@ pub fn run() {
             commands::create_repo,
             commands::refresh_tracked,
             commands::get_repo_detail,
+            commands::get_cached_detail,
             commands::list_local_checkouts,
             commands::link_local_checkout,
             commands::unlink_local_checkout,
