@@ -80,6 +80,8 @@ test("late responses cannot restore a previous account's private detail", async 
       }),
   );
   const request = useStore.getState().fetchDetail("one/private");
+  // Let the fast cached lookup settle so the network request is in flight.
+  await Bun.sleep(0);
   useStore.getState().hydrateLocal({
     ...local("github.com/two"),
     cache: null,
