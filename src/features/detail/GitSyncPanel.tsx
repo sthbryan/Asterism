@@ -1,12 +1,12 @@
 import {
-  ArrowDown,
-  ArrowsClockwise,
-  ArrowUp,
-  CaretDown,
-  CheckCircle,
-  CircleNotch,
-  GitBranch,
-  Plus,
+  ArrowDownIcon,
+  ArrowsClockwiseIcon,
+  ArrowUpIcon,
+  CaretDownIcon,
+  CheckCircleIcon,
+  CircleNotchIcon,
+  GitBranchIcon,
+  PlusIcon,
 } from "@phosphor-icons/react";
 import { cn } from "cn";
 import type { ReactNode } from "react";
@@ -126,7 +126,7 @@ export function GitSyncPanel({
 
   function actionIcon(id: string, icon: ReactNode) {
     return active === id ? (
-      <CircleNotch size={14} aria-hidden className="animate-spin" />
+      <CircleNotchIcon size={14} aria-hidden className="animate-spin" />
     ) : (
       icon
     );
@@ -158,7 +158,7 @@ export function GitSyncPanel({
       >
         {t("local.git.sync")}
         {badge ? ` · ${badge}` : ""}
-        <CaretDown
+        <CaretDownIcon
           size={14}
           aria-hidden
           className={cn(
@@ -227,7 +227,7 @@ export function GitSyncPanel({
                   >
                     {actionIcon(
                       "fetch",
-                      <ArrowsClockwise size={14} aria-hidden />,
+                      <ArrowsClockwiseIcon size={14} aria-hidden />,
                     )}
                     {t("local.git.fetch")}
                   </Button>
@@ -242,7 +242,10 @@ export function GitSyncPanel({
                       )
                     }
                   >
-                    {actionIcon("pull", <ArrowDown size={14} aria-hidden />)}
+                    {actionIcon(
+                      "pull",
+                      <ArrowDownIcon size={14} aria-hidden />,
+                    )}
                     {t("local.git.pull")}
                   </Button>
                   <Button
@@ -260,7 +263,7 @@ export function GitSyncPanel({
                       )
                     }
                   >
-                    {actionIcon("push", <ArrowUp size={14} aria-hidden />)}
+                    {actionIcon("push", <ArrowUpIcon size={14} aria-hidden />)}
                     {push
                       ? t(
                           push.setsUpstream
@@ -276,7 +279,7 @@ export function GitSyncPanel({
                     role="status"
                     className="flex items-center gap-1.5 text-[12px] text-mist"
                   >
-                    <CircleNotch
+                    <CircleNotchIcon
                       size={14}
                       aria-hidden
                       className="animate-spin"
@@ -288,7 +291,7 @@ export function GitSyncPanel({
                     role="status"
                     className="flex items-center gap-1.5 text-[12px] text-mist"
                   >
-                    <CheckCircle size={14} aria-hidden />
+                    <CheckCircleIcon size={14} aria-hidden />
                     {notice}
                   </p>
                 ) : null}
@@ -323,7 +326,10 @@ export function GitSyncPanel({
                       )
                     }
                   >
-                    {actionIcon("switch", <GitBranch size={14} aria-hidden />)}
+                    {actionIcon(
+                      "switch",
+                      <GitBranchIcon size={14} aria-hidden />,
+                    )}
                     {t("local.git.switch")}
                   </Button>
                 </div>
@@ -354,7 +360,7 @@ export function GitSyncPanel({
                         );
                       }}
                     >
-                      {actionIcon("create", <Plus size={14} aria-hidden />)}
+                      {actionIcon("create", <PlusIcon size={14} aria-hidden />)}
                       {t("local.git.create")}
                     </Button>
                   </div>

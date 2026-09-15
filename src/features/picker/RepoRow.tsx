@@ -1,4 +1,4 @@
-import { Check, Star } from "@phosphor-icons/react";
+import { CheckIcon, StarIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import { fmtNum } from "@/lib/format";
 import type { CatalogRepo } from "@/lib/types";
@@ -39,7 +39,7 @@ export function RepoRow({
           }`}
         >
           {selected ? (
-            <Check size={10} weight="bold" className="text-white" />
+            <CheckIcon size={10} weight="bold" className="text-white" />
           ) : null}
         </span>
         <span className="min-w-0 flex-1">
@@ -56,7 +56,7 @@ export function RepoRow({
           {repo.private ? <Meta>{t("Private")}</Meta> : null}
           {repo.archived ? <Meta>{t("Archived")}</Meta> : null}
           <span className="tabular">
-            <Star
+            <StarIcon
               size={10}
               className="mr-1 inline-block -translate-y-px text-faint"
             />

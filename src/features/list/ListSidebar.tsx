@@ -1,10 +1,10 @@
 import {
-  Code,
-  Desktop,
-  DownloadSimple,
-  FolderSimple,
+  CodeIcon,
+  DesktopIcon,
+  DownloadSimpleIcon,
+  FolderSimpleIcon,
   LockSimpleIcon,
-  Star,
+  StarIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
@@ -46,7 +46,7 @@ export function ListSidebar({
           className="card w-full p-4 text-left transition-colors hover:bg-hover"
         >
           <div className="flex items-center gap-2 text-mist">
-            <Star size={14} className="text-faint" />
+            <StarIcon size={14} className="text-faint" />
             <span className="kpi-label">{t("Top repository")}</span>
           </div>
           <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
@@ -85,7 +85,7 @@ export function ListSidebar({
       {platformBars.length > 0 ? (
         <div className="card p-4">
           <div className="flex items-center gap-2 text-mist">
-            <Desktop size={14} className="text-faint" />
+            <DesktopIcon size={14} className="text-faint" />
             <span className="kpi-label">{t("Downloads by platform")}</span>
           </div>
           <div className="mt-3">
@@ -102,7 +102,7 @@ export function ListSidebar({
       {languages.length > 0 ? (
         <div className="card p-4">
           <div className="flex items-center gap-2 text-mist">
-            <Code size={14} className="text-faint" />
+            <CodeIcon size={14} className="text-faint" />
             <span className="kpi-label">{t("Languages")}</span>
           </div>
           <ul className="mt-3 space-y-2">
@@ -146,7 +146,7 @@ export function ListSidebar({
 
       <div className="card p-4">
         <div className="flex items-center gap-2 text-mist">
-          <FolderSimple size={14} className="text-faint" />
+          <FolderSimpleIcon size={14} className="text-faint" />
           <span className="kpi-label">{t("Tracked set")}</span>
         </div>
         <dl className="mt-3 space-y-2.5">
@@ -161,7 +161,7 @@ export function ListSidebar({
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
-              <DownloadSimple size={12} className="text-faint" />
+              <DownloadSimpleIcon size={12} className="text-faint" />
               {t("No downloads")}
             </dt>
             <dd className="font-mono text-[12.5px] tabular">

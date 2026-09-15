@@ -1,4 +1,4 @@
-import { Globe, LockSimpleIcon } from "@phosphor-icons/react";
+import { GlobeIcon, LockSimpleIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import type { RepoDetail } from "@/lib/types";
 import { Flag } from "./shared";
@@ -9,7 +9,11 @@ export function RepoIntro({ detail }: { detail: RepoDetail }) {
     <>
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] leading-none font-medium text-accent-soft">
-          {detail.private ? <LockSimpleIcon size={11} /> : <Globe size={12} />}
+          {detail.private ? (
+            <LockSimpleIcon size={11} />
+          ) : (
+            <GlobeIcon size={12} />
+          )}
           {detail.private ? t("Private") : t("Public")}
         </span>
         {detail.archived ? <Flag>{t("Archived")}</Flag> : null}

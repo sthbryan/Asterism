@@ -1,4 +1,9 @@
-import { DownloadSimple, Eye, GitFork, Star } from "@phosphor-icons/react";
+import {
+  DownloadSimpleIcon,
+  EyeIcon,
+  GitForkIcon,
+  StarIcon,
+} from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import { KpiCard } from "@/components/KpiCard";
 import { pickKpiDelta, windowDelta } from "@/lib/series";
@@ -29,7 +34,7 @@ export function Kpis({
       <KpiCard
         label={t("Stars")}
         value={detail.stars}
-        icon={<Star size={15} />}
+        icon={<StarIcon size={15} />}
         sub={t("common.total")}
         delta={starKpi?.delta}
         deltaHint={starKpi?.hint}
@@ -37,19 +42,19 @@ export function Kpis({
       <KpiCard
         label={t("Forks")}
         value={detail.forks}
-        icon={<GitFork size={15} />}
+        icon={<GitForkIcon size={15} />}
         sub={t("common.total")}
       />
       <KpiCard
         label={t("Watchers")}
         value={detail.watchers}
-        icon={<Eye size={15} />}
+        icon={<EyeIcon size={15} />}
         sub={t("common.total")}
       />
       <KpiCard
         label={t("Downloads")}
         value={detail.downloads}
-        icon={<DownloadSimple size={15} />}
+        icon={<DownloadSimpleIcon size={15} />}
         sub={t("release assets")}
         hero
         delta={downloadKpi?.delta}

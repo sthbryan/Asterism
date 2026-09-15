@@ -1,4 +1,4 @@
-import { ArrowSquareOut, CheckCircle } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
@@ -23,7 +23,7 @@ export function ResultCard({
   const { t } = useI18n();
   return (
     <div className="py-8" role="status">
-      <CheckCircle size={30} className="text-ok" />
+      <CheckCircleIcon size={30} className="text-ok" />
       <h2 className="mt-4 text-xl font-semibold">{t("Repository created")}</h2>
       <p className="mt-2 break-all font-mono text-sm">{created.fullName}</p>
       <p className="mt-2 text-sm text-mist">
@@ -50,7 +50,7 @@ export function ResultCard({
             }}
           >
             {t("Open on GitHub")}
-            <ArrowSquareOut size={14} />
+            <ArrowSquareOutIcon size={14} />
           </Button>
         )}
         <Button disabled={busy} onClick={onReset}>

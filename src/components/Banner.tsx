@@ -1,4 +1,4 @@
-import { WarningCircle } from "@phosphor-icons/react";
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import { useEffect, useState } from "react";
 
 export function Banner({ message }: { message: string | null }) {
@@ -23,7 +23,7 @@ export function Banner({ message }: { message: string | null }) {
         open ? "is-open" : ""
       }`}
     >
-      <WarningCircle size={14} className="shrink-0" />
+      <WarningCircleIcon size={14} className="shrink-0" />
       <span className="truncate">{text}</span>
     </div>
   );

@@ -1,4 +1,4 @@
-import { WarningCircle } from "@phosphor-icons/react";
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks";
@@ -19,7 +19,7 @@ export function ErrorScreen({
   return (
     <div className="flex h-full items-center justify-center overflow-y-auto px-6 py-8">
       <div className="max-w-md">
-        <WarningCircle size={28} className="text-accent-soft" />
+        <WarningCircleIcon size={28} className="text-accent-soft" />
         <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.03em]">
           {storage
             ? t("offline.storage")

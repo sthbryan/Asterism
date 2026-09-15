@@ -1,4 +1,4 @@
-import { DownloadSimple, Eye } from "@phosphor-icons/react";
+import { DownloadSimpleIcon, EyeIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
@@ -47,7 +47,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
           <div>
             <TrafficBlock
               label={t("Views")}
-              icon={<Eye size={14} />}
+              icon={<EyeIcon size={14} />}
               traffic={detail.views}
               status={detail.viewsStatus}
               fetchedAt={detail.views?.fetchedAt}
@@ -67,7 +67,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
           <div>
             <TrafficBlock
               label={t("Clones")}
-              icon={<DownloadSimple size={14} />}
+              icon={<DownloadSimpleIcon size={14} />}
               traffic={detail.clones}
               status={detail.clonesStatus}
               fetchedAt={detail.clones?.fetchedAt}

@@ -1,4 +1,4 @@
-import { ArrowSquareOut } from "@phosphor-icons/react";
+import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { hrefFromMaybeUrl } from "@/lib/format";
 
@@ -24,7 +24,7 @@ export function HomepageValue({ value }: { value: string | null }) {
       className="inline-flex max-w-full items-center gap-1 text-left text-accent-soft hover:underline"
     >
       <span className="truncate">{value}</span>
-      <ArrowSquareOut size={11} className="shrink-0" />
+      <ArrowSquareOutIcon size={11} className="shrink-0" />
     </button>
   );
 }

@@ -1,4 +1,4 @@
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretDownIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { BarChart } from "@/components/Charts";
@@ -51,7 +51,7 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
                   onClick={() => setOpenTag(open ? null : release.tag)}
                   className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-hover"
                 >
-                  <CaretDown
+                  <CaretDownIcon
                     size={12}
                     className={`text-faint transition-transform ${open ? "" : "-rotate-90"}`}
                   />

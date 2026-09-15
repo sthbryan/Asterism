@@ -1,4 +1,4 @@
-import { WarningCircle } from "@phosphor-icons/react";
+import { WarningCircleIcon } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useRoute } from "wouter";
 import { useDetail, useI18n } from "@/app/hooks";
@@ -73,7 +73,7 @@ function DetailContent({
     <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
       {error ? (
         <div className="card flex items-start gap-3 p-5 text-[14px] text-accent-soft">
-          <WarningCircle size={16} />
+          <WarningCircleIcon size={16} />
           <div role="alert">
             <p>{t("offline.noDetail")}</p>
             <p className="mt-1 break-words">{error}</p>

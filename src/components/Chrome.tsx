@@ -1,4 +1,9 @@
-import { ChartBar, FolderSimple, GearSix, Plus } from "@phosphor-icons/react";
+import {
+  ChartBarIcon,
+  FolderSimpleIcon,
+  GearSixIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { dragWindow } from "@/lib/drag";
@@ -61,20 +66,20 @@ export function Chrome({
           </div>
           <NavButton
             active={nav === "overview"}
-            icon={<ChartBar size={16} />}
+            icon={<ChartBarIcon size={16} />}
             label={t("Overview")}
             onClick={() => onNav("overview")}
           />
           <NavButton
             active={nav === "repos"}
-            icon={<FolderSimple size={16} />}
+            icon={<FolderSimpleIcon size={16} />}
             label={t("Repositories")}
             onClick={() => onNav("repos")}
             badge={trackedCount}
           />
           <NavButton
             active={nav === "create"}
-            icon={<Plus size={16} />}
+            icon={<PlusIcon size={16} />}
             label={t("Create repository")}
             onClick={() => onNav("create")}
           />
@@ -88,7 +93,7 @@ export function Chrome({
         <div className="px-3 pb-2">
           <NavButton
             active={nav === "settings"}
-            icon={<GearSix size={16} />}
+            icon={<GearSixIcon size={16} />}
             label={t("settings.title")}
             onClick={() => onNav("settings")}
           />
