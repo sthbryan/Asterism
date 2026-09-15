@@ -7,42 +7,37 @@ import {
   StarIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarChart } from "@/components/Charts";
 import { fmtNum } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
 
-type Props = {
-  top: TrackedRepo | undefined;
-  share: number;
+type ListSidebarProps = {
+  highlight: { top: TrackedRepo | undefined; share: number };
   platformBars: { label: string; value: number; color?: string }[];
-  languages: [string, number][];
-  langTotal: number;
-  privateCount: number;
-  silentCount: number;
-  errorCount: number;
+  languages: { items: [string, number][]; total: number };
+  stats: { privateCount: number; silentCount: number; errorCount: number };
   onOpenRepo: (fullName: string) => void;
 };
 
 export function ListSidebar({
-  top,
-  share,
+  highlight,
   platformBars,
   languages,
-  langTotal,
-  privateCount,
-  silentCount,
-  errorCount,
+  stats,
   onOpenRepo,
-}: Props) {
+}: ListSidebarProps) {
   const { t } = useI18n();
+  const { top, share } = highlight;
+  const { privateCount, silentCount, errorCount } = stats;
   return (
     <div className="flex min-w-0 flex-col gap-3">
-      {top ? (
+      <When condition={Boolean(top)}>
         <button
           type="button"
-          onClick={() => onOpenRepo(top.fullName)}
+          onClick={() => top && onOpenRepo(top.fullName)}
           className="card w-full p-4 text-left transition-colors hover:bg-hover"
         >
           <div className="flex items-center gap-2 text-mist">
@@ -50,7 +45,7 @@ export function ListSidebar({
             <span className="kpi-label">{t("Top repository")}</span>
           </div>
           <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
-            {top.fullName}
+            {top?.fullName}
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <div>
@@ -58,7 +53,7 @@ export function ListSidebar({
                 {t("Stars")}
               </div>
               <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
-                {fmtNum(top.stars)}
+                {fmtNum(top?.stars ?? 0)}
               </div>
             </div>
             <div>
@@ -66,7 +61,7 @@ export function ListSidebar({
                 {t("Downloads")}
               </div>
               <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
-                {fmtNum(top.downloads)}
+                {fmtNum(top?.downloads ?? 0)}
               </div>
             </div>
           </div>
@@ -80,9 +75,9 @@ export function ListSidebar({
             {t("list.share", { value: fmtNum(share) })}
           </p>
         </button>
-      ) : null}
+      </When>
 
-      {platformBars.length > 0 ? (
+      <When condition={platformBars.length > 0}>
         <div className="card p-4">
           <div className="flex items-center gap-2 text-mist">
             <DesktopIcon size={14} className="text-faint" />
@@ -97,17 +92,17 @@ export function ListSidebar({
             />
           </div>
         </div>
-      ) : null}
+      </When>
 
-      {languages.length > 0 ? (
+      <When condition={languages.items.length > 0}>
         <div className="card p-4">
           <div className="flex items-center gap-2 text-mist">
             <CodeIcon size={14} className="text-faint" />
             <span className="kpi-label">{t("Languages")}</span>
           </div>
           <ul className="mt-3 space-y-2">
-            {languages.map(([name, count]) => {
-              const pct = (count / langTotal) * 100;
+            {languages.items.map(([name, count]) => {
+              const pct = (count / languages.total) * 100;
               const color = langColor(name === "Unknown" ? null : name);
               return (
                 <li
@@ -142,7 +137,7 @@ export function ListSidebar({
             })}
           </ul>
         </div>
-      ) : null}
+      </When>
 
       <div className="card p-4">
         <div className="flex items-center gap-2 text-mist">
@@ -168,7 +163,7 @@ export function ListSidebar({
               {fmtNum(silentCount)}
             </dd>
           </div>
-          {errorCount > 0 ? (
+          <When condition={errorCount > 0}>
             <div className="flex items-center justify-between gap-3">
               <dt className="flex items-center gap-1.5 text-[12.5px] text-accent-soft">
                 <WarningCircleIcon size={12} />
@@ -178,7 +173,7 @@ export function ListSidebar({
                 {fmtNum(errorCount)}
               </dd>
             </div>
-          ) : null}
+          </When>
         </dl>
       </div>
     </div>

@@ -4,23 +4,23 @@ import {
   MagnifyingGlassIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
+import { Else, If, Then, When } from "react-if";
 import { VList } from "virtua";
 import { useI18n } from "@/app/hooks";
 import { Input } from "@/components/Input";
 import { fmtNum, fmtSigned } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
+import type { ListSort, ListSortKey } from "../hooks/useListControls";
 
 const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
-type SortKey = "fullName" | "stars" | "forks" | "downloads";
-type SortState = { key: SortKey; dir: number };
 
 type Props = {
   rows: TrackedRepo[];
   query: string;
-  sort: SortState;
+  sort: ListSort;
   onQueryChange: (query: string) => void;
-  onSort: (key: SortKey) => void;
+  onSort: (key: ListSortKey) => void;
   onOpenRepo: (fullName: string) => void;
 };
 
@@ -33,7 +33,7 @@ export function RepositoryTable({
   onOpenRepo,
 }: Props) {
   const { t } = useI18n();
-  const sortHead = (label: string, key: SortKey) => {
+  const sortHead = (label: string, key: ListSortKey) => {
     const active = sort.key === key;
     return (
       <button
@@ -67,7 +67,7 @@ export function RepositoryTable({
             {repo.fullName.split("/")[1] ?? repo.fullName}
           </span>
         </span>
-        {repo.error ? (
+        <When condition={Boolean(repo.error)}>
           <span
             title={`${repo.error}${repo.fetchedAt ? ` · ${new Date(repo.fetchedAt * 1000).toLocaleString()}` : ""}`}
           >
@@ -77,12 +77,12 @@ export function RepositoryTable({
               className="shrink-0 text-accent-soft"
             />
           </span>
-        ) : null}
-        {repo.private ? (
+        </When>
+        <When condition={repo.private}>
           <span className="shrink-0 rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase text-mist">
             {t("Private")}
           </span>
-        ) : null}
+        </When>
       </span>
       {[
         { value: repo.stars, strong: false, change: repo.starsDelta },
@@ -95,13 +95,13 @@ export function RepositoryTable({
           >
             {fmtNum(value)}
           </span>
-          {change != null && change !== 0 ? (
+          <When condition={change != null && change !== 0}>
             <span
-              className={`block font-mono text-[10px] leading-tight tabular ${change > 0 ? "text-ok" : "text-accent-soft"}`}
+              className={`block font-mono text-[10px] leading-tight tabular ${change != null && change > 0 ? "text-ok" : "text-accent-soft"}`}
             >
-              {fmtSigned(change)}
+              {fmtSigned(change ?? 0)}
             </span>
-          ) : null}
+          </When>
         </span>
       ))}
       <CaretRightIcon
@@ -141,40 +141,46 @@ export function RepositoryTable({
         </div>
         <span />
       </div>
-      {rows.length <= 30 ? (
-        <ul>
-          {rows.length === 0 ? (
-            <li>
-              <p className="px-5 py-8 text-center text-[13px] text-faint">
-                {t("list.noResults", { query: query.trim() })}
-              </p>
-            </li>
-          ) : (
-            rows.map((repo) => (
-              <li
+      <If condition={rows.length <= 30}>
+        <Then>
+          <ul>
+            <If condition={rows.length === 0}>
+              <Then>
+                <li>
+                  <p className="px-5 py-8 text-center text-[13px] text-faint">
+                    {t("list.noResults", { query: query.trim() })}
+                  </p>
+                </li>
+              </Then>
+              <Else>
+                {rows.map((repo) => (
+                  <li
+                    key={repo.fullName}
+                    className="border-b border-hairline last:border-b-0"
+                  >
+                    {renderRow(repo)}
+                  </li>
+                ))}
+              </Else>
+            </If>
+          </ul>
+        </Then>
+        <Else>
+          <VList
+            style={{ height: Math.min(480, rows.length * 57) }}
+            itemSize={57}
+          >
+            {rows.map((repo) => (
+              <div
                 key={repo.fullName}
                 className="border-b border-hairline last:border-b-0"
               >
                 {renderRow(repo)}
-              </li>
-            ))
-          )}
-        </ul>
-      ) : (
-        <VList
-          style={{ height: Math.min(480, rows.length * 57) }}
-          itemSize={57}
-        >
-          {rows.map((repo) => (
-            <div
-              key={repo.fullName}
-              className="border-b border-hairline last:border-b-0"
-            >
-              {renderRow(repo)}
-            </div>
-          ))}
-        </VList>
-      )}
+              </div>
+            ))}
+          </VList>
+        </Else>
+      </If>
     </div>
   );
 }
