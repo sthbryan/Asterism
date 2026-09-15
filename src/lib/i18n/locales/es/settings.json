@@ -19,7 +19,6 @@
   "demo": "Diagnóstico de demostración; estos valores no describen este dispositivo.",
   "diagnosticsError": "No se pudo obtener el diagnóstico. Inténtalo de nuevo.",
   "configPath": "Preferencias",
-  "cachePath": "Caché",
   "historyPath": "Muestras del historial",
   "localData": "Estos archivos se guardan en este dispositivo, sin respaldo en GitHub. Borrar los datos de la app elimina las preferencias y muestras locales."
 }

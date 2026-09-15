@@ -18,8 +18,6 @@
     "noResults": "No pull requests match these filters.",
     "empty": "No open pull requests in your followed repositories.",
     "partial": "Some repositories could not be loaded.",
-    "offline": "Showing saved pull requests from {date}.",
-    "notSaved": "This pull request has not been saved for offline use.",
     "page": "Page {page} of {pages}",
     "previous": "Previous",
     "next": "Next",

@@ -31,7 +31,7 @@ describe("store (Zustand)", () => {
     expect(state.refreshing).toBe(false);
   });
 
-  test("bootOk updates booted, status, config, and cache data", () => {
+  test("bootOk updates booted, status, and config without cached data", () => {
     const mockStatus = { ok: true, login: "octocat", hint: null, error: null };
     const mockConfig = {
       version: 1,
@@ -40,36 +40,14 @@ describe("store (Zustand)", () => {
       transparency: true,
       locale: "es" as const,
     };
-    const mockCache = {
-      fetchedAt: 1234567890,
-      repos: [
-        {
-          fullName: "owner/repo1",
-          description: "Test repo",
-          stars: 10,
-          forks: 2,
-          downloads: 100,
-          starsDelta: null,
-          forksDelta: null,
-          downloadsDelta: null,
-          isPrivate: false,
-          language: "TypeScript",
-          platforms: [],
-          releases: [],
-          updatedAt: 1234567890,
-        },
-      ],
-      history: {},
-    };
-
-    useStore.getState().bootOk(mockStatus, mockConfig, mockCache);
+    useStore.getState().bootOk(mockStatus, mockConfig);
 
     const state = useStore.getState();
     expect(state.booted).toBe(true);
     expect(state.status).toEqual(mockStatus);
     expect(state.selectedNames).toEqual(["owner/repo1", "owner/repo2"]);
-    expect(state.tracked.length).toBe(1);
-    expect(state.fetchedAt).toBe(1234567890);
+    expect(state.tracked).toEqual([]);
+    expect(state.fetchedAt).toBeNull();
   });
 
   test("bootFail updates booted and error status", () => {
@@ -85,21 +63,6 @@ describe("store (Zustand)", () => {
     expect(state.booted).toBe(true);
     expect(state.status?.ok).toBe(false);
     expect(state.status?.error).toBe("auth failure");
-  });
-
-  test("retryBoot keeps local content visible while reconnecting", () => {
-    useStore.setState({
-      bootAttempt: 1,
-      booted: true,
-      status: { ok: false, login: null, hint: null, error: "err" },
-    });
-    useStore.getState().retryBoot();
-
-    const state = useStore.getState();
-    expect(state.bootAttempt).toBe(2);
-    expect(state.booted).toBe(true);
-    expect(state.connecting).toBe(true);
-    expect(state.status).toBeNull();
   });
 
   test("setBanner updates banner message", () => {

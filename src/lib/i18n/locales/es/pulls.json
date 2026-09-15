@@ -18,8 +18,6 @@
     "noResults": "Ningún pull request coincide con estos filtros.",
     "empty": "No hay pull requests abiertos en tus repositorios seguidos.",
     "partial": "No se pudieron cargar algunos repositorios.",
-    "offline": "Mostrando pull requests guardados del {date}.",
-    "notSaved": "Este pull request no se ha guardado para usarlo sin conexión.",
     "page": "Página {page} de {pages}",
     "previous": "Anterior",
     "next": "Siguiente",

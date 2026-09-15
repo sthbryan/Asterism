@@ -24,7 +24,7 @@
 
 Asterism does not list every repository you own. You choose the set, the selection is saved locally for each GitHub account, and the window shows stars, forks, and download totals for that set. Open a repo and you get traffic, languages, each release, and each asset.
 
-It uses the GitHub CLI you already signed in with. Saved data opens before connecting, even when `gh` is missing or not authenticated. Use **Check connection** to retry without restarting. Network failures show connection details instead of claiming the CLI is missing.
+It uses the GitHub CLI you already signed in with. Asterism checks that connection before loading GitHub data. Use **Check connection** to retry without restarting when `gh` is missing, not authenticated, or unavailable.
 
 ---
 
@@ -51,15 +51,13 @@ The Create repository tab supports personal or organization ownership, private/p
 **`gh` is the client**  
 No extra GitHub token in the app. Asterism shells out to `gh` with the account already configured on the machine.
 
-**Local data and offline mode**
+**Local preferences and history**
 
-Asterism uses Tauri Plugin Store in the OS application-data directory. Settings shows the exact location. Preferences, projects, cached repository data, and snapshots are separate. Cache is isolated by GitHub host and account; authentication stays with `gh`.
+Asterism uses Tauri Plugin Store in the OS application-data directory. Settings shows the exact location. Preferences, local projects, and bounded star/download/fork history are stored separately; authentication stays with `gh`.
 
-Previously fetched summaries, the catalog, and opened details can be read offline. Creating repositories requires a live connection; actions are never queued. Failed refreshes keep the last valid response and its date. Traffic is only the latest GitHub response, with its original 14-day period, not an accumulated visits/clones history.
+GitHub summaries, catalog entries, and details are loaded from the connected account. Failed requests show an error and can be retried. Traffic is the latest GitHub response, with its original 14-day period, not an accumulated visits/clones history.
 
-Cache is limited to 100 details and 16 MiB per account. Star/download/fork history retains up to 180 observations per series for 500 repositories. **Clear repository cache** in Settings keeps preferences, projects, and history. Local storage is not a remote backup: deleting app data removes it.
-
-On upgrade, the old `~/.config/asterism/config.json` and `~/.cache/asterism/{cache,history}.json` files are migrated without deleting the originals. They do not identify a GitHub account, so Settings lets you view them separately or explicitly import them into the connected account. Existing account data takes precedence.
+Star/download/fork history retains up to 180 observations per series for 500 repositories. Local storage is not a remote backup: deleting app data removes preferences, projects, and snapshots.
 
 ---
 
@@ -94,7 +92,7 @@ To fetch new data or create repositories, Asterism needs [GitHub CLI](https://cl
 
 - `src-tauri`: Tauri v2 host. Detects `gh`, loads config, fetches catalog, tracked stats, and repo detail off the UI thread.
 - `src`: React client. Overview, repo picker, and detail.
-- Tauri app data: versioned Plugin Store documents for preferences, projects, account caches, and bounded history.
+- Tauri app data: versioned Plugin Store documents for preferences, projects, and bounded history.
 - Tests: `bun test tests` and `cargo test --manifest-path src-tauri/Cargo.toml`.
 
 `gh` owns auth and the GitHub API. The app is a thin desktop client over that CLI.

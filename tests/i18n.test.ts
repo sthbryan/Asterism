@@ -14,7 +14,9 @@ describe("translations", () => {
   test("pull request namespace resolves user-facing labels", () => {
     expect(translate("es", "pulls.title")).toBe("Pull requests");
     expect(translate("en", "pulls.refresh")).toBe("Refresh");
-    expect(translate("es", "offline.checking")).toBe("Comprobando conexión…");
+    expect(translate("es", "connection.checking")).toBe(
+      "Comprobando conexión…",
+    );
   });
 
   test("both languages contain the same nonempty messages and placeholders", () => {
