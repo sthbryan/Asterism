@@ -1,12 +1,15 @@
 //! Per-account, namespaced cache persistence.
 //!
-//! Cache entries are deliberately stored as JSON values so the same storage
-//! layer can be used by detail, overview, and future views without making the
-//! Rust backend depend on their response types.
+//! Entries are stored independently under `accounts/<account>/cache/<namespace>`
+//! so updating one view never rewrites the complete cache.
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::BTreeMap, fs, path::PathBuf};
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use super::{account_file, Storage};
 use tauri::Runtime;
@@ -39,16 +42,26 @@ struct CacheDocument {
 }
 
 fn validate_part(value: &str, max: usize, label: &str) -> Result<(), String> {
-    if value.is_empty() || value.len() > max || value.chars().any(char::is_control) {
+    if value.is_empty()
+        || value.len() > max
+        || value.chars().any(char::is_control)
+        || value == "."
+        || value == ".."
+        || (label == "namespace" && (value.contains('/') || value.contains('\\')))
+    {
         return Err(format!("Invalid cache {label}."));
     }
     Ok(())
 }
 
-fn entry_key(namespace: &str, key: &str) -> Result<String, String> {
+fn entry_id(namespace: &str, key: &str) -> Result<(), String> {
     validate_part(namespace, MAX_NAMESPACE_LEN, "namespace")?;
-    validate_part(key, MAX_KEY_LEN, "key")?;
-    Ok(format!("{namespace}:{key}"))
+    validate_part(key, MAX_KEY_LEN, "key")
+}
+
+fn filename(key: &str) -> String {
+    let encoded: String = key.bytes().map(|byte| format!("{byte:02x}")).collect();
+    format!("{encoded}.json")
 }
 
 impl<R: Runtime> Storage<R> {
@@ -59,12 +72,59 @@ impl<R: Runtime> Storage<R> {
         )))
     }
 
-    fn cache_file(&self) -> Result<String, String> {
-        Ok(self.cache_path()?.display().to_string())
+    fn cache_dir(&self) -> Result<PathBuf, String> {
+        Ok(self.cache_path()?.with_file_name("cache"))
     }
 
-    fn load_cache_document(&self) -> Result<CacheDocument, String> {
-        Ok(self.read(&self.cache_file()?)?.unwrap_or_default())
+    fn entry_path(&self, namespace: &str, key: &str) -> Result<PathBuf, String> {
+        entry_id(namespace, key)?;
+        Ok(self.cache_dir()?.join(namespace).join(filename(key)))
+    }
+
+    fn read_entry_value(&self, path: &Path) -> Result<Option<CacheEntry<Value>>, String> {
+        match fs::read(path) {
+            Ok(raw) => serde_json::from_slice(&raw)
+                .map(Some)
+                .map_err(|e| format!("Invalid cache entry {}: {e}", path.display())),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(format!("Could not read {}: {error}", path.display())),
+        }
+    }
+
+    fn read_legacy_entry(
+        &self,
+        namespace: &str,
+        key: &str,
+    ) -> Result<Option<CacheEntry<Value>>, String> {
+        let legacy = self.cache_path()?.display().to_string();
+        Ok(self
+            .read::<CacheDocument>(&legacy)?
+            .and_then(|document| document.entries.get(&format!("{namespace}:{key}")).cloned()))
+    }
+
+    fn all_entry_paths(&self) -> Result<Vec<PathBuf>, String> {
+        let root = self.cache_dir()?;
+        let mut paths = Vec::new();
+        let namespaces = match fs::read_dir(&root) {
+            Ok(entries) => entries,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(paths),
+            Err(error) => return Err(format!("Could not read {}: {error}", root.display())),
+        };
+        for namespace in namespaces {
+            let namespace = namespace.map_err(|e| e.to_string())?;
+            if !namespace.file_type().map_err(|e| e.to_string())?.is_dir() {
+                continue;
+            }
+            for entry in fs::read_dir(namespace.path()).map_err(|e| e.to_string())? {
+                let entry = entry.map_err(|e| e.to_string())?;
+                if entry.file_type().map_err(|e| e.to_string())?.is_file()
+                    && entry.path().extension().is_some_and(|ext| ext == "json")
+                {
+                    paths.push(entry.path());
+                }
+            }
+        }
+        Ok(paths)
     }
 
     pub fn read_cache<T: DeserializeOwned>(
@@ -72,12 +132,13 @@ impl<R: Runtime> Storage<R> {
         namespace: &str,
         key: &str,
     ) -> Result<Option<CacheEntry<T>>, String> {
-        let id = entry_key(namespace, key)?;
-        let document = self.load_cache_document()?;
-        document
-            .entries
-            .get(&id)
-            .cloned()
+        let path = self.entry_path(namespace, key)?;
+        let entry = self.read_entry_value(&path)?;
+        let entry = match entry {
+            Some(entry) => Some(entry),
+            None => self.read_legacy_entry(namespace, key)?,
+        };
+        entry
             .map(|entry| {
                 serde_json::from_value(entry.data)
                     .map(|data| CacheEntry {
@@ -86,7 +147,7 @@ impl<R: Runtime> Storage<R> {
                         data,
                         warning: entry.warning,
                     })
-                    .map_err(|e| format!("Invalid cache entry {id}: {e}"))
+                    .map_err(|e| format!("Invalid cache entry {namespace}:{key}: {e}"))
             })
             .transpose()
     }
@@ -97,61 +158,65 @@ impl<R: Runtime> Storage<R> {
         key: &str,
         entry: &CacheEntry<T>,
     ) -> Result<(), String> {
-        let id = entry_key(namespace, key)?;
-        let mut document = self.load_cache_document()?;
-        let data = serde_json::to_value(&entry.data)
-            .map_err(|e| format!("Could not serialize cache entry {id}: {e}"))?;
-        document.entries.insert(
-            id,
-            CacheEntry {
-                version: entry.version,
-                fetched_at: entry.fetched_at,
-                data,
-                warning: entry.warning.clone(),
-            },
-        );
-        self.write(&self.cache_file()?, &document)
+        let path = self.entry_path(namespace, key)?;
+        let value = serde_json::to_vec(entry)
+            .map_err(|e| format!("Could not serialize cache entry {namespace}:{key}: {e}"))?;
+        fs::create_dir_all(path.parent().ok_or("Invalid cache path.")?)
+            .map_err(|e| e.to_string())?;
+        let pending = path.with_extension("pending");
+        fs::write(&pending, &value)
+            .map_err(|e| format!("Could not write {}: {e}", pending.display()))?;
+        fs::File::open(&pending)
+            .and_then(|file| file.sync_all())
+            .map_err(|e| e.to_string())?;
+        fs::rename(&pending, &path).map_err(|e| format!("Could not commit {}: {e}", path.display()))
     }
 
     pub fn remove_cache(&self, namespace: &str, key: &str) -> Result<bool, String> {
-        let id = entry_key(namespace, key)?;
-        let mut document = self.load_cache_document()?;
-        let removed = document.entries.remove(&id).is_some();
-        if removed {
-            // Keep the file around rather than adding a destructive file
-            // operation to the generic storage layer.
-            self.write(&self.cache_file()?, &document)?;
+        match fs::remove_file(self.entry_path(namespace, key)?) {
+            Ok(()) => Ok(true),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(false),
+            Err(error) => Err(error.to_string()),
         }
-        Ok(removed)
     }
 
     pub fn clear_cache(&self, namespace: Option<&str>) -> Result<usize, String> {
         if let Some(namespace) = namespace {
             validate_part(namespace, MAX_NAMESPACE_LEN, "namespace")?;
         }
-        let mut document = self.load_cache_document()?;
-        let before = document.entries.len();
-        match namespace {
-            Some(prefix) => document
-                .entries
-                .retain(|id, _| !id.starts_with(&format!("{prefix}:"))),
-            None => document.entries.clear(),
+        let paths = self.all_entry_paths()?;
+        let mut removed = 0;
+        for path in paths {
+            let matches = namespace.is_none()
+                || path
+                    .parent()
+                    .and_then(Path::file_name)
+                    .and_then(|name| name.to_str())
+                    == namespace;
+            if matches && fs::remove_file(path).is_ok() {
+                removed += 1;
+            }
         }
-        let removed = before - document.entries.len();
-        if removed > 0 {
-            self.write(&self.cache_file()?, &document)?;
+        if namespace.is_none() && fs::remove_file(self.cache_path()?).is_ok() {
+            removed += 1;
         }
         Ok(removed)
     }
 
     pub fn cache_info(&self) -> Result<CacheInfo, String> {
-        let path = self.cache_path()?;
-        let entries = self.load_cache_document()?.entries.len();
-        let bytes = fs::metadata(&path)
-            .map(|metadata| metadata.len())
-            .unwrap_or(0);
+        let mut bytes = 0;
+        let mut entries = 0;
+        for path in self.all_entry_paths()? {
+            if let Ok(metadata) = fs::metadata(path) {
+                bytes += metadata.len();
+                entries += 1;
+            }
+        }
+        if let Ok(metadata) = fs::metadata(self.cache_path()?) {
+            bytes += metadata.len();
+        }
         Ok(CacheInfo {
-            path: path.display().to_string(),
+            path: self.cache_dir()?.display().to_string(),
             bytes,
             entries,
         })
@@ -160,15 +225,13 @@ impl<R: Runtime> Storage<R> {
 
 #[cfg(test)]
 mod tests {
-    use super::entry_key;
-
+    use super::{entry_id, filename};
     #[test]
-    fn namespaces_and_keys_are_unambiguous() {
-        assert_eq!(
-            entry_key("detail", "owner/name").unwrap(),
-            "detail:owner/name"
-        );
-        assert!(entry_key("", "repo").is_err());
-        assert!(entry_key("detail", "repo\n").is_err());
+    fn keys_are_safe_filenames() {
+        assert_eq!(filename("owner/name"), "6f776e65722f6e616d65.json");
+        assert!(entry_id("detail", "owner/name").is_ok());
+        assert!(entry_id("", "repo").is_err());
+        assert!(entry_id("../detail", "repo").is_err());
+        assert!(entry_id("detail", "repo\n").is_err());
     }
 }
