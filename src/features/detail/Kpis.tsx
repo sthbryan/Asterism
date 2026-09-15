@@ -4,12 +4,25 @@ import { KpiCard } from "@/components/KpiCard";
 import { pickKpiDelta, windowDelta } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
-export function Kpis({ detail }: { detail: RepoDetail }) {
+export function Kpis({
+  detail,
+  period = 7,
+  referenceTs,
+}: {
+  detail: RepoDetail;
+  period?: 7 | 30;
+  referenceTs?: number;
+}) {
   const { t } = useI18n();
-  const starKpi = pickKpiDelta(windowDelta(detail.starHistory ?? [], 7), null);
-  const downloadKpi = pickKpiDelta(
-    windowDelta(detail.downloadHistory ?? [], 7),
+  const starKpi = pickKpiDelta(
+    windowDelta(detail.starHistory ?? [], period, referenceTs),
     null,
+    period,
+  );
+  const downloadKpi = pickKpiDelta(
+    windowDelta(detail.downloadHistory ?? [], period, referenceTs),
+    null,
+    period,
   );
   return (
     <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">

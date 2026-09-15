@@ -37,5 +37,6 @@
   "Views": "Visitas",
   "Views and clones require push access.": "Las visitas y los clones requieren permiso de push.",
   "Visibility": "Visibilidad",
-  "Watchers": "Observadores"
+  "Watchers": "Observadores",
+  "partialCoverage": "Solo hay muestras de {days} días"
 }

@@ -22,5 +22,6 @@
   "share": "{value} % del total de descargas",
   "noResults": "Sin resultados para «{query}»",
   "total": "total {value}",
-  "updated": "Actualizado {value}"
+  "updated": "Actualizado {value}",
+  "partialCoverage": "Solo hay muestras de {days} días"
 }

@@ -123,9 +123,58 @@ export const mockClient: ApiClient = {
       (cleared || new URLSearchParams(window.location.search).has("empty"))
     )
       return Promise.reject("This detail has not been saved.");
+    const mode = new URLSearchParams(window.location.search).get("traffic");
+    const base = mockDetail(fullName);
+    const old = Math.floor(Date.now() / 1000) - 10 * 86400;
+    const data = { ...base };
+    if (mode === "forbidden" || mode === "error" || mode === "empty") {
+      data.views = null;
+      data.clones = null;
+      data.viewsStatus =
+        mode === "forbidden"
+          ? "forbidden"
+          : mode === "error"
+            ? "error"
+            : "unavailable";
+      data.clonesStatus = data.viewsStatus;
+      data.trafficError =
+        mode === "forbidden"
+          ? "HTTP 403: Forbidden"
+          : mode === "error"
+            ? "Network error"
+            : null;
+    } else if (mode === "partial") {
+      data.views = null;
+      data.viewsStatus = "forbidden";
+      data.clonesStatus = "ok";
+      data.trafficError = "HTTP 403: Forbidden";
+    } else if (mode === "zero") {
+      data.views = { count: 0, uniques: 0, days: [] };
+      data.clones = { count: 0, uniques: 0, days: [] };
+      data.viewsStatus = "ok";
+      data.clonesStatus = "ok";
+      data.trafficError = null;
+    } else if (mode === "old") {
+      if (data.views)
+        data.views = {
+          ...data.views,
+          fetchedAt: old,
+          sampleFrom: old - 13 * 86400,
+          sampleTo: old,
+        };
+      if (data.clones)
+        data.clones = {
+          ...data.clones,
+          fetchedAt: old,
+          sampleFrom: old - 13 * 86400,
+          sampleTo: old,
+        };
+      data.viewsStatus = "ok";
+      data.clonesStatus = "ok";
+    }
     return delay(
       {
-        data: mockDetail(fullName),
+        data,
         fetchedAt: offline
           ? MOCK_CACHE.fetchedAt
           : Math.floor(Date.now() / 1000),

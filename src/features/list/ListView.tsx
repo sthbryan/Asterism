@@ -22,7 +22,6 @@ import { langColor } from "@/lib/langcolors";
 import { platformItems, sumPlatforms } from "@/lib/platform";
 import {
   aggregateHistory,
-  delta,
   pickKpiDelta,
   sumDeltas,
   windowDelta,
@@ -98,6 +97,7 @@ export function ListView() {
   const booted = useStore((s) => s.booted);
   const runRefresh = useStore((s) => s.runRefresh);
   const [query, setQuery] = useState("");
+  const [period, setPeriod] = useState<7 | 30>(7);
   const [sort, setSort] = useState<{ key: SortKey; dir: number }>({
     key: "downloads",
     dir: -1,
@@ -124,16 +124,16 @@ export function ListView() {
   const kpis = useMemo(
     () => ({
       star: pickKpiDelta(
-        windowDelta(starSeries, 7),
+        windowDelta(starSeries, period),
         sumDeltas(repos.map((repo) => repo.starsDelta)),
       ),
       fork: pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta))),
       download: pickKpiDelta(
-        windowDelta(downloadSeries, 7),
+        windowDelta(downloadSeries, period),
         sumDeltas(repos.map((repo) => repo.downloadsDelta)),
       ),
     }),
-    [starSeries, downloadSeries, repos],
+    [starSeries, downloadSeries, repos, period],
   );
   const chart = useMemo(() => {
     const sorted = [...repos].sort((a, b) => b.downloads - a.downloads);
@@ -255,8 +255,9 @@ export function ListView() {
               <ListCharts
                 starSeries={starSeries}
                 downloadSeries={downloadSeries}
-                starDelta={delta(starSeries)}
-                downloadDelta={delta(downloadSeries)}
+                period={period}
+                onPeriodChange={setPeriod}
+                referenceTs={fetchedAt ?? undefined}
               />
             ) : null}
             {repos.length === 0 ? (

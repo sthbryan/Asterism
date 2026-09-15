@@ -22,5 +22,6 @@
   "share": "{value}% of total downloads",
   "noResults": "No results for “{query}”",
   "total": "total {value}",
-  "updated": "Updated {value}"
+  "updated": "Updated {value}",
+  "partialCoverage": "Only {days} days of samples available"
 }

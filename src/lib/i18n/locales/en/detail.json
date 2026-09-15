@@ -37,5 +37,6 @@
   "Views": "Views",
   "Views and clones require push access.": "Views and clones require push access.",
   "Visibility": "Visibility",
-  "Watchers": "Watchers"
+  "Watchers": "Watchers",
+  "partialCoverage": "Only {days} days of samples available"
 }

@@ -1,4 +1,5 @@
 import { WarningCircle } from "@phosphor-icons/react";
+import { useState } from "react";
 import { useRoute } from "wouter";
 import { useDetail, useI18n } from "@/app/hooks";
 import { decodeDetailParam } from "@/app/routes";
@@ -78,6 +79,7 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
   const { t, locale } = useI18n();
   const fetchedAt = useStore((s) => s.detailFetchedAt);
   const warning = useStore((s) => s.detailWarning);
+  const [period, setPeriod] = useState<7 | 30>(7);
   return (
     <div>
       {fetchedAt && (
@@ -100,8 +102,17 @@ function DetailBody({ detail }: { detail: RepoDetail }) {
         </div>
       )}
       <RepoIntro detail={detail} />
-      <Kpis detail={detail} />
-      <HistoryCharts detail={detail} />
+      <Kpis
+        detail={detail}
+        period={period}
+        referenceTs={fetchedAt ?? undefined}
+      />
+      <HistoryCharts
+        detail={detail}
+        period={period}
+        onPeriodChange={setPeriod}
+        referenceTs={fetchedAt ?? undefined}
+      />
       <TrafficSectionInner detail={detail} />
       <InsightsSection detail={detail} />
       <MetaFacts detail={detail} />
