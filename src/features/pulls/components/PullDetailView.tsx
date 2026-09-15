@@ -11,6 +11,7 @@ import type { PullRequestDetail } from "@/lib/types";
 import { usePullDetail } from "../hooks/usePullDetail";
 import { ErrorCard } from "./ErrorCard";
 import { LoadingRows } from "./LoadingRows";
+import { PullCacheStatus } from "./PullCacheStatus";
 import { PullDetailBody } from "./PullDetailBody";
 
 export function PullDetailView() {
@@ -54,11 +55,11 @@ export function PullDetailView() {
         }
       />
       <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
-        <When condition={detail.refreshing && Boolean(detail.pull)}>
-          <p role="status" className="mb-3 text-xs text-mist">
-            {t("Refreshing…")}
-          </p>
-        </When>
+        <PullCacheStatus
+          fetchedAt={detail.fetchedAt}
+          refreshing={detail.refreshing}
+          offline={offline}
+        />
         <When condition={detail.loading && !detail.pull}>
           <LoadingRows />
         </When>
@@ -69,13 +70,11 @@ export function PullDetailView() {
           <Then>
             <PullDetailBody
               pull={detail.pull as PullRequestDetail}
-              fetchedAt={detail.fetchedAt}
               warning={detail.warning}
-              offline={offline}
               filesOpen={detail.filesOpen}
               toggleFiles={detail.toggleFiles}
               diffOpen={detail.diffOpen}
-              loadDiff={() => void detail.loadDiff()}
+              toggleDiff={detail.toggleDiff}
               diff={detail.diff}
               diffLoading={detail.diffLoading}
               diffRefreshing={detail.diffRefreshing}

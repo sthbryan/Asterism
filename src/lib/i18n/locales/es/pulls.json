@@ -29,6 +29,7 @@
     "diff": "Diff",
     "loadFiles": "Cargar archivos",
     "loadDiff": "Cargar diff",
+    "closeDiff": "Cerrar diff",
     "loading": "Cargando…",
     "checks": "Checks",
     "reviews": "Revisiones",

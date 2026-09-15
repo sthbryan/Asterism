@@ -27,6 +27,7 @@ type DetailAction =
   | { type: "failure"; error: string; hasData: boolean }
   | { type: "toggleFiles" }
   | { type: "openDiff" }
+  | { type: "closeDiff" }
   | { type: "diffStart"; refreshing: boolean }
   | { type: "diffSuccess"; saved: Saved<string> }
   | { type: "diffFailure"; error: string };
@@ -74,6 +75,8 @@ function detailReducer(state: DetailState, action: DetailAction): DetailState {
       return { ...state, filesOpen: !state.filesOpen };
     case "openDiff":
       return { ...state, diffOpen: true };
+    case "closeDiff":
+      return { ...state, diffOpen: false };
     case "diffStart":
       return {
         ...state,
@@ -203,12 +206,20 @@ export function usePullDetail({
     }
   }, [key, number, offline, repo]);
 
+  const toggleDiff = useCallback(() => {
+    if (state.diffOpen) {
+      dispatch({ type: "closeDiff" });
+      return;
+    }
+    void loadDiff();
+  }, [loadDiff, state.diffOpen]);
+
   return {
     ...state,
     pull: state.saved?.data ?? null,
     fetchedAt: state.saved?.fetchedAt ?? null,
     warning: state.saved?.warning ?? null,
-    loadDiff,
+    toggleDiff,
     toggleFiles: () => dispatch({ type: "toggleFiles" }),
   };
 }

@@ -17,32 +17,28 @@ import { People } from "./People";
 
 export function PullDetailBody({
   pull,
-  fetchedAt,
   warning,
-  offline,
   filesOpen,
   toggleFiles,
   diffOpen,
-  loadDiff,
+  toggleDiff,
   diff,
   diffLoading,
   diffRefreshing,
   diffError,
 }: {
   pull: PullRequestDetail;
-  fetchedAt: number | null;
   warning: string | null;
-  offline: boolean;
   filesOpen: boolean;
   toggleFiles: () => void;
   diffOpen: boolean;
-  loadDiff: () => void;
+  toggleDiff: () => void;
   diff: Saved<string> | null;
   diffLoading: boolean;
   diffRefreshing: boolean;
   diffError: string | null;
 }) {
-  const { t, formatDate, formatRelative } = useI18n();
+  const { t, formatRelative } = useI18n();
   const status =
     pull.state === "OPEN" ? "bg-ok/10 text-ok" : "bg-fill text-mist";
   const mergeableConflict = pull.mergeable === "CONFLICTING";
@@ -54,9 +50,11 @@ export function PullDetailBody({
   const mergeableLabel = mergeableConflict
     ? t("pulls.conflicts")
     : t("pulls.mergeable");
-  const diffLabel = diffLoading ? t("pulls.loading") : t("pulls.loadDiff");
+  let diffLabel = t("pulls.loadDiff");
+  if (diffOpen) diffLabel = t("pulls.closeDiff");
+  if (diffLoading) diffLabel = t("pulls.loading");
   return (
-    <div className="mx-auto max-w-4xl">
+    <div>
       <div className="mb-4 flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -76,18 +74,6 @@ export function PullDetailBody({
             {pull.repo} #{pull.number} · {pull.author ?? t("pulls.unknown")}
           </p>
         </div>
-        <When condition={offline && Boolean(fetchedAt)}>
-          <span className="text-[11px] text-faint">
-            {t("pulls.offline", { date: formatDate((fetchedAt ?? 0) * 1000) })}
-          </span>
-        </When>
-        <When condition={Boolean(fetchedAt) && !offline}>
-          <span className="text-[11px] text-faint">
-            {t("offline.fetched", {
-              date: formatDate((fetchedAt ?? 0) * 1000),
-            })}
-          </span>
-        </When>
         <When condition={Boolean(warning)}>
           <span role="status" className="text-[11px] text-mist">
             {warning}
@@ -141,7 +127,7 @@ export function PullDetailBody({
           </p>
         </When>
       </div>
-      <section className="card mt-3 overflow-hidden">
+      <section className="mt-3">
         <DetailDisclosure
           title={t("pulls.files")}
           count={pull.files.length}
@@ -150,23 +136,27 @@ export function PullDetailBody({
           actionLabel={t("pulls.loadFiles")}
         />
         <When condition={filesOpen}>
-          <FileList files={pull.files} />
+          <div className="card mt-1 overflow-hidden">
+            <FileList files={pull.files} />
+          </div>
         </When>
       </section>
-      <section className="card mt-3 overflow-hidden">
+      <section className="mt-3">
         <DetailDisclosure
           title={t("pulls.diff")}
           open={diffOpen}
-          onClick={loadDiff}
+          onClick={toggleDiff}
           actionLabel={diffLabel}
         />
         <When condition={diffOpen}>
-          <DiffBody
-            diff={diff}
-            loading={diffLoading}
-            refreshing={diffRefreshing}
-            error={diffError}
-          />
+          <div className="card mt-1 overflow-hidden">
+            <DiffBody
+              diff={diff}
+              loading={diffLoading}
+              refreshing={diffRefreshing}
+              error={diffError}
+            />
+          </div>
         </When>
       </section>
       <When

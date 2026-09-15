@@ -65,7 +65,12 @@ export function PullsView() {
     clear: t("pulls.clear"),
   };
   const dateText = data.fetchedAt
-    ? t("pulls.offline", { date: formatDate(data.fetchedAt * 1000) })
+    ? t("pulls.offline", {
+        date: formatDate(data.fetchedAt * 1000, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }),
+      })
     : t("pulls.scope");
   return (
     <>
@@ -78,6 +83,8 @@ export function PullsView() {
         trailing={
           <Button
             variant="quiet"
+            aria-label={t("pulls.refresh")}
+            title={t("pulls.refresh")}
             onClick={() => void data.refresh()}
             disabled={data.refreshing || offline}
           >
@@ -85,7 +92,6 @@ export function PullsView() {
               size={14}
               className={data.refreshing ? "animate-spin" : ""}
             />
-            {data.refreshing ? t("pulls.refreshing") : t("pulls.refresh")}
           </Button>
         }
       />
@@ -97,7 +103,21 @@ export function PullsView() {
           onClear={controls.clear}
           labels={labels}
         />
-        <p className="mb-3 text-[11.5px] text-faint">{dateText}</p>
+        <p className="mb-3 flex items-center gap-2 text-[11.5px] text-faint">
+          {dateText}
+          <When condition={data.refreshing && Boolean(data.fetchedAt)}>
+            <span
+              role="status"
+              className="inline-flex items-center gap-1 text-mist"
+            >
+              <span
+                aria-hidden
+                className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
+              />
+              {t("Refreshing…")}
+            </span>
+          </When>
+        </p>
         <When condition={Object.keys(data.errors).length > 0}>
           <PartialErrors errors={data.errors} />
         </When>
