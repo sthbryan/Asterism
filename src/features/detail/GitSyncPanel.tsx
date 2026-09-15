@@ -341,6 +341,7 @@ export function GitSyncPanel({
                         busy || !isValidBranchName(newBranch) || !status.clean
                       }
                       size="md"
+                      className="mt-2"
                       onClick={() => {
                         const name = newBranch.trim();
                         setNewBranch("");
