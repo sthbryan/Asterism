@@ -32,6 +32,9 @@ import { RepositoryTable } from "./RepositoryTable";
 
 type SortKey = "fullName" | "stars" | "forks" | "downloads";
 
+// KPI deltas and charts always cover the trailing 30-day window.
+const PERIOD_DAYS = 30;
+
 export function ListTrailing({
   refreshing,
   fetchedAt,
@@ -100,7 +103,6 @@ export function ListView() {
   const booted = useStore((s) => s.booted);
   const runRefresh = useStore((s) => s.runRefresh);
   const [query, setQuery] = useState("");
-  const [period, setPeriod] = useState<7 | 30>(7);
   const [sort, setSort] = useState<{ key: SortKey; dir: number }>({
     key: "downloads",
     dir: -1,
@@ -127,16 +129,18 @@ export function ListView() {
   const kpis = useMemo(
     () => ({
       star: pickKpiDelta(
-        windowDelta(starSeries, period),
+        windowDelta(starSeries, PERIOD_DAYS),
         sumDeltas(repos.map((repo) => repo.starsDelta)),
+        PERIOD_DAYS,
       ),
       fork: pickKpiDelta(null, sumDeltas(repos.map((repo) => repo.forksDelta))),
       download: pickKpiDelta(
-        windowDelta(downloadSeries, period),
+        windowDelta(downloadSeries, PERIOD_DAYS),
         sumDeltas(repos.map((repo) => repo.downloadsDelta)),
+        PERIOD_DAYS,
       ),
     }),
-    [starSeries, downloadSeries, repos, period],
+    [starSeries, downloadSeries, repos],
   );
   const chart = useMemo(() => {
     const sorted = [...repos].sort((a, b) => b.downloads - a.downloads);
@@ -258,8 +262,6 @@ export function ListView() {
               <ListCharts
                 starSeries={starSeries}
                 downloadSeries={downloadSeries}
-                period={period}
-                onPeriodChange={setPeriod}
                 referenceTs={fetchedAt ?? undefined}
               />
             ) : null}

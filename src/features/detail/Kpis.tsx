@@ -9,25 +9,26 @@ import { KpiCard } from "@/components/KpiCard";
 import { pickKpiDelta, windowDelta } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
+// KPI deltas always cover the trailing 30-day window.
+const PERIOD_DAYS = 30;
+
 export function Kpis({
   detail,
-  period = 7,
   referenceTs,
 }: {
   detail: RepoDetail;
-  period?: 7 | 30;
   referenceTs?: number;
 }) {
   const { t } = useI18n();
   const starKpi = pickKpiDelta(
-    windowDelta(detail.starHistory ?? [], period, referenceTs),
+    windowDelta(detail.starHistory ?? [], PERIOD_DAYS, referenceTs),
     null,
-    period,
+    PERIOD_DAYS,
   );
   const downloadKpi = pickKpiDelta(
-    windowDelta(detail.downloadHistory ?? [], period, referenceTs),
+    windowDelta(detail.downloadHistory ?? [], PERIOD_DAYS, referenceTs),
     null,
-    period,
+    PERIOD_DAYS,
   );
   return (
     <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">

@@ -1,43 +1,28 @@
 import { useI18n } from "@/app/hooks";
 import { AreaChart } from "@/components/Charts";
-import { Select } from "@/components/Select";
 import { fmtSigned } from "@/lib/format";
 import { delta, seriesWindow } from "@/lib/series";
 import type { SeriesPoint } from "@/lib/types";
 
+// Charts always show the trailing 30-day window.
+const PERIOD_DAYS = 30;
+
 export function ListCharts({
   starSeries,
   downloadSeries,
-  period,
-  onPeriodChange,
   referenceTs,
 }: {
   starSeries: SeriesPoint[];
   downloadSeries: SeriesPoint[];
-  period: 7 | 30;
-  onPeriodChange: (value: 7 | 30) => void;
   referenceTs?: number;
 }) {
   const { t } = useI18n();
-  const starWindow = seriesWindow(starSeries, period, referenceTs);
-  const downloadWindow = seriesWindow(downloadSeries, period, referenceTs);
+  const starWindow = seriesWindow(starSeries, PERIOD_DAYS, referenceTs);
+  const downloadWindow = seriesWindow(downloadSeries, PERIOD_DAYS, referenceTs);
   const stars = starWindow?.points ?? [];
   const downloads = downloadWindow?.points ?? [];
   return (
     <div className="mt-3">
-      <div className="mb-3 flex items-center justify-end gap-2">
-        <span className="text-[11.5px] text-faint">{t("Period")}</span>
-        <Select
-          value={String(period)}
-          onChange={(value) => onPeriodChange(Number(value) as 7 | 30)}
-          options={[
-            { value: "7", label: t("7 days") },
-            { value: "30", label: t("30 days") },
-          ]}
-          className="w-32"
-          ariaLabel={t("Period")}
-        />
-      </div>
       <div className="grid gap-3 lg:grid-cols-2">
         <div className="card p-4">
           <div className="flex items-baseline justify-between gap-3">

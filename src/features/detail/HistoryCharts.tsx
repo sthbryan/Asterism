@@ -1,47 +1,33 @@
 import { useI18n } from "@/app/hooks";
 import { AreaChart } from "@/components/Charts";
-import { Select } from "@/components/Select";
 import { seriesWindow } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
+// Charts always show the trailing 30-day window.
+const PERIOD_DAYS = 30;
+
 export function HistoryCharts({
   detail,
-  period,
-  onPeriodChange,
   referenceTs,
 }: {
   detail: RepoDetail;
-  period: 7 | 30;
-  onPeriodChange: (value: 7 | 30) => void;
   referenceTs?: number;
 }) {
   const { t } = useI18n();
   const starWindow = seriesWindow(
     detail.starHistory ?? [],
-    period,
+    PERIOD_DAYS,
     referenceTs,
   );
   const downloadWindow = seriesWindow(
     detail.downloadHistory ?? [],
-    period,
+    PERIOD_DAYS,
     referenceTs,
   );
   const stars = starWindow?.points ?? [];
   const downloads = downloadWindow?.points ?? [];
   return (
     <div className="mt-3">
-      <div className="mb-3 flex justify-end">
-        <Select
-          value={String(period)}
-          onChange={(v) => onPeriodChange(Number(v) as 7 | 30)}
-          options={[
-            { value: "7", label: t("7 days") },
-            { value: "30", label: t("30 days") },
-          ]}
-          className="w-32"
-          ariaLabel={t("Period")}
-        />
-      </div>
       <div className="grid gap-3 lg:grid-cols-2">
         <div className="card p-4">
           <div className="text-[13px] font-semibold">
