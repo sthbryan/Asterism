@@ -20,7 +20,7 @@
   "Cancel": "Cancel",
   "local": {
     "title": "Local projects",
-    "link": "Link checkout",
+    "link": "Link folder",
     "clone": "Clone here",
     "destination": "Destination: {path}",
     "name": "Folder name",
@@ -85,7 +85,17 @@
       "staged": "staged",
       "unstaged": "unstaged",
       "untracked": "untracked",
-      "loading": "Loading sync status…"
+      "loading": "Loading sync status…",
+      "fetching": "Fetching…",
+      "pulling": "Pulling…",
+      "pushing": "Pushing…",
+      "switching": "Switching branches…",
+      "creating": "Creating branch…",
+      "fetched": "Fetch complete",
+      "pulled": "Pull complete",
+      "pushed": "Pushed to {target}",
+      "switched": "Switched to {branch}",
+      "created": "Branch {branch} created"
     },
     "ready": "Available",
     "missing": "Folder missing",

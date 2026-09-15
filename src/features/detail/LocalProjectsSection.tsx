@@ -1,4 +1,11 @@
-import { FolderOpen, LinkSimple, Plus, Trash } from "@phosphor-icons/react";
+import {
+  ArrowSquareOut,
+  Code,
+  FolderOpen,
+  LinkSimple,
+  Plus,
+  Trash,
+} from "@phosphor-icons/react";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
@@ -274,6 +281,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
                       ).catch((e) => setError(localError(e, t)))
                     }
                   >
+                    <ArrowSquareOut size={14} aria-hidden />
                     {t("local.open")}
                   </Button>
                   <Button
@@ -284,6 +292,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
                       )
                     }
                   >
+                    <Code size={14} aria-hidden />
                     {t("local.editor")}
                   </Button>
                   <Button

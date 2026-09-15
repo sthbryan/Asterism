@@ -3,10 +3,13 @@ import {
   ArrowsClockwise,
   ArrowUp,
   CaretDown,
+  CheckCircle,
+  CircleNotch,
   GitBranch,
   Plus,
 } from "@phosphor-icons/react";
 import { cn } from "cn";
+import type { ReactNode } from "react";
 import { useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
@@ -65,6 +68,9 @@ export function GitSyncPanel({
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<GitSyncStatus | null>(null);
   const [busy, setBusy] = useState(false);
+  const [active, setActive] = useState<string | null>(null);
+  const [progressKey, setProgressKey] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [switchTo, setSwitchTo] = useState("");
   const [newBranch, setNewBranch] = useState("");
@@ -88,21 +94,42 @@ export function GitSyncPanel({
     }
   }
 
-  async function run(op: () => Promise<GitSyncStatus>) {
+  async function run(
+    id: string,
+    progress: string,
+    done: (next: GitSyncStatus) => string,
+    op: () => Promise<GitSyncStatus>,
+  ) {
     const request = generation.current;
     setBusy(true);
+    setActive(id);
+    setProgressKey(progress);
+    setNotice(null);
     setError(null);
     try {
       const next = await op();
       if (request === generation.current) {
         setStatus(next);
         setSwitchTo(next.branch ?? "");
+        setNotice(done(next));
       }
     } catch (e) {
       if (request === generation.current) setError(String(e));
     } finally {
-      if (request === generation.current) setBusy(false);
+      if (request === generation.current) {
+        setBusy(false);
+        setActive(null);
+        setProgressKey(null);
+      }
     }
+  }
+
+  function actionIcon(id: string, icon: ReactNode) {
+    return active === id ? (
+      <CircleNotch size={14} aria-hidden className="animate-spin" />
+    ) : (
+      icon
+    );
   }
 
   function toggle() {
@@ -189,27 +216,51 @@ export function GitSyncPanel({
                 <div className="flex flex-wrap gap-1">
                   <Button
                     disabled={busy}
-                    onClick={() => void run(() => gitFetch(fullName, path))}
+                    onClick={() =>
+                      void run(
+                        "fetch",
+                        "local.git.fetching",
+                        () => t("local.git.fetched"),
+                        () => gitFetch(fullName, path),
+                      )
+                    }
                   >
-                    <ArrowsClockwise size={14} aria-hidden />
+                    {actionIcon(
+                      "fetch",
+                      <ArrowsClockwise size={14} aria-hidden />,
+                    )}
                     {t("local.git.fetch")}
                   </Button>
                   <Button
                     disabled={busy || status.detached || !status.upstream}
-                    onClick={() => void run(() => gitPull(fullName, path))}
+                    onClick={() =>
+                      void run(
+                        "pull",
+                        "local.git.pulling",
+                        () => t("local.git.pulled"),
+                        () => gitPull(fullName, path),
+                      )
+                    }
                   >
-                    <ArrowDown size={14} aria-hidden />
+                    {actionIcon("pull", <ArrowDown size={14} aria-hidden />)}
                     {t("local.git.pull")}
                   </Button>
                   <Button
                     disabled={busy || status.detached || !push}
                     onClick={() =>
-                      void run(() =>
-                        gitPush(fullName, path, push?.setsUpstream ?? false),
+                      void run(
+                        "push",
+                        "local.git.pushing",
+                        (next) =>
+                          t("local.git.pushed", {
+                            target: next.upstream ?? push?.label ?? "",
+                          }),
+                        () =>
+                          gitPush(fullName, path, push?.setsUpstream ?? false),
                       )
                     }
                   >
-                    <ArrowUp size={14} aria-hidden />
+                    {actionIcon("push", <ArrowUp size={14} aria-hidden />)}
                     {push
                       ? t(
                           push.setsUpstream
@@ -220,6 +271,27 @@ export function GitSyncPanel({
                       : ""}
                   </Button>
                 </div>
+                {active && progressKey ? (
+                  <p
+                    role="status"
+                    className="flex items-center gap-1.5 text-[12px] text-mist"
+                  >
+                    <CircleNotch
+                      size={14}
+                      aria-hidden
+                      className="animate-spin"
+                    />
+                    {t(progressKey)}
+                  </p>
+                ) : notice ? (
+                  <p
+                    role="status"
+                    className="flex items-center gap-1.5 text-[12px] text-mist"
+                  >
+                    <CheckCircle size={14} aria-hidden />
+                    {notice}
+                  </p>
+                ) : null}
                 <div className="flex flex-wrap items-center gap-1">
                   <Select
                     value={switchTo}
@@ -240,10 +312,18 @@ export function GitSyncPanel({
                     }
                     size="md"
                     onClick={() =>
-                      void run(() => gitSwitchBranch(fullName, path, switchTo))
+                      void run(
+                        "switch",
+                        "local.git.switching",
+                        (next) =>
+                          t("local.git.switched", {
+                            branch: next.branch ?? switchTo,
+                          }),
+                        () => gitSwitchBranch(fullName, path, switchTo),
+                      )
                     }
                   >
-                    <GitBranch size={14} aria-hidden />
+                    {actionIcon("switch", <GitBranch size={14} aria-hidden />)}
                     {t("local.git.switch")}
                   </Button>
                 </div>
@@ -264,12 +344,16 @@ export function GitSyncPanel({
                       onClick={() => {
                         const name = newBranch.trim();
                         setNewBranch("");
-                        void run(() =>
-                          gitCreateBranch(fullName, path, name, switchNew),
+                        void run(
+                          "create",
+                          "local.git.creating",
+                          () => t("local.git.created", { branch: name }),
+                          () =>
+                            gitCreateBranch(fullName, path, name, switchNew),
                         );
                       }}
                     >
-                      <Plus size={14} aria-hidden />
+                      {actionIcon("create", <Plus size={14} aria-hidden />)}
                       {t("local.git.create")}
                     </Button>
                   </div>

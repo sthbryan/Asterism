@@ -20,7 +20,7 @@
   "Cancel": "Cancelar",
   "local": {
     "title": "Proyectos locales",
-    "link": "Vincular checkout",
+    "link": "Vincular carpeta",
     "clone": "Clonar aquí",
     "destination": "Destino: {path}",
     "name": "Nombre de carpeta",
@@ -85,7 +85,17 @@
       "staged": "preparados",
       "unstaged": "no preparados",
       "untracked": "sin seguimiento",
-      "loading": "Cargando estado…"
+      "loading": "Cargando estado…",
+      "fetching": "Haciendo fetch…",
+      "pulling": "Haciendo pull…",
+      "pushing": "Haciendo push…",
+      "switching": "Cambiando de rama…",
+      "creating": "Creando rama…",
+      "fetched": "Fetch completado",
+      "pulled": "Pull completado",
+      "pushed": "Push a {target} completado",
+      "switched": "Cambiado a {branch}",
+      "created": "Rama {branch} creada"
     },
     "ready": "Disponible",
     "missing": "Falta la carpeta",
