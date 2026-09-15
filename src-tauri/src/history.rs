@@ -52,14 +52,6 @@ fn days_from_civil(y: i32, m: u32, d: u32) -> Option<i32> {
     Some(era * 146097 + doe as i32 - 719468)
 }
 
-pub fn needs_star_seed(store: &HistoryStore, full_name: &str) -> bool {
-    store
-        .repos
-        .get(full_name)
-        .map(|h| h.stars.len() < 2)
-        .unwrap_or(true)
-}
-
 pub fn upsert(series: &mut Vec<SeriesPoint>, ts: u64, value: u64) {
     let day = day_bucket(ts);
     if let Some(last) = series.last_mut() {
@@ -101,12 +93,7 @@ pub fn downsample(points: &[SeriesPoint], max: usize) -> Vec<SeriesPoint> {
     out
 }
 
-pub fn apply_fetch(
-    store: &mut HistoryStore,
-    repo: &TrackedRepo,
-    star_seed: Option<Vec<SeriesPoint>>,
-    now: u64,
-) {
+pub fn apply_fetch(store: &mut HistoryStore, repo: &TrackedRepo, now: u64) {
     if store.version == 0 {
         store.version = 1;
     }
@@ -114,39 +101,12 @@ pub fn apply_fetch(
         .repos
         .entry(repo.full_name.clone())
         .or_insert_with(RepoHistory::default);
-    if let Some(seed) = star_seed {
-        if entry.stars.len() < 2 && !seed.is_empty() {
-            entry.stars = seed;
-        }
-    }
     upsert(&mut entry.stars, now, repo.stars);
     upsert(&mut entry.downloads, now, repo.downloads);
     upsert(&mut entry.forks, now, repo.forks);
     entry.stars = downsample(&entry.stars, MAX_POINTS);
     entry.downloads = downsample(&entry.downloads, MAX_POINTS);
     entry.forks = downsample(&entry.forks, MAX_POINTS);
-}
-
-pub fn collapse_days(mut points: Vec<SeriesPoint>) -> Vec<SeriesPoint> {
-    if points.is_empty() {
-        return points;
-    }
-    points.sort_by_key(|p| (p.ts, p.value));
-    let mut out: Vec<SeriesPoint> = Vec::new();
-    for point in points {
-        let day = day_bucket(point.ts);
-        if let Some(last) = out.last_mut() {
-            if day_bucket(last.ts) == day {
-                last.value = last.value.max(point.value);
-                continue;
-            }
-        }
-        out.push(SeriesPoint {
-            ts: day,
-            value: point.value,
-        });
-    }
-    out
 }
 
 #[cfg(test)]

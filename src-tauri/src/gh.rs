@@ -3,21 +3,16 @@ use std::thread;
 
 use serde_json::Value;
 
-use crate::history::{collapse_days, day_bucket, now_secs, parse_iso_unix};
+use crate::history::{day_bucket, now_secs, parse_iso_unix};
 use crate::models::{
     Asset, CatalogRepo, CreateOptions, CreateRepoInput, CreatedRepo, LanguageShare, LicenseOption,
-    PlatformDownloads, PopularPath, Referrer, Release, RepoDetail, SeriesPoint, Status,
-    TrackedRepo, Traffic, TrafficDay,
+    PlatformDownloads, PopularPath, Referrer, Release, RepoDetail, Status, TrackedRepo, Traffic,
+    TrafficDay,
 };
 
 mod process;
 
 pub(crate) use process::{run_gh_env, run_gh_json, tool_version};
-
-pub struct TrackedFetch {
-    pub repo: TrackedRepo,
-    pub star_seed: Option<Vec<SeriesPoint>>,
-}
 
 fn as_u64(value: &Value, key: &str) -> u64 {
     value
@@ -93,6 +88,22 @@ pub fn status() -> Status {
     }
 }
 
+static STATUS_CACHE: Mutex<Option<(std::time::Instant, Status)>> = Mutex::new(None);
+
+pub fn last_status() -> Option<Status> {
+    STATUS_CACHE
+        .lock()
+        .ok()
+        .and_then(|cache| cache.clone())
+        .map(|(_, status)| status)
+}
+
+pub fn remember_status(status: &Status) {
+    if let Ok(mut cache) = STATUS_CACHE.lock() {
+        *cache = Some((std::time::Instant::now(), status.clone()));
+    }
+}
+
 fn parse_catalog_repo(value: &Value) -> Option<CatalogRepo> {
     let full_name = as_string(value, "full_name")?;
     let owner = owner_login(value);
@@ -127,7 +138,7 @@ pub fn list_catalog() -> Result<Vec<CatalogRepo>, String> {
                 }
             }
         }
-    } // NB: suelta el Value temporal antes de ordenar/dedup.
+    }
     repos.sort_by(|a, b| a.full_name.to_lowercase().cmp(&b.full_name.to_lowercase()));
     repos.dedup_by(|a, b| a.full_name == b.full_name);
     repos.shrink_to_fit();
@@ -220,12 +231,9 @@ fn parse_tracked(
     }
 }
 
-fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
+fn fetch_tracked(full_name: String) -> TrackedRepo {
     match run_gh_json(&["api", &format!("/repos/{full_name}")]) {
         Ok(repo) => {
-            // created_at se extrae antes: el Value de repo se suelta en cuanto
-            // se construye la fila, sin convivir con el seed de estrellas.
-            let created_at = as_string(&repo, "created_at");
             let row = match release_downloads(&full_name) {
                 Ok((releases, downloads)) => parse_tracked(
                     &full_name,
@@ -240,33 +248,22 @@ fn fetch_tracked(full_name: String, seed_stars: bool) -> TrackedFetch {
                 }
             };
             drop(repo);
-            let star_seed = if seed_stars && row.stars > 0 {
-                star_series(&full_name, row.stars, created_at.as_deref()).ok()
-            } else {
-                None
-            };
-            TrackedFetch {
-                repo: row,
-                star_seed,
-            }
+            row
         }
-        Err(err) => TrackedFetch {
-            repo: TrackedRepo {
-                fetched_at: None,
-                full_name,
-                description: None,
-                private: false,
-                language: None,
-                stars: 0,
-                forks: 0,
-                downloads: 0,
-                platforms: PlatformDownloads::default(),
-                stars_delta: None,
-                forks_delta: None,
-                downloads_delta: None,
-                error: Some(err),
-            },
-            star_seed: None,
+        Err(err) => TrackedRepo {
+            fetched_at: None,
+            full_name,
+            description: None,
+            private: false,
+            language: None,
+            stars: 0,
+            forks: 0,
+            downloads: 0,
+            platforms: PlatformDownloads::default(),
+            stars_delta: None,
+            forks_delta: None,
+            downloads_delta: None,
+            error: Some(err),
         },
     }
 }
@@ -317,15 +314,8 @@ where
     slots.into_iter().flatten().collect()
 }
 
-pub fn refresh_tracked(
-    full_names: Vec<String>,
-    seed_stars_for: std::collections::HashSet<String>,
-) -> Vec<TrackedFetch> {
-    let seed = std::sync::Arc::new(seed_stars_for);
-    map_limited(full_names, 4, move |name| {
-        let do_seed = seed.contains(&name);
-        fetch_tracked(name, do_seed)
-    })
+pub fn refresh_tracked(full_names: Vec<String>) -> Vec<TrackedRepo> {
+    map_limited(full_names, 4, fetch_tracked)
 }
 
 fn parse_traffic_days(json: &Value, key: &str) -> Vec<TrafficDay> {
@@ -449,112 +439,6 @@ fn parse_paths(json: &Value) -> Vec<PopularPath> {
     rows
 }
 
-pub fn star_series(
-    full_name: &str,
-    current_stars: u64,
-    created_at: Option<&str>,
-) -> Result<Vec<SeriesPoint>, String> {
-    if current_stars == 0 {
-        return Ok(Vec::new());
-    }
-
-    let page_size = 100u64;
-    let total_pages = current_stars.div_ceil(page_size).max(1);
-    // Tope de peticiones: ya acota el trabajo en memoria (12 páginas × 100
-    // stargazers como máximo vivo a la vez, una página por iteración).
-    const MAX_STAR_PAGES: u64 = 12;
-    let max_requests = MAX_STAR_PAGES;
-    let mut pages: Vec<u64> = if total_pages <= max_requests {
-        (1..=total_pages).collect()
-    } else {
-        (0..max_requests)
-            .map(|i| 1 + (i * (total_pages - 1) + (max_requests - 1) / 2) / (max_requests - 1))
-            .collect()
-    };
-    pages.sort();
-    pages.dedup();
-    let fetched_all = pages.len() as u64 == total_pages;
-
-    let mut sampled: Vec<SeriesPoint> = Vec::new();
-    for page in &pages {
-        // El JSON de cada página vive solo dentro del bloque: se suelta
-        // antes de acumular el lote en `sampled`.
-        let (batch, short_page) = {
-            let json = run_gh_json(&[
-                "api",
-                "-H",
-                "Accept: application/vnd.github.star+json",
-                &format!("/repos/{full_name}/stargazers?per_page={page_size}&page={page}"),
-            ])?;
-            let Some(arr) = json.as_array() else {
-                break;
-            };
-            if arr.is_empty() {
-                break;
-            }
-            let mut batch = Vec::with_capacity(arr.len());
-            for (i, item) in arr.iter().enumerate() {
-                let Some(ts) = as_string(item, "starred_at")
-                    .as_deref()
-                    .and_then(parse_iso_unix)
-                else {
-                    continue;
-                };
-                let value = if fetched_all {
-                    sampled.len() as u64 + batch.len() as u64 + 1
-                } else {
-                    (page - 1) * page_size + i as u64 + 1
-                };
-                batch.push(SeriesPoint { ts, value });
-            }
-            (batch, arr.len() < page_size as usize)
-        };
-        sampled.extend(batch);
-        if short_page {
-            break;
-        }
-    }
-    sampled.shrink_to_fit();
-
-    if fetched_all {
-        sampled.sort_by_key(|p| p.ts);
-        for (i, point) in sampled.iter_mut().enumerate() {
-            point.value = i as u64 + 1;
-        }
-    }
-
-    let mut series = collapse_days(sampled);
-    if let Some(created) = created_at.and_then(parse_iso_unix) {
-        let created_day = day_bucket(created);
-        if series.first().map(|p| p.ts > created_day).unwrap_or(true) {
-            series.insert(
-                0,
-                SeriesPoint {
-                    ts: created_day,
-                    value: 0,
-                },
-            );
-        }
-    }
-    let today = day_bucket(now_secs());
-    if let Some(last) = series.last_mut() {
-        if day_bucket(last.ts) == today {
-            last.value = current_stars;
-        } else {
-            series.push(SeriesPoint {
-                ts: today,
-                value: current_stars,
-            });
-        }
-    } else {
-        series.push(SeriesPoint {
-            ts: today,
-            value: current_stars,
-        });
-    }
-    Ok(series)
-}
-
 fn parse_languages(json: &Value) -> Vec<LanguageShare> {
     let mut langs = Vec::new();
     if let Some(obj) = json.as_object() {
@@ -593,11 +477,43 @@ fn license_name(value: &Value) -> Option<String> {
     })
 }
 
+fn joined<T>(handle: std::thread::ScopedJoinHandle<'_, Result<T, String>>) -> Result<T, String> {
+    handle
+        .join()
+        .unwrap_or_else(|_| Err("A GitHub request failed unexpectedly.".into()))
+}
+
 pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
-    let repo = run_gh_json(&["api", &format!("/repos/{full_name}")])?;
-    // Se extrae todo lo necesario del JSON del repo y se suelta antes de las
-    // siguientes llamadas (releases, languages, traffic): así el Value grande
-    // no convive en memoria con los demás.
+    let (repo, releases, languages, views, clones, referrers, paths) =
+        std::thread::scope(|scope| {
+            let repo = scope.spawn(|| run_gh_json(&["api", &format!("/repos/{full_name}")]));
+            let releases = scope.spawn(|| release_downloads(&full_name));
+            let languages =
+                scope.spawn(|| run_gh_json(&["api", &format!("/repos/{full_name}/languages")]));
+            let views =
+                scope.spawn(|| run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]));
+            let clones = scope
+                .spawn(|| run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]));
+            let referrers = scope.spawn(|| {
+                run_gh_json(&[
+                    "api",
+                    &format!("/repos/{full_name}/traffic/popular/referrers"),
+                ])
+            });
+            let paths = scope.spawn(|| {
+                run_gh_json(&["api", &format!("/repos/{full_name}/traffic/popular/paths")])
+            });
+            (
+                joined(repo),
+                joined(releases),
+                joined(languages),
+                joined(views),
+                joined(clones),
+                joined(referrers),
+                joined(paths),
+            )
+        });
+    let repo = repo?;
     let resolved_name = as_string(&repo, "full_name").unwrap_or_else(|| full_name.clone());
     let description = as_string(&repo, "description");
     let homepage = as_string(&repo, "homepage");
@@ -620,11 +536,11 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
     let pushed_at = as_string(&repo, "pushed_at");
     drop(repo);
 
-    let (releases, downloads) = release_downloads(&full_name)?;
+    let (releases, downloads) = releases?;
     let platforms = platforms_from_releases(&releases);
 
     let mut traffic_error = None;
-    let languages = match run_gh_json(&["api", &format!("/repos/{full_name}/languages")]) {
+    let languages = match languages {
         Ok(json) => parse_languages(&json),
         Err(err) => {
             traffic_error = Some(err);
@@ -632,41 +548,36 @@ pub fn repo_detail(full_name: String) -> Result<RepoDetail, String> {
         }
     };
 
-    let (views, views_status) =
-        match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/views")]) {
-            Ok(json) => (
-                Some(parse_traffic(&json, "views")),
-                crate::models::TrafficStatus::Ok,
-            ),
-            Err(err) => {
-                traffic_error = Some(err);
-                (None, traffic_status(traffic_error.as_deref().unwrap_or("")))
+    let (views, views_status) = match views {
+        Ok(json) => (
+            Some(parse_traffic(&json, "views")),
+            crate::models::TrafficStatus::Ok,
+        ),
+        Err(err) => {
+            traffic_error = Some(err);
+            (None, traffic_status(traffic_error.as_deref().unwrap_or("")))
+        }
+    };
+    let (clones, clones_status) = match clones {
+        Ok(json) => (
+            Some(parse_traffic(&json, "clones")),
+            crate::models::TrafficStatus::Ok,
+        ),
+        Err(err) => {
+            if traffic_error.is_none() {
+                traffic_error = Some(err.clone());
             }
-        };
-    let (clones, clones_status) =
-        match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/clones")]) {
-            Ok(json) => (
-                Some(parse_traffic(&json, "clones")),
-                crate::models::TrafficStatus::Ok,
-            ),
-            Err(err) => {
-                if traffic_error.is_none() {
-                    traffic_error = Some(err.clone());
-                }
-                (None, traffic_status(&err))
-            }
-        };
-    let referrers = match run_gh_json(&[
-        "api",
-        &format!("/repos/{full_name}/traffic/popular/referrers"),
-    ]) {
+            (None, traffic_status(&err))
+        }
+    };
+    let referrers = match referrers {
         Ok(json) => parse_referrers(&json),
         Err(err) => {
             traffic_error = Some(err);
             Vec::new()
         }
     };
-    let paths = match run_gh_json(&["api", &format!("/repos/{full_name}/traffic/popular/paths")]) {
+    let paths = match paths {
         Ok(json) => parse_paths(&json),
         Err(err) => {
             traffic_error = Some(err);

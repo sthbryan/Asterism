@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::Path;
 use std::process::Command;
 
@@ -332,10 +332,21 @@ where
         .map_err(|e| format!("background task failed: {e}"))
 }
 
+async fn offload_unlocked<T, F>(f: F) -> Result<T, String>
+where
+    T: Send + 'static,
+    F: FnOnce() -> T + Send + 'static,
+{
+    tauri::async_runtime::spawn_blocking(f)
+        .await
+        .map_err(|e| format!("background task failed: {e}"))
+}
+
 #[tauri::command]
 pub(crate) async fn get_status() -> Result<Status, String> {
     offload(|| {
         let status = gh::status();
+        gh::remember_status(&status);
         if status.ok {
             config::storage()?.activate(account_key(&status)?)?;
         }
@@ -424,28 +435,22 @@ pub(crate) async fn get_diagnostics() -> Result<Diagnostics, String> {
 pub(crate) async fn list_catalog(
     expected_account: Option<String>,
 ) -> Result<Vec<CatalogRepo>, String> {
-    offload(move || {
+    offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
-        config::storage()?.save_catalog(gh::list_catalog()?)
+        let rows = gh::list_catalog()?;
+        config::serialized(move || config::storage()?.save_catalog(rows))
     })
     .await?
 }
 
 #[tauri::command]
 pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<Cache, String> {
-    offload(move || {
+    offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
         let db = config::storage()?;
         let cfg = db.load_config()?;
-        let mut store = config::storage()?.load_history()?;
-        let seed_for: HashSet<String> = cfg
-            .repos
-            .iter()
-            .filter(|name| history::needs_star_seed(&store, name))
-            .cloned()
-            .collect();
         let previous = db.load_cache()?;
         let prev: HashMap<String, TrackedRepo> = previous
             .map(|cache| {
@@ -456,11 +461,15 @@ pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<
                     .collect()
             })
             .unwrap_or_default();
-        let fetches = gh::refresh_tracked(cfg.repos, seed_for);
+        let fetches = gh::refresh_tracked(cfg.repos);
         let now = history::now_secs();
-        let repos = merge_fetches(fetches, &prev, &mut store, now)?;
-        config::storage()?.save_history(&store)?;
-        config::storage()?.save_cache(repos, store.repos)
+        config::serialized(move || {
+            let db = config::storage()?;
+            let mut store = db.load_history()?;
+            let repos = merge_fetches(fetches, &prev, &mut store, now)?;
+            db.save_history(&store)?;
+            db.save_cache(repos, store.repos)
+        })
     })
     .await?
 }
@@ -496,7 +505,7 @@ pub(crate) async fn get_repo_detail(
     offline: bool,
     expected_account: Option<String>,
 ) -> Result<config::Saved<RepoDetail>, String> {
-    offload(move || {
+    offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
         let db = config::storage()?;
         let old = db.load_detail(&full_name)?;
@@ -522,7 +531,7 @@ pub(crate) async fn get_repo_detail(
                 && detail.views.is_none();
             let clones_failed = !matches!(detail.clones_status, crate::models::TrafficStatus::Ok)
                 && detail.clones.is_none();
-            // Auxiliary endpoint failures do not invalidate fresh traffic.
+
             if views_failed {
                 merge_cached_traffic(
                     &mut detail.views,
@@ -538,15 +547,7 @@ pub(crate) async fn get_repo_detail(
                 );
             }
         }
-        let mut store = config::storage()?.load_history()?;
         let now = history::now_secs();
-        if history::needs_star_seed(&store, &full_name) && detail.stars > 0 {
-            if let Ok(seed) =
-                gh::star_series(&full_name, detail.stars, detail.created_at.as_deref())
-            {
-                store.repos.entry(full_name.clone()).or_default().stars = seed;
-            }
-        }
         let snapshot = TrackedRepo {
             fetched_at: Some(now),
             full_name: detail.full_name.clone(),
@@ -562,13 +563,17 @@ pub(crate) async fn get_repo_detail(
             downloads_delta: None,
             error: None,
         };
-        history::apply_fetch(&mut store, &snapshot, None, now);
-        config::storage()?.save_history(&store)?;
-        if let Some(entry) = store.repos.get(&full_name) {
-            detail.star_history = entry.stars.clone();
-            detail.download_history = entry.downloads.clone();
-        }
-        db.save_detail(detail)
+        config::serialized(move || {
+            let db = config::storage()?;
+            let mut store = db.load_history()?;
+            history::apply_fetch(&mut store, &snapshot, now);
+            db.save_history(&store)?;
+            if let Some(entry) = store.repos.get(&full_name) {
+                detail.star_history = entry.stars.clone();
+                detail.download_history = entry.downloads.clone();
+            }
+            db.save_detail(detail)
+        })
     })
     .await?
 }
@@ -585,7 +590,9 @@ fn account_key(status: &Status) -> Result<String, String> {
     .to_lowercase())
 }
 fn ensure_online() -> Result<(), String> {
-    let status = gh::status();
+    let Some(status) = gh::last_status() else {
+        return Ok(());
+    };
     if !status.ok {
         return Err(status.error.unwrap_or("GitHub is unavailable.".into()));
     }
@@ -599,7 +606,7 @@ pub(crate) async fn get_cached_detail(
     full_name: String,
     expected_account: Option<String>,
 ) -> Result<Option<config::Saved<RepoDetail>>, String> {
-    offload(move || {
+    offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
         config::storage()?.load_detail(&full_name)
     })
@@ -704,8 +711,7 @@ fn merge_pull_fetches(
             pulls.extend(fresh);
         }
     }
-    // A filtered refresh must not discard cached repositories outside the
-    // selected scope; this keeps a repo filter from destroying the full cache.
+
     if preserve_outside {
         if let Some(old) = old {
             let selected = &repos[0];
@@ -818,17 +824,12 @@ pub(crate) async fn list_pull_requests(
                     .ok_or(error)?,
             }
         };
-        // The stable UI contract paginates locally after applying its composed
-        // filters. Return the complete bounded snapshot (up to 100 PRs per
-        // followed repo), otherwise later repositories would disappear before
-        // the UI can reach their pages.
+
         Ok(snapshot)
     })
     .await?
 }
 
-/// Full query bridge for filters and explicit pagination. The compact
-/// `list_pull_requests` command above remains the stable UI contract.
 #[tauri::command]
 pub(crate) async fn list_pull_requests_filtered(
     filters: PullRequestFilters,
@@ -907,7 +908,6 @@ pub(crate) async fn get_pull_request_detail(
     .await?
 }
 
-/// Short command names kept as the public bridge used by the PR feature.
 #[tauri::command]
 pub(crate) async fn get_pull_request(
     repo: String,
@@ -1024,8 +1024,6 @@ pub(crate) fn ensure_scope(expected: Option<&str>) -> Result<(), String> {
     Ok(())
 }
 
-/// Resolve a registered, healthy checkout directory for Git operations.
-/// Returns `LOCAL_*` errors when the link is missing, moved or unhealthy.
 pub(crate) fn require_ready_checkout(
     full_name: &str,
     path: &str,
@@ -1048,7 +1046,6 @@ pub(crate) fn require_ready_checkout(
         .map_err(|_| "LOCAL_INVALID_PATH".to_string())
 }
 
-/// Name of the remote whose URL matches the tracked repository, if any.
 pub(crate) fn matching_remote_name(full: &str, dir: &Path) -> Option<String> {
     let out = Command::new("git")
         .args(["-C"])
@@ -1076,31 +1073,31 @@ pub(crate) fn matching_remote_name(full: &str, dir: &Path) -> Option<String> {
 }
 
 fn merge_fetches(
-    fetches: Vec<gh::TrackedFetch>,
+    fetches: Vec<TrackedRepo>,
     prev: &HashMap<String, TrackedRepo>,
     store: &mut crate::models::HistoryStore,
     now: u64,
 ) -> Result<Vec<TrackedRepo>, String> {
-    if !fetches.is_empty() && fetches.iter().all(|f| f.repo.error.is_some()) {
+    if !fetches.is_empty() && fetches.iter().all(|f| f.error.is_some()) {
         return Err(format!(
             "No repositories could be refreshed. Saved data was kept. {}",
-            fetches[0].repo.error.as_deref().unwrap_or_default()
+            fetches[0].error.as_deref().unwrap_or_default()
         ));
     }
     let repos = fetches
         .into_iter()
         .filter_map(|fetch| {
-            if fetch.repo.error.is_some() {
-                return prev.get(&fetch.repo.full_name).cloned().map(|mut old| {
-                    old.error = fetch.repo.error;
+            if fetch.error.is_some() {
+                return prev.get(&fetch.full_name).cloned().map(|mut old| {
+                    old.error = fetch.error;
                     old.stars_delta = None;
                     old.forks_delta = None;
                     old.downloads_delta = None;
                     old
                 });
             }
-            history::apply_fetch(store, &fetch.repo, fetch.star_seed, now);
-            let mut repo = fetch.repo;
+            history::apply_fetch(store, &fetch, now);
+            let mut repo = fetch;
             if let Some(old) = prev.get(&repo.full_name) {
                 repo.stars_delta = Some(repo.stars as i64 - old.stars as i64);
                 repo.forks_delta = Some(repo.forks as i64 - old.forks as i64);
@@ -1154,13 +1151,7 @@ mod offline_tests {
             failed,
             repo("one/new-failure", Some("denied".into())),
             repo("one/fresh", None),
-        ]
-        .into_iter()
-        .map(|repo| gh::TrackedFetch {
-            repo,
-            star_seed: None,
-        })
-        .collect();
+        ];
         let mut history = crate::models::HistoryStore::default();
         let rows = merge_fetches(fetches, &prev, &mut history, 500).unwrap();
         assert_eq!(rows.len(), 2);
@@ -1175,10 +1166,7 @@ mod offline_tests {
     fn total_failure_does_not_produce_replacement_cache() {
         let mut history = crate::models::HistoryStore::default();
         let result = merge_fetches(
-            vec![gh::TrackedFetch {
-                repo: repo("one/repo", Some("timeout".into())),
-                star_seed: None,
-            }],
+            vec![repo("one/repo", Some("timeout".into()))],
             &HashMap::new(),
             &mut history,
             500,
