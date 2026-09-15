@@ -27,7 +27,14 @@ export type Diagnostics = {
   historyPath: string;
 };
 
+export type CacheInfo = {
+  path: string;
+  entries: number;
+  bytes: number;
+};
+
 export type Saved<T> = { fetchedAt: number; data: T; warning: string | null };
+export type PersistentCache<T> = Saved<T> & { version: number };
 export type LocalState = {
   account: string | null;
   config: Config;

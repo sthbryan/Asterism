@@ -1,3 +1,4 @@
+import type { PersistentCache } from "@/lib/types";
 import { mockClient } from "./mock";
 import { isMockMode } from "./mode";
 import { tauriClient } from "./tauri";
@@ -9,6 +10,15 @@ function client() {
 }
 
 export const getLocalState = () => client().getLocalState();
+export const readCache = <T>(namespace: string, key: string) =>
+  client().readCache<T>(namespace, key);
+export const writeCache = <T>(
+  namespace: string,
+  key: string,
+  entry: PersistentCache<T>,
+) => client().writeCache(namespace, key, entry);
+export const getCacheInfo = () => client().getCacheInfo();
+export const clearCache = () => client().clearCache();
 export const useLegacyData = () => client().useLegacyData();
 export const importLegacyData = () => client().importLegacyData();
 export const getStatus = () => client().getStatus();

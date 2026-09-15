@@ -4,6 +4,7 @@ import {
   GitForkIcon,
   StarIcon,
 } from "@phosphor-icons/react";
+import { cn } from "cn";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { detailPath } from "@/app/routes";
@@ -35,6 +36,12 @@ export function ListView() {
   const booted = useStore((s) => s.booted);
   const runRefresh = useStore((s) => s.runRefresh);
 
+  const hasData = repos.length > 0 || selectedNames.length === 0;
+  const awaitingInitialData =
+    booted && selectedNames.length > 0 && !hasData && fetchedAt === null;
+  const showSkeleton =
+    !booted || (!hasData && (refreshing || awaitingInitialData));
+
   const { query, sort, setQuery, toggleSort } = useListControls();
   const {
     totals,
@@ -63,11 +70,11 @@ export function ListView() {
           <ListTrailing
             refreshing={refreshing}
             fetchedAt={fetchedAt}
-            onRefresh={() => void runRefresh()}
+            onRefresh={() => void runRefresh(true)}
           />
         }
       />
-      <div className={`t-skel h-full ${booted ? "is-revealed" : ""}`}>
+      <div className={cn("t-skel h-full", showSkeleton ? "" : "is-revealed")}>
         <div className="t-skel-skeleton is-pulsing">
           <ListSkeleton />
         </div>

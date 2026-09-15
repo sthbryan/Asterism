@@ -22,6 +22,7 @@ import type {
   LocalCheckout,
   Locale,
   LocalState,
+  PersistentCache,
   PullListResult,
   PullRequestDetail,
   PullRequestSummary,
@@ -54,6 +55,7 @@ function cacheFor(repos: string[], fetchedAt: number): Cache {
 }
 
 let mockRepos = [...MOCK_CONFIG.repos];
+const mockPersistentCache = new Map<string, PersistentCache<unknown>>();
 
 const PULL_NOW = new Date("2026-09-12T12:00:00Z");
 const mockPull = (
@@ -290,6 +292,20 @@ function localState(): LocalState {
   };
 }
 export const mockClient: ApiClient = {
+  readCache: <T>(namespace: string, key: string) =>
+    delay(
+      (mockPersistentCache.get(`${namespace}:${key}`) as PersistentCache<T>) ??
+        null,
+      20,
+    ),
+  writeCache: <T>(
+    namespace: string,
+    key: string,
+    entry: PersistentCache<T>,
+  ) => {
+    mockPersistentCache.set(`${namespace}:${key}`, entry);
+    return delay(undefined, 20);
+  },
   getLocalState: () => delay(localState(), 25),
   useLegacyData: () => delay({ ...localState(), account: "legacy" }),
   importLegacyData: () => delay({ ...localState(), legacyAvailable: false }),
@@ -424,6 +440,17 @@ export const mockClient: ApiClient = {
       ghVersion: missing ? null : MOCK_DIAGNOSTICS.ghVersion,
       ghError: missing ? "gh was not found on this machine." : null,
     });
+  },
+  getCacheInfo: () =>
+    delay({
+      path: "/mock/application-support/asterism/accounts/demo/cache.json",
+      entries: mockPersistentCache.size,
+      bytes: JSON.stringify([...mockPersistentCache]).length,
+    }),
+  clearCache: () => {
+    const count = mockPersistentCache.size;
+    mockPersistentCache.clear();
+    return delay(count);
   },
   listLocalCheckouts: () => delay(Object.values(mockCheckouts).flat()),
   linkLocalCheckout: (fullName, path) => {

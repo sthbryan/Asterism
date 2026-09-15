@@ -1,6 +1,7 @@
 import type { StateCreator } from "zustand";
+import { CACHE_TTL_MS, cacheKey, isCacheFresh } from "@/lib/cache";
 import type { RepoDetail, Saved } from "@/lib/types";
-import { getRepoDetail } from "@/services/api";
+import { getRepoDetail, readCache, writeCache } from "@/services/api";
 import type { AppStore } from "./types";
 
 export type DetailSlice = Pick<
@@ -18,6 +19,8 @@ export type DetailSlice = Pick<
 
 let detailRequest = 0;
 const detailInFlight = new Map<string, Promise<void>>();
+const DETAIL_CACHE_NAMESPACE = "detail";
+const DETAIL_CACHE_VERSION = 1;
 
 function withTimeout<T>(
   promise: Promise<T>,
@@ -48,7 +51,12 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
   detailError: null,
   detailCache: {},
 
-  fetchDetail: async (fullName) => {
+  fetchDetail: async (fullName, force = false) => {
+    const inFlight = detailInFlight.get(fullName);
+    if (inFlight) {
+      await inFlight;
+      return;
+    }
     const request = ++detailRequest;
     const run = (async () => {
       const revision = get().dataRevision;
@@ -77,11 +85,48 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
             },
           },
         }));
+        void writeCache(
+          DETAIL_CACHE_NAMESPACE,
+          cacheKey(DETAIL_CACHE_NAMESPACE, fullName),
+          {
+            version: DETAIL_CACHE_VERSION,
+            fetchedAt: saved.fetchedAt,
+            data: saved.data,
+            warning: saved.warning,
+          },
+        ).catch(() => {
+          // Disk persistence is best-effort; the in-memory cache remains valid.
+        });
       };
 
-      const memCached = get().detailCache[fullName];
-      if (memCached) {
-        applySaved(memCached, true);
+      let cached = get().detailCache[fullName];
+      if (!cached) {
+        try {
+          const persisted = await withTimeout(
+            readCache<RepoDetail>(
+              DETAIL_CACHE_NAMESPACE,
+              cacheKey(DETAIL_CACHE_NAMESPACE, fullName),
+            ),
+            10_000,
+            "Detail cache",
+          );
+          if (persisted?.version === DETAIL_CACHE_VERSION) {
+            cached = persisted;
+            if (alive()) {
+              set((state) => ({
+                detailCache: { ...state.detailCache, [fullName]: persisted },
+              }));
+            }
+          }
+        } catch {
+          // A corrupt/unavailable cache must not prevent the network request.
+        }
+      }
+
+      if (cached) {
+        const fresh = isCacheFresh(cached.fetchedAt, CACHE_TTL_MS.detail);
+        applySaved(cached, force || !fresh);
+        if (!force && fresh) return;
       } else {
         set({
           detail: null,
@@ -121,11 +166,12 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
   },
 
   clearDetail: () => {
-    ++detailRequest;
     set({
       detail: null,
       detailError: null,
-      detailLoading: false,
+      // Keep the loading phase visible while the next detail is hydrated
+      // from disk or fetched from the network.
+      detailLoading: true,
       detailRefreshing: false,
       detailFetchedAt: null,
       detailWarning: null,

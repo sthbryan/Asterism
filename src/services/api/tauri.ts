@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { persistLocale } from "@/lib/i18n/locale";
 import { enqueuePreference } from "@/lib/preferences";
-import type { LocalState } from "@/lib/types";
+import type { CacheInfo, LocalState, PersistentCache } from "@/lib/types";
 import type { ApiClient } from "./types";
 
 let account: string | null = null;
@@ -11,6 +11,20 @@ async function local(command: string) {
   return state;
 }
 export const tauriClient: ApiClient = {
+  readCache: (namespace, key) =>
+    invoke("read_cache", { namespace, key, expectedAccount: account }),
+  writeCache: <T>(namespace: string, key: string, entry: PersistentCache<T>) =>
+    invoke("write_cache", {
+      entry: { namespace, key, ...entry },
+      expectedAccount: account,
+    }),
+  getCacheInfo: () =>
+    invoke<CacheInfo>("get_cache_info", { expectedAccount: account }),
+  clearCache: () =>
+    invoke<number>("clear_cache", {
+      namespace: null,
+      expectedAccount: account,
+    }),
   getLocalState: () => local("get_local_state"),
   useLegacyData: () => local("use_legacy_data"),
   importLegacyData: () => local("import_legacy_data"),

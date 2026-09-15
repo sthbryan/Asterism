@@ -59,6 +59,7 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
       detailFetchedAt: null,
       detailLoading: false,
       detailRefreshing: false,
+      detailCache: {},
       refreshing: false,
       dataRevision: state.dataRevision + 1,
       banner: null,
@@ -99,6 +100,7 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
       tracked: [],
       fetchedAt: null,
       history: {},
+      detailCache: {},
     });
   },
 

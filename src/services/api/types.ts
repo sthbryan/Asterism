@@ -1,5 +1,6 @@
 import type {
   Cache,
+  CacheInfo,
   CatalogRepo,
   Config,
   CreatedRepo,
@@ -10,6 +11,7 @@ import type {
   LocalCheckout,
   Locale,
   LocalState,
+  PersistentCache,
   PullListResult,
   PullRequestDetail,
   PullRequestFilters,
@@ -19,6 +21,17 @@ import type {
 } from "@/lib/types";
 
 export type ApiClient = {
+  getCacheInfo: () => Promise<CacheInfo>;
+  clearCache: () => Promise<number>;
+  readCache: <T>(
+    namespace: string,
+    key: string,
+  ) => Promise<PersistentCache<T> | null>;
+  writeCache: <T>(
+    namespace: string,
+    key: string,
+    entry: PersistentCache<T>,
+  ) => Promise<void>;
   getLocalState: () => Promise<LocalState>;
   useLegacyData: () => Promise<LocalState>;
   importLegacyData: () => Promise<LocalState>;
