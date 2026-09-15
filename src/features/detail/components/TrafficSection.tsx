@@ -27,18 +27,12 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
         </div>
         <span className="text-[11px] text-faint">
           {days.length > 0
-            ? t("offline.period", {
-                from: fmt(Math.min(...days)),
-                to: fmt(Math.max(...days)),
-              })
+            ? `${fmt(Math.min(...days))} – ${fmt(Math.max(...days))}`
             : fetchedAt
-              ? t("offline.fetched", { date: fmt(fetchedAt) })
+              ? t("list.updated", { value: fmt(fetchedAt) })
               : t("Unavailable")}
         </span>
       </div>
-      <p className="mt-2 text-xs leading-relaxed text-mist">
-        {t("offline.traffic")}
-      </p>
       <If
         condition={Boolean(
           detail.trafficError && !detail.views && !detail.clones,
@@ -146,8 +140,8 @@ function TrafficBlock({
             </div>
             <When condition={Boolean(fetchedAt)}>
               <div className="mt-1 text-[10px] text-faint">
-                {t("offline.fetched", {
-                  date: new Intl.DateTimeFormat(locale, {
+                {t("list.updated", {
+                  value: new Intl.DateTimeFormat(locale, {
                     dateStyle: "medium",
                     timeStyle: "short",
                   }).format((fetchedAt ?? 0) * 1000),
@@ -156,10 +150,7 @@ function TrafficBlock({
             </When>
             <When condition={Boolean(sampleFrom && sampleTo)}>
               <div className="mt-1 text-[10px] text-faint">
-                {t("offline.period", {
-                  from: fmt(sampleFrom ?? 0),
-                  to: fmt(sampleTo ?? 0),
-                })}
+                {fmt(sampleFrom ?? 0)} – {fmt(sampleTo ?? 0)}
               </div>
             </When>
             <When condition={status === "forbidden"}>

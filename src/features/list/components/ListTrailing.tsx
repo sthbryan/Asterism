@@ -1,8 +1,6 @@
 import { ArrowClockwiseIcon } from "@phosphor-icons/react";
-import { cn } from "cn";
 import { Case, Switch } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { useStore } from "@/app/store";
 import { fmtFetched } from "@/lib/format";
 
 export function ListTrailing({
@@ -15,7 +13,6 @@ export function ListTrailing({
   onRefresh: () => void;
 }) {
   const { t, locale } = useI18n();
-  const online = useStore((s) => s.status?.ok && !s.connecting);
   const fetched = fmtFetched(fetchedAt);
   const updatedText = fetched
     ? t("list.updated", {
@@ -40,12 +37,6 @@ export function ListTrailing({
         </Case>
         <Case condition={Boolean(fetched)}>
           <span className="inline-flex items-center gap-2 font-mono text-[12px] leading-none text-faint">
-            <span
-              className={cn(
-                "size-1.5 rounded-full",
-                online ? "bg-ok" : "bg-faint",
-              )}
-            />
             {updatedText}
           </span>
         </Case>
@@ -53,7 +44,7 @@ export function ListTrailing({
       <button
         type="button"
         onClick={onRefresh}
-        disabled={refreshing || !online}
+        disabled={refreshing}
         aria-label={t("Refresh")}
         title={t("Refresh")}
         className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"

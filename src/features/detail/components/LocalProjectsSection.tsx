@@ -13,7 +13,6 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
     items,
     busy,
     error,
-    online,
     parent,
     name,
     setName,
@@ -38,10 +37,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
             <LinkSimpleIcon size={14} />
             {t("local.link")}
           </Button>
-          <Button
-            disabled={busy || !online}
-            onClick={() => void chooseCloneParent()}
-          >
+          <Button disabled={busy} onClick={() => void chooseCloneParent()}>
             <PlusIcon size={14} />
             {t("local.clone")}
           </Button>
@@ -83,7 +79,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
             <Button
               variant="primary"
               size="md"
-              disabled={busy || !online || !name.trim()}
+              disabled={busy || !name.trim()}
               onClick={() => void confirmClone()}
             >
               {busy ? t("local.cloning") : t("local.confirmClone")}

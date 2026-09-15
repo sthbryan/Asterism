@@ -1,7 +1,6 @@
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { AppearanceProvider } from "@/components/Appearance";
 import { Chrome, type NavId } from "@/components/Chrome";
-import { ConnectionNotice } from "@/components/ConnectionNotice";
 import { HeaderProvider, useHeader } from "@/components/PageHeader";
 import { useBoot } from "./hooks";
 import { getNavForPath, ROUTES } from "./routes";
@@ -48,7 +47,6 @@ function AppLayout() {
   return (
     <Chrome
       login={login}
-      online={Boolean(status?.ok)}
       nav={nav}
       onNav={handleNav}
       trackedCount={selectedNames.length}
@@ -56,7 +54,6 @@ function AppLayout() {
       trailing={header.trailing}
     >
       <div className="t-vt-content flex h-full min-h-0 flex-col">
-        <ConnectionNotice />
         <div className="min-h-0 flex-1">
           <Switch>
             {ROUTES.map((route) => (

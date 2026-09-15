@@ -73,7 +73,7 @@ export function RepositoryTable({
           >
             <WarningCircleIcon
               size={13}
-              aria-label={t("offline.partial")}
+              aria-label={t("errors.request")}
               className="shrink-0 text-accent-soft"
             />
           </span>

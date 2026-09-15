@@ -25,7 +25,7 @@ export function DetailBody({
     <div>
       <When condition={fetchedAt}>
         <p className="mb-3 flex items-center gap-2 text-xs text-mist">
-          {t("offline.fetched", {
+          {t("list.updated", {
             date: new Intl.DateTimeFormat(locale, {
               dateStyle: "medium",
               timeStyle: "short",
@@ -44,7 +44,7 @@ export function DetailBody({
       </When>
       <When condition={warning}>
         <div role="status" className="mb-4 text-sm text-mist">
-          <p>{t("offline.partial")}</p>
+          <p>{t("errors.request")}</p>
           <details>
             <summary>{t("Connection details")}</summary>
             <p className="mt-2 wrap-break-word">{warning}</p>

@@ -3,7 +3,6 @@ import { PageHeader } from "@/components/PageHeader";
 import { AccountSection } from "./AccountSection";
 import { AppearanceSection } from "./AppearanceSection";
 import { DiagnosticsSection } from "./DiagnosticsSection";
-import { LocalDataSection } from "./LocalDataSection";
 
 export function SettingsView() {
   const { t } = useI18n();
@@ -19,7 +18,6 @@ export function SettingsView() {
         <div className="max-w-3xl space-y-8">
           <AppearanceSection />
           <AccountSection />
-          <LocalDataSection />
           <DiagnosticsSection />
         </div>
       </div>

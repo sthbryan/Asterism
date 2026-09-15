@@ -11,7 +11,6 @@ import type { PullRequestDetail } from "@/lib/types";
 import { usePullDetail } from "../hooks/usePullDetail";
 import { ErrorCard } from "./ErrorCard";
 import { LoadingRows } from "./LoadingRows";
-import { PullCacheStatus } from "./PullCacheStatus";
 import { PullDetailBody } from "./PullDetailBody";
 
 export function PullDetailView() {
@@ -20,10 +19,9 @@ export function PullDetailView() {
   const navigate = useTransitionNavigate();
   const account = useStore((state) => state.account);
   const revision = useStore((state) => state.dataRevision);
-  const offline = !useStore((state) => state.status?.ok);
   const repo = decodeURIComponent(params?.repo ?? "");
   const number = Number(params?.number ?? 0);
-  const detail = usePullDetail({ account, repo, number, offline, revision });
+  const detail = usePullDetail({ account, repo, number, revision });
   const openGithub = () =>
     void openUrl(
       detail.pull?.url ?? `https://github.com/${repo}/pull/${number}`,
@@ -55,11 +53,6 @@ export function PullDetailView() {
         }
       />
       <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
-        <PullCacheStatus
-          fetchedAt={detail.fetchedAt}
-          refreshing={detail.refreshing}
-          offline={offline}
-        />
         <When condition={detail.loading && !detail.pull}>
           <LoadingRows />
         </When>

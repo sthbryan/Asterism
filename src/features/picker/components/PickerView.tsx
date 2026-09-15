@@ -20,7 +20,6 @@ export function PickerView() {
   useCatalog();
 
   const fetchedAt = useStore((s) => s.catalogFetchedAt);
-  const online = useStore((s) => s.status?.ok);
   const connecting = useStore((s) => s.connecting);
   const account = useStore((s) => s.account);
   const login = useStore((s) => s.status?.login ?? null);
@@ -63,7 +62,7 @@ export function PickerView() {
   }, [onCancel]);
 
   const fetchedText = fetchedAt
-    ? t("offline.fetched", {
+    ? t("list.updated", {
         date: new Intl.DateTimeFormat(locale, {
           dateStyle: "medium",
           timeStyle: "short",
@@ -107,7 +106,7 @@ export function PickerView() {
         </When>
         <When condition={Boolean(error) && catalog.length > 0}>
           <p role="status" className="mt-3 text-sm text-mist">
-            {t("offline.partial")} {error}
+            {t("errors.request")} {error}
           </p>
         </When>
         <When condition={Boolean(saveError)}>
@@ -131,11 +130,7 @@ export function PickerView() {
             </Case>
             <Case condition={filtered.length === 0}>
               <p className="px-5 py-6 text-center text-[12.5px] text-faint">
-                {t(
-                  !online && catalog.length === 0
-                    ? "offline.empty"
-                    : "No repositories match that filter.",
-                )}
+                {t("No repositories match that filter.")}
               </p>
             </Case>
             <Case condition={Boolean(groups)}>

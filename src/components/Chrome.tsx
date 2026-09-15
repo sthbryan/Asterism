@@ -21,7 +21,6 @@ function initials(login: string | null | undefined) {
 
 export function Chrome({
   login,
-  online,
   nav,
   onNav,
   title,
@@ -30,7 +29,6 @@ export function Chrome({
   children,
 }: {
   login?: string | null;
-  online: boolean;
   nav: NavId;
   onNav: (id: NavId) => void;
   title: ReactNode;
@@ -109,16 +107,10 @@ export function Chrome({
           <div className="m-2.5 flex items-center gap-2 rounded-lg border border-hairline p-2">
             <span className="relative grid h-7 w-7 shrink-0 place-items-center rounded-full bg-fill font-mono text-[10px] font-semibold">
               {initials(login)}
-              <span
-                className={`ring-night absolute right-0 bottom-0 h-2 w-2 rounded-full ${online ? "bg-ok" : "bg-faint"} ring-2`}
-              />
             </span>
             <div className="min-w-0">
               <div className="truncate text-[12px] leading-tight font-semibold">
                 {login}
-              </div>
-              <div className="text-[10.5px] leading-tight text-faint">
-                {t(online ? "offline.connected" : "offline.badge")}
               </div>
             </div>
           </div>

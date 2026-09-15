@@ -78,7 +78,7 @@ export function ListView() {
             />
             <When condition={showPartial}>
               <p role="status" className="mb-3 text-sm text-mist">
-                {t("offline.partial")}
+                {t("errors.request")}
               </p>
             </When>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

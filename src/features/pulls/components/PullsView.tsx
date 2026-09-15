@@ -27,12 +27,10 @@ export function PullsView() {
   const selectedNames = useStore((state) => state.selectedNames);
   const account = useStore((state) => state.account);
   const revision = useStore((state) => state.dataRevision);
-  const offline = !useStore((state) => state.status?.ok);
   const controls = usePullControls();
   const data = usePullList({
     account,
     repos: selectedNames,
-    offline,
     revision,
   });
   const options = useMemo(() => {
@@ -65,8 +63,8 @@ export function PullsView() {
     clear: t("pulls.clear"),
   };
   const dateText = data.fetchedAt
-    ? t("pulls.offline", {
-        date: formatDate(data.fetchedAt * 1000, {
+    ? t("list.updated", {
+        value: formatDate(data.fetchedAt * 1000, {
           dateStyle: "medium",
           timeStyle: "short",
         }),
@@ -86,7 +84,7 @@ export function PullsView() {
             aria-label={t("pulls.refresh")}
             title={t("pulls.refresh")}
             onClick={() => void data.refresh()}
-            disabled={data.refreshing || offline}
+            disabled={data.refreshing}
           >
             <ArrowClockwiseIcon
               size={14}

@@ -39,7 +39,6 @@ export function DiagnosticsSection() {
             ["GitHub CLI", diagnostics?.ghVersion, diagnostics?.ghError],
             ["Git", diagnostics?.gitVersion, diagnostics?.gitError],
             [t("settings.configPath"), diagnostics?.configPath, null],
-            [t("settings.cachePath"), diagnostics?.cachePath, null],
             [t("settings.historyPath"), diagnostics?.historyPath, null],
           ].map(([label, value, issue]) => (
             <div key={label} className="grid gap-1 sm:grid-cols-[160px_1fr]">
@@ -54,9 +53,6 @@ export function DiagnosticsSection() {
           ))}
         </dl>
       </When>
-      <p className="mt-5 text-sm leading-relaxed text-mist">
-        {t("settings.localData")}
-      </p>
     </section>
   );
 }

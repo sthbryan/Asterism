@@ -23,14 +23,14 @@ export function ErrorScreen({
         <WarningCircleIcon size={28} className="text-accent-soft" />
         <h1 className="mt-5 text-[26px] leading-tight font-semibold tracking-[-0.03em]">
           {storage
-            ? t("offline.storage")
+            ? t("Connection unavailable")
             : missing
               ? t("Set up GitHub CLI")
               : t("Connect to GitHub")}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-mist">
           {storage
-            ? t("offline.storageError")
+            ? t("connection.storageError")
             : missing
               ? t(
                   "Asterism needs GitHub CLI to access your repositories. Install it, then sign in from your terminal.",
