@@ -10,6 +10,7 @@ import {
 } from "@phosphor-icons/react";
 import { cn } from "cn";
 import type { ReactNode } from "react";
+import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -86,78 +87,75 @@ export function GitSyncPanel({
       >
         <div className="min-h-0 overflow-hidden">
           <div className="space-y-2 pt-2">
-            {busy && !status ? (
+            <When condition={busy && !status}>
               <p className="text-[12px] text-faint">{t("local.git.loading")}</p>
-            ) : null}
-            {status ? (
-              <>
-                <dl className="space-y-1 text-[12px]">
-                  <div className="flex gap-2">
-                    <dt className="text-faint">{t("local.git.branch")}</dt>
-                    <dd className="font-medium">
-                      {status.detached
-                        ? `${t("local.git.detached")}${status.head ? ` · ${status.head}` : ""}`
-                        : (status.branch ?? "—")}
-                      {badge ? ` · ${badge}` : ""}
-                    </dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-faint">{t("local.git.upstream")}</dt>
-                    <dd>{status.upstream ?? "—"}</dd>
-                  </div>
-                  <div className="flex gap-2">
-                    <dt className="text-faint">{t("local.git.changes")}</dt>
-                    <dd>
-                      {status.clean
-                        ? t("local.git.clean")
-                        : `${status.staged} ${t("local.git.staged")} · ${status.unstaged} ${t("local.git.unstaged")} · ${status.untracked} ${t("local.git.untracked")}`}
-                    </dd>
-                  </div>
-                </dl>
-                <p className="text-[12px] text-faint">
-                  {status.lastFetch
-                    ? t("local.git.lastFetch", {
-                        date: new Intl.DateTimeFormat(locale, {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        }).format(status.lastFetch * 1000),
-                      })
-                    : t("local.git.neverFetched")}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  <Button disabled={busy} onClick={() => void doFetch()}>
-                    {actionIcon(
-                      "fetch",
-                      <ArrowsClockwiseIcon size={14} aria-hidden />,
-                    )}
-                    {t("local.git.fetch")}
-                  </Button>
-                  <Button
-                    disabled={busy || status.detached || !status.upstream}
-                    onClick={() => void doPull()}
-                  >
-                    {actionIcon(
-                      "pull",
-                      <ArrowDownIcon size={14} aria-hidden />,
-                    )}
-                    {t("local.git.pull")}
-                  </Button>
-                  <Button
-                    disabled={busy || status.detached || !push}
-                    onClick={() => void doPush()}
-                  >
-                    {actionIcon("push", <ArrowUpIcon size={14} aria-hidden />)}
-                    {push
-                      ? t(
-                          push.setsUpstream
-                            ? "local.git.pushSetUpstream"
-                            : "local.git.pushTo",
-                          { target: push.label },
-                        )
-                      : ""}
-                  </Button>
+            </When>
+            <When condition={Boolean(status)}>
+              <dl className="space-y-1 text-[12px]">
+                <div className="flex gap-2">
+                  <dt className="text-faint">{t("local.git.branch")}</dt>
+                  <dd className="font-medium">
+                    {status?.detached
+                      ? `${t("local.git.detached")}${status.head ? ` · ${status.head}` : ""}`
+                      : (status?.branch ?? "—")}
+                    {badge ? ` · ${badge}` : ""}
+                  </dd>
                 </div>
-                {active && progressKey ? (
+                <div className="flex gap-2">
+                  <dt className="text-faint">{t("local.git.upstream")}</dt>
+                  <dd>{status?.upstream ?? "—"}</dd>
+                </div>
+                <div className="flex gap-2">
+                  <dt className="text-faint">{t("local.git.changes")}</dt>
+                  <dd>
+                    {status?.clean
+                      ? t("local.git.clean")
+                      : `${status?.staged} ${t("local.git.staged")} · ${status?.unstaged} ${t("local.git.unstaged")} · ${status?.untracked} ${t("local.git.untracked")}`}
+                  </dd>
+                </div>
+              </dl>
+              <p className="text-[12px] text-faint">
+                {status?.lastFetch
+                  ? t("local.git.lastFetch", {
+                      date: new Intl.DateTimeFormat(locale, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format((status.lastFetch ?? 0) * 1000),
+                    })
+                  : t("local.git.neverFetched")}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                <Button disabled={busy} onClick={() => void doFetch()}>
+                  {actionIcon(
+                    "fetch",
+                    <ArrowsClockwiseIcon size={14} aria-hidden />,
+                  )}
+                  {t("local.git.fetch")}
+                </Button>
+                <Button
+                  disabled={busy || status?.detached || !status?.upstream}
+                  onClick={() => void doPull()}
+                >
+                  {actionIcon("pull", <ArrowDownIcon size={14} aria-hidden />)}
+                  {t("local.git.pull")}
+                </Button>
+                <Button
+                  disabled={busy || status?.detached || !push}
+                  onClick={() => void doPush()}
+                >
+                  {actionIcon("push", <ArrowUpIcon size={14} aria-hidden />)}
+                  {push
+                    ? t(
+                        push.setsUpstream
+                          ? "local.git.pushSetUpstream"
+                          : "local.git.pushTo",
+                        { target: push.label },
+                      )
+                    : ""}
+                </Button>
+              </div>
+              <If condition={Boolean(active && progressKey)}>
+                <Then>
                   <p
                     role="status"
                     className="flex items-center gap-1.5 text-[12px] text-mist"
@@ -167,94 +165,97 @@ export function GitSyncPanel({
                       aria-hidden
                       className="animate-spin"
                     />
-                    {t(progressKey)}
+                    {progressKey && t(progressKey)}
                   </p>
-                ) : notice ? (
-                  <p
-                    role="status"
-                    className="flex items-center gap-1.5 text-[12px] text-mist"
-                  >
-                    <CheckCircleIcon size={14} aria-hidden />
-                    {notice}
-                  </p>
-                ) : null}
+                </Then>
+                <Else>
+                  <When condition={Boolean(notice)}>
+                    <p
+                      role="status"
+                      className="flex items-center gap-1.5 text-[12px] text-mist"
+                    >
+                      <CheckCircleIcon size={14} aria-hidden />
+                      {notice}
+                    </p>
+                  </When>
+                </Else>
+              </If>
+              <div className="flex flex-wrap items-center gap-1">
+                <Select
+                  value={switchTo}
+                  onChange={(value) => setSwitchTo(value)}
+                  options={(status?.localBranches ?? []).map((branch) => ({
+                    value: branch,
+                    label: branch,
+                  }))}
+                  className="min-w-28 flex-1"
+                  ariaLabel={t("local.git.switchToBranch")}
+                />
+                <Button
+                  disabled={
+                    busy ||
+                    !switchTo ||
+                    switchTo === status?.branch ||
+                    !status?.clean
+                  }
+                  size="md"
+                  onClick={() => void doSwitch()}
+                >
+                  {actionIcon(
+                    "switch",
+                    <GitBranchIcon size={14} aria-hidden />,
+                  )}
+                  {t("local.git.switch")}
+                </Button>
+              </div>
+              <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-1">
-                  <Select
-                    value={switchTo}
-                    onChange={(value) => setSwitchTo(value)}
-                    options={status.localBranches.map((branch) => ({
-                      value: branch,
-                      label: branch,
-                    }))}
+                  <Input
+                    value={newBranch}
+                    onChange={(e) => setNewBranch(e.target.value)}
+                    aria-label={t("local.git.newBranch")}
+                    placeholder={t("local.git.newBranch")}
                     className="min-w-28 flex-1"
-                    ariaLabel={t("local.git.switchToBranch")}
                   />
                   <Button
                     disabled={
-                      busy ||
-                      !switchTo ||
-                      switchTo === status.branch ||
-                      !status.clean
+                      busy || !isValidBranchName(newBranch) || !status?.clean
                     }
                     size="md"
-                    onClick={() => void doSwitch()}
+                    className="mt-2"
+                    onClick={() => void doCreate()}
                   >
-                    {actionIcon(
-                      "switch",
-                      <GitBranchIcon size={14} aria-hidden />,
-                    )}
-                    {t("local.git.switch")}
+                    {actionIcon("create", <PlusIcon size={14} aria-hidden />)}
+                    {t("local.git.create")}
                   </Button>
                 </div>
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-1">
-                    <Input
-                      value={newBranch}
-                      onChange={(e) => setNewBranch(e.target.value)}
-                      aria-label={t("local.git.newBranch")}
-                      placeholder={t("local.git.newBranch")}
-                      className="min-w-28 flex-1"
-                    />
-                    <Button
-                      disabled={
-                        busy || !isValidBranchName(newBranch) || !status.clean
-                      }
-                      size="md"
-                      className="mt-2"
-                      onClick={() => void doCreate()}
-                    >
-                      {actionIcon("create", <PlusIcon size={14} aria-hidden />)}
-                      {t("local.git.create")}
-                    </Button>
-                  </div>
-                  <label
-                    htmlFor={`git-switch-new-${path}`}
-                    className="flex items-center gap-2 text-[12px] text-mist"
-                  >
-                    <input
-                      id={`git-switch-new-${path}`}
-                      type="checkbox"
-                      checked={switchNew}
-                      onChange={(e) => setSwitchNew(e.target.checked)}
-                    />
-                    {t("local.git.switchToNew")}
-                  </label>
-                </div>
-              </>
-            ) : null}
-            {error ? (
+                <label
+                  htmlFor={`git-switch-new-${path}`}
+                  className="flex items-center gap-2 text-[12px] text-mist"
+                >
+                  <input
+                    id={`git-switch-new-${path}`}
+                    type="checkbox"
+                    checked={switchNew}
+                    onChange={(e) => setSwitchNew(e.target.checked)}
+                  />
+                  {t("local.git.switchToNew")}
+                </label>
+              </div>
+            </When>
+            <When condition={Boolean(error)}>
               <div role="alert" className="text-[12.5px] text-accent-soft">
                 <p>{code ? t(`local.errors.${code}`) : String(error)}</p>
-                {detail ? (
+                <When condition={Boolean(detail)}>
                   <details className="mt-1">
                     <summary className="cursor-pointer text-[12px]">
                       Details
                     </summary>
                     <p className="mt-1 break-words text-[12px]">{detail}</p>
                   </details>
-                ) : null}
+                </When>
               </div>
-            ) : null}
+            </When>
           </div>
         </div>
       </div>

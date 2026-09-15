@@ -1,4 +1,5 @@
 import { LinkSimpleIcon, PlusIcon } from "@phosphor-icons/react";
+import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -65,7 +66,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
         />
       </div>
 
-      {parent ? (
+      <When condition={Boolean(parent)}>
         <div className="mt-3 rounded-md border border-hairline bg-wash p-3">
           <p className="text-xs text-mist">
             {t("local.destination", { path: `${parent}/${name}` })}
@@ -89,30 +90,33 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
             </Button>
           </div>
         </div>
-      ) : null}
+      </When>
 
-      {error ? (
+      <When condition={Boolean(error)}>
         <p role="alert" className="mt-3 text-sm text-accent-soft">
           {t("local.error")} {error}
         </p>
-      ) : null}
+      </When>
 
       <div className="mt-3 space-y-2">
-        {items.length === 0 ? (
-          <p className="text-[13px] text-faint">{t("local.empty")}</p>
-        ) : (
-          items.map((item) => (
-            <LocalCheckoutCard
-              key={item.path}
-              fullName={fullName}
-              item={item}
-              busy={busy}
-              editor={editor}
-              onOpen={(path, target) => void open(path, target)}
-              onUnlink={(path) => void unlink(path)}
-            />
-          ))
-        )}
+        <If condition={items.length === 0}>
+          <Then>
+            <p className="text-[13px] text-faint">{t("local.empty")}</p>
+          </Then>
+          <Else>
+            {items.map((item) => (
+              <LocalCheckoutCard
+                key={item.path}
+                fullName={fullName}
+                item={item}
+                busy={busy}
+                editor={editor}
+                onOpen={(path, target) => void open(path, target)}
+                onUnlink={(path) => void unlink(path)}
+              />
+            ))}
+          </Else>
+        </If>
       </div>
     </section>
   );

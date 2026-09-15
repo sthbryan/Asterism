@@ -1,3 +1,4 @@
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { AreaChart } from "@/components/Charts";
 import { seriesWindow } from "@/lib/series";
@@ -38,11 +39,11 @@ export function HistoryCharts({
               "Reconstructed from GitHub stargazers, then kept in sync on each refresh.",
             )}
           </p>
-          {starWindow?.partial ? (
+          <When condition={starWindow?.partial}>
             <p className="mt-1 text-[10.5px] text-faint">
               {t("detail.partialCoverage", {
                 days:
-                  starWindow.observedFromTs && starWindow.observedToTs
+                  starWindow?.observedFromTs && starWindow?.observedToTs
                     ? Math.max(
                         1,
                         Math.round(
@@ -54,7 +55,7 @@ export function HistoryCharts({
                     : 0,
               })}
             </p>
-          ) : null}
+          </When>
           <div className="mt-3">
             <AreaChart
               points={stars}
@@ -72,11 +73,11 @@ export function HistoryCharts({
               "GitHub only reports current totals. Asterism snapshots them so the series grows from here.",
             )}
           </p>
-          {downloadWindow?.partial ? (
+          <When condition={downloadWindow?.partial}>
             <p className="mt-1 text-[10.5px] text-faint">
               {t("detail.partialCoverage", {
                 days:
-                  downloadWindow.observedFromTs && downloadWindow.observedToTs
+                  downloadWindow?.observedFromTs && downloadWindow?.observedToTs
                     ? Math.max(
                         1,
                         Math.round(
@@ -88,7 +89,7 @@ export function HistoryCharts({
                     : 0,
               })}
             </p>
-          ) : null}
+          </When>
           <div className="mt-3">
             <AreaChart
               points={downloads}

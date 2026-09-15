@@ -1,5 +1,6 @@
 import { DownloadSimpleIcon, EyeIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
+import { Case, Default, Else, If, Switch, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { ColumnChart } from "@/components/Charts";
@@ -38,54 +39,61 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
       <p className="mt-2 text-xs leading-relaxed text-mist">
         {t("offline.traffic")}
       </p>
-      {detail.trafficError && !detail.views && !detail.clones ? (
-        <p className="mt-3 text-[13px] leading-relaxed text-mist">
-          {t("Views and clones require push access.")} {detail.trafficError}
-        </p>
-      ) : (
-        <div className="mt-3 grid grid-cols-2 gap-5">
-          <div>
-            <TrafficBlock
-              label={t("Views")}
-              icon={<EyeIcon size={14} />}
-              traffic={detail.views}
-              status={detail.viewsStatus}
-              fetchedAt={detail.views?.fetchedAt}
-            />
-            <div className="mt-3">
-              <ColumnChart
-                tone="paper"
-                items={(detail.views?.days ?? []).map((day) => ({
-                  ts: day.ts,
-                  value: day.count,
-                  hint: t("common.unique", { count: day.uniques }),
-                }))}
-                empty={t("No view samples.")}
+      <If
+        condition={Boolean(
+          detail.trafficError && !detail.views && !detail.clones,
+        )}
+      >
+        <Then>
+          <p className="mt-3 text-[13px] leading-relaxed text-mist">
+            {t("Views and clones require push access.")} {detail.trafficError}
+          </p>
+        </Then>
+        <Else>
+          <div className="mt-3 grid grid-cols-2 gap-5">
+            <div>
+              <TrafficBlock
+                label={t("Views")}
+                icon={<EyeIcon size={14} />}
+                traffic={detail.views}
+                status={detail.viewsStatus}
+                fetchedAt={detail.views?.fetchedAt}
               />
+              <div className="mt-3">
+                <ColumnChart
+                  tone="paper"
+                  items={(detail.views?.days ?? []).map((day) => ({
+                    ts: day.ts,
+                    value: day.count,
+                    hint: t("common.unique", { count: day.uniques }),
+                  }))}
+                  empty={t("No view samples.")}
+                />
+              </div>
+            </div>
+            <div>
+              <TrafficBlock
+                label={t("Clones")}
+                icon={<DownloadSimpleIcon size={14} />}
+                traffic={detail.clones}
+                status={detail.clonesStatus}
+                fetchedAt={detail.clones?.fetchedAt}
+              />
+              <div className="mt-3">
+                <ColumnChart
+                  tone="accent"
+                  items={(detail.clones?.days ?? []).map((day) => ({
+                    ts: day.ts,
+                    value: day.count,
+                    hint: t("common.unique", { count: day.uniques }),
+                  }))}
+                  empty={t("No clone samples.")}
+                />
+              </div>
             </div>
           </div>
-          <div>
-            <TrafficBlock
-              label={t("Clones")}
-              icon={<DownloadSimpleIcon size={14} />}
-              traffic={detail.clones}
-              status={detail.clonesStatus}
-              fetchedAt={detail.clones?.fetchedAt}
-            />
-            <div className="mt-3">
-              <ColumnChart
-                tone="accent"
-                items={(detail.clones?.days ?? []).map((day) => ({
-                  ts: day.ts,
-                  value: day.count,
-                  hint: t("common.unique", { count: day.uniques }),
-                }))}
-                empty={t("No clone samples.")}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+        </Else>
+      </If>
     </div>
   );
 }
@@ -117,57 +125,64 @@ function TrafficBlock({
         <span className="text-faint">{icon}</span>
         <span className="kpi-label">{label}</span>
       </div>
-      {status === "forbidden" && !traffic ? (
-        <p className="mt-2.5 text-[13px] text-faint">
-          {t("Traffic requires push access.")}
-        </p>
-      ) : status === "error" && !traffic ? (
-        <p className="mt-2.5 text-[13px] text-faint">
-          {t("Traffic could not be loaded.")}
-        </p>
-      ) : traffic ? (
-        <div className="mt-2.5">
-          <div className="font-mono text-[18px] leading-none font-semibold tabular">
-            {fmtCompact(traffic.count)}
+      <Switch>
+        <Case condition={status === "forbidden" && !traffic}>
+          <p className="mt-2.5 text-[13px] text-faint">
+            {t("Traffic requires push access.")}
+          </p>
+        </Case>
+        <Case condition={status === "error" && !traffic}>
+          <p className="mt-2.5 text-[13px] text-faint">
+            {t("Traffic could not be loaded.")}
+          </p>
+        </Case>
+        <Case condition={Boolean(traffic)}>
+          <div className="mt-2.5">
+            <div className="font-mono text-[18px] leading-none font-semibold tabular">
+              {traffic && fmtCompact(traffic.count)}
+            </div>
+            <div className="mt-1.5 text-[12px] leading-none text-faint">
+              {traffic && t("common.unique", { count: traffic.uniques })}
+            </div>
+            <When condition={Boolean(fetchedAt)}>
+              <div className="mt-1 text-[10px] text-faint">
+                {t("offline.fetched", {
+                  date: new Intl.DateTimeFormat(locale, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }).format((fetchedAt ?? 0) * 1000),
+                })}
+              </div>
+            </When>
+            <When condition={Boolean(sampleFrom && sampleTo)}>
+              <div className="mt-1 text-[10px] text-faint">
+                {t("offline.period", {
+                  from: fmt(sampleFrom ?? 0),
+                  to: fmt(sampleTo ?? 0),
+                })}
+              </div>
+            </When>
+            <When condition={status === "forbidden"}>
+              <div className="mt-1 text-[10px] text-faint">
+                {t("Traffic requires push access.")}
+              </div>
+            </When>
+            <When condition={status === "error"}>
+              <div className="mt-1 text-[10px] text-faint">
+                {t("Traffic could not be loaded.")}
+              </div>
+            </When>
           </div>
-          <div className="mt-1.5 text-[12px] leading-none text-faint">
-            {t("common.unique", { count: traffic.uniques })}
-          </div>
-          {fetchedAt ? (
-            <div className="mt-1 text-[10px] text-faint">
-              {t("offline.fetched", {
-                date: new Intl.DateTimeFormat(locale, {
-                  dateStyle: "medium",
-                  timeStyle: "short",
-                }).format(fetchedAt * 1000),
-              })}
-            </div>
-          ) : null}
-          {sampleFrom && sampleTo ? (
-            <div className="mt-1 text-[10px] text-faint">
-              {t("offline.period", {
-                from: fmt(sampleFrom),
-                to: fmt(sampleTo),
-              })}
-            </div>
-          ) : null}
-          {status === "forbidden" ? (
-            <div className="mt-1 text-[10px] text-faint">
-              {t("Traffic requires push access.")}
-            </div>
-          ) : status === "error" ? (
-            <div className="mt-1 text-[10px] text-faint">
-              {t("Traffic could not be loaded.")}
-            </div>
-          ) : null}
-        </div>
-      ) : status === "ok" ? (
-        <p className="mt-2.5 text-[13px] text-faint">
-          {t("No activity in this period.")}
-        </p>
-      ) : (
-        <p className="mt-2.5 text-[13px] text-faint">{t("Unavailable")}</p>
-      )}
+        </Case>
+        <Case condition={status === "ok"}>
+          <p className="mt-2.5 text-[13px] text-faint">
+            {t("No activity in this period.")}
+          </p>
+        </Case>
+        <Default>
+          <p className="mt-2.5 text-[13px] text-faint">{t("Unavailable")}</p>
+        </Default>
+      </Switch>
     </div>
   );
 }

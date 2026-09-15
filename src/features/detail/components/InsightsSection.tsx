@@ -1,4 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarChart } from "@/components/Charts";
 import { langColor } from "@/lib/langcolors";
@@ -22,55 +23,61 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
           <div className="text-[13px] font-semibold">
             {t("Referrers · 14 days")}
           </div>
-          {referrers.length === 0 ? (
-            <p className="mt-3 text-[13px] text-faint">
-              {detail.trafficError && !detail.views
-                ? t("Referrers need push access, same as views.")
-                : t("No referrers in the last 14 days.")}
-            </p>
-          ) : (
-            <div className="mt-3">
-              <BarChart
-                items={referrers.map((row) => ({
-                  label: row.referrer,
-                  value: row.count,
-                }))}
-              />
-            </div>
-          )}
+          <If condition={referrers.length === 0}>
+            <Then>
+              <p className="mt-3 text-[13px] text-faint">
+                {detail.trafficError && !detail.views
+                  ? t("Referrers need push access, same as views.")
+                  : t("No referrers in the last 14 days.")}
+              </p>
+            </Then>
+            <Else>
+              <div className="mt-3">
+                <BarChart
+                  items={referrers.map((row) => ({
+                    label: row.referrer,
+                    value: row.count,
+                  }))}
+                />
+              </div>
+            </Else>
+          </If>
         </div>
         <div className="card p-4">
           <div className="text-[13px] font-semibold">
             {t("Popular paths · 14 days")}
           </div>
-          {paths.length === 0 ? (
-            <p className="mt-3 text-[13px] text-faint">
-              {detail.trafficError && !detail.views
-                ? t("Paths need push access, same as views.")
-                : t("No popular paths in the last 14 days.")}
-            </p>
-          ) : (
-            <div className="mt-3">
-              <BarChart
-                items={paths.map((row) => ({
-                  label:
-                    shortPath(row.path, detail.fullName) === "Overview"
-                      ? t("Overview")
-                      : shortPath(row.path, detail.fullName),
-                  value: row.count,
-                }))}
-                onSelect={(label) => {
-                  const match = paths.find(
-                    (row) =>
-                      (shortPath(row.path, detail.fullName) === "Overview"
+          <If condition={paths.length === 0}>
+            <Then>
+              <p className="mt-3 text-[13px] text-faint">
+                {detail.trafficError && !detail.views
+                  ? t("Paths need push access, same as views.")
+                  : t("No popular paths in the last 14 days.")}
+              </p>
+            </Then>
+            <Else>
+              <div className="mt-3">
+                <BarChart
+                  items={paths.map((row) => ({
+                    label:
+                      shortPath(row.path, detail.fullName) === "Overview"
                         ? t("Overview")
-                        : shortPath(row.path, detail.fullName)) === label,
-                  );
-                  if (match) void openUrl(`https://github.com${match.path}`);
-                }}
-              />
-            </div>
-          )}
+                        : shortPath(row.path, detail.fullName),
+                    value: row.count,
+                  }))}
+                  onSelect={(label) => {
+                    const match = paths.find(
+                      (row) =>
+                        (shortPath(row.path, detail.fullName) === "Overview"
+                          ? t("Overview")
+                          : shortPath(row.path, detail.fullName)) === label,
+                    );
+                    if (match) void openUrl(`https://github.com${match.path}`);
+                  }}
+                />
+              </div>
+            </Else>
+          </If>
         </div>
       </div>
 
@@ -79,65 +86,71 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
           <div className="text-[13px] font-semibold">
             {t("Downloads by platform")}
           </div>
-          {platformBars.length === 0 ? (
-            <p className="mt-3 text-[13px] text-faint">
-              {t("No release assets with a recognizable platform.")}
-            </p>
-          ) : (
-            <div className="mt-3">
-              <BarChart
-                items={platformBars.map((item) => ({
-                  ...item,
-                  label: item.label === "Other" ? t("Other") : item.label,
-                }))}
-              />
-            </div>
-          )}
+          <If condition={platformBars.length === 0}>
+            <Then>
+              <p className="mt-3 text-[13px] text-faint">
+                {t("No release assets with a recognizable platform.")}
+              </p>
+            </Then>
+            <Else>
+              <div className="mt-3">
+                <BarChart
+                  items={platformBars.map((item) => ({
+                    ...item,
+                    label: item.label === "Other" ? t("Other") : item.label,
+                  }))}
+                />
+              </div>
+            </Else>
+          </If>
         </div>
         <div className="card p-4">
           <div className="text-[13px] font-semibold">{t("Languages")}</div>
-          {detail.languages.length === 0 ? (
-            <p className="mt-3 text-[13px] text-faint">
-              {t("No language data.")}
-            </p>
-          ) : (
-            <ul className="mt-3.5 space-y-2">
-              {detail.languages.map((lang) => {
-                const pct = (lang.bytes / langTotal) * 100;
-                return (
-                  <li
-                    key={lang.name}
-                    className="grid grid-cols-[100px_1fr_40px] items-center gap-2.5"
-                  >
-                    <span className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
-                      <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ background: langColor(lang.name) }}
-                      />
-                      <span className="truncate">{lang.name}</span>
-                    </span>
-                    <span className="block h-1.5 overflow-hidden rounded-full bg-raised">
-                      <span
-                        className="block h-full rounded-full"
-                        style={{
-                          width: `${Math.max(pct, 2)}%`,
-                          background: langColor(lang.name),
-                        }}
-                      />
-                    </span>
-                    <span className="text-right font-mono text-[11.5px] text-mist tabular">
-                      {pct < 1
-                        ? "<1%"
-                        : formatNumber(pct / 100, {
-                            style: "percent",
-                            maximumFractionDigits: 0,
-                          })}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <If condition={detail.languages.length === 0}>
+            <Then>
+              <p className="mt-3 text-[13px] text-faint">
+                {t("No language data.")}
+              </p>
+            </Then>
+            <Else>
+              <ul className="mt-3.5 space-y-2">
+                {detail.languages.map((lang) => {
+                  const pct = (lang.bytes / langTotal) * 100;
+                  return (
+                    <li
+                      key={lang.name}
+                      className="grid grid-cols-[100px_1fr_40px] items-center gap-2.5"
+                    >
+                      <span className="flex min-w-0 items-center gap-1.5 text-[12.5px]">
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ background: langColor(lang.name) }}
+                        />
+                        <span className="truncate">{lang.name}</span>
+                      </span>
+                      <span className="block h-1.5 overflow-hidden rounded-full bg-raised">
+                        <span
+                          className="block h-full rounded-full"
+                          style={{
+                            width: `${Math.max(pct, 2)}%`,
+                            background: langColor(lang.name),
+                          }}
+                        />
+                      </span>
+                      <span className="text-right font-mono text-[11.5px] text-mist tabular">
+                        {pct < 1
+                          ? "<1%"
+                          : formatNumber(pct / 100, {
+                              style: "percent",
+                              maximumFractionDigits: 0,
+                            })}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </Else>
+          </If>
         </div>
       </div>
     </>

@@ -31,7 +31,7 @@ export function DetailBody({
               timeStyle: "short",
             }).format((fetchedAt || 0) * 1000),
           })}
-          {refreshing && (
+          <When condition={refreshing}>
             <span role="status" className="inline-flex items-center gap-1">
               <span
                 aria-hidden
@@ -39,7 +39,7 @@ export function DetailBody({
               />
               {t("Refreshing…")}
             </span>
-          )}
+          </When>
         </p>
       </When>
       <When condition={warning}>

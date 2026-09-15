@@ -1,4 +1,5 @@
 import { GlobeIcon, LockSimpleIcon } from "@phosphor-icons/react";
+import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import type { RepoDetail } from "@/lib/types";
 import { Flag } from "./Flag";
@@ -9,22 +10,30 @@ export function RepoIntro({ detail }: { detail: RepoDetail }) {
     <>
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] leading-none font-medium text-accent-soft">
-          {detail.private ? (
-            <LockSimpleIcon size={11} />
-          ) : (
-            <GlobeIcon size={12} />
-          )}
-          {detail.private ? t("Private") : t("Public")}
+          <If condition={detail.private}>
+            <Then>
+              <LockSimpleIcon size={11} />
+              {t("Private")}
+            </Then>
+            <Else>
+              <GlobeIcon size={12} />
+              {t("Public")}
+            </Else>
+          </If>
         </span>
-        {detail.archived ? <Flag>{t("Archived")}</Flag> : null}
-        {detail.isTemplate ? <Flag>{t("Template")}</Flag> : null}
+        <When condition={detail.archived}>
+          <Flag>{t("Archived")}</Flag>
+        </When>
+        <When condition={detail.isTemplate}>
+          <Flag>{t("Template")}</Flag>
+        </When>
       </div>
-      {detail.description ? (
+      <When condition={detail.description}>
         <p className="mt-2.5 max-w-3xl text-[13px] leading-relaxed text-mist">
           {detail.description}
         </p>
-      ) : null}
-      {detail.topics.length > 0 ? (
+      </When>
+      <When condition={detail.topics.length > 0}>
         <div className="mt-2.5 flex flex-wrap gap-1.5">
           {detail.topics.map((topic) => (
             <span
@@ -35,7 +44,7 @@ export function RepoIntro({ detail }: { detail: RepoDetail }) {
             </span>
           ))}
         </div>
-      ) : null}
+      </When>
     </>
   );
 }

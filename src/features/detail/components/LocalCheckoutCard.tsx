@@ -4,6 +4,7 @@ import {
   FolderOpenIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
 import type { LocalCheckout } from "@/lib/types";
@@ -68,7 +69,9 @@ export function LocalCheckoutCard({
           </Button>
         </div>
       </div>
-      {ready ? <GitSyncPanel fullName={fullName} path={item.path} /> : null}
+      <When condition={ready}>
+        <GitSyncPanel fullName={fullName} path={item.path} />
+      </When>
     </div>
   );
 }
