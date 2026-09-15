@@ -6,7 +6,6 @@
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use std::{
-    collections::BTreeMap,
     fs,
     path::{Path, PathBuf},
 };
@@ -33,12 +32,6 @@ pub struct CacheInfo {
     pub path: String,
     pub bytes: u64,
     pub entries: usize,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(default)]
-struct CacheDocument {
-    entries: BTreeMap<String, CacheEntry<Value>>,
 }
 
 fn validate_part(value: &str, max: usize, label: &str) -> Result<(), String> {
@@ -75,13 +68,6 @@ impl<R: Runtime> Storage<R> {
             .with_extension(""))
     }
 
-    fn legacy_cache_path(&self) -> Result<PathBuf, String> {
-        Ok(self.root.join(account_file(
-            &self.account()?.ok_or("No saved account is selected.")?,
-            "cache",
-        )))
-    }
-
     fn cache_dir(&self) -> Result<PathBuf, String> {
         Ok(self.cache_path()?.with_file_name("cache"))
     }
@@ -99,17 +85,6 @@ impl<R: Runtime> Storage<R> {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
             Err(error) => Err(format!("Could not read {}: {error}", path.display())),
         }
-    }
-
-    fn read_legacy_entry(
-        &self,
-        namespace: &str,
-        key: &str,
-    ) -> Result<Option<CacheEntry<Value>>, String> {
-        let legacy = self.legacy_cache_path()?.display().to_string();
-        Ok(self
-            .read::<CacheDocument>(&legacy)?
-            .and_then(|document| document.entries.get(&format!("{namespace}:{key}")).cloned()))
     }
 
     fn all_entry_paths(&self) -> Result<Vec<PathBuf>, String> {
@@ -144,10 +119,6 @@ impl<R: Runtime> Storage<R> {
     ) -> Result<Option<CacheEntry<T>>, String> {
         let path = self.entry_path(namespace, key)?;
         let entry = self.read_entry_value(&path)?;
-        let entry = match entry {
-            Some(entry) => Some(entry),
-            None => self.read_legacy_entry(namespace, key)?,
-        };
         entry
             .map(|entry| {
                 serde_json::from_value(entry.data)
@@ -207,9 +178,6 @@ impl<R: Runtime> Storage<R> {
                 removed += 1;
             }
         }
-        if namespace.is_none() && fs::remove_file(self.legacy_cache_path()?).is_ok() {
-            removed += 1;
-        }
         Ok(removed)
     }
 
@@ -221,9 +189,6 @@ impl<R: Runtime> Storage<R> {
                 bytes += metadata.len();
                 entries += 1;
             }
-        }
-        if let Ok(metadata) = fs::metadata(self.legacy_cache_path()?) {
-            bytes += metadata.len();
         }
         Ok(CacheInfo {
             path: self.cache_dir()?.display().to_string(),
