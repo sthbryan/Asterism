@@ -132,14 +132,61 @@ textarea {
   font: inherit;
 }
 
-button {
-  @apply cursor-pointer;
-}
-
 @layer base {
-  button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  :is(
+    a[href],
+    button,
+    summary,
+    select,
+    input[type="button"],
+    input[type="checkbox"],
+    input[type="radio"],
+    input[type="reset"],
+    input[type="submit"],
+    label[for],
+    label:has(input[type="checkbox"]),
+    label:has(input[type="radio"]),
+    [role="button"],
+    [role="link"],
+    [role="menuitem"],
+    [role="option"],
+    [role="switch"],
+    [role="tab"]
+  ):not(:disabled, [aria-disabled="true"]) {
     cursor: pointer;
+    -webkit-app-region: no-drag;
+  }
+
+  [data-tauri-drag-region]
+    :is(
+      a[href],
+      button,
+      summary,
+      select,
+      input,
+      textarea,
+      label,
+      [role="button"],
+      [role="link"],
+      [role="menuitem"],
+      [role="option"],
+      [role="switch"],
+      [role="tab"]
+    ) {
+    -webkit-app-region: no-drag;
+  }
+
+  :is(
+    button,
+    select,
+    input[type="button"],
+    input[type="checkbox"],
+    input[type="radio"],
+    input[type="reset"],
+    input[type="submit"]
+  ):disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }
 
