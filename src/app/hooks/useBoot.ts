@@ -70,8 +70,6 @@ export function useBoot() {
           bootFail(next);
           return;
         }
-        // getStatus selects the authenticated account. Reload its namespace before
-        // displaying live data; never merge another account into the local snapshot.
         if (next.login !== local.account?.split("/").pop()) {
           hydrateLocal({
             ...local,

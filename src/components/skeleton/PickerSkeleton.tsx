@@ -1,4 +1,3 @@
-// biome-ignore-all lint/suspicious/noArrayIndexKey: static skeleton placeholders with fixed counts; never reordered, no state.
 import { Bone } from "./Bone";
 
 export function PickerSkeleton() {
@@ -6,7 +5,7 @@ export function PickerSkeleton() {
     <ul>
       {Array.from({ length: 8 }).map((_, i) => (
         <li
-          key={i}
+          key={`picker-skeleton-${i}`}
           className="flex items-center gap-3 border-b border-hairline px-4 py-2.5 last:border-b-0"
         >
           <Bone className="h-4 w-4 rounded-[5px]" />

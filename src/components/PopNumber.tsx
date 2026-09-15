@@ -23,7 +23,6 @@ export function PopNumber({
     <span ref={ref} className={`t-digit-group is-animating ${className}`}>
       {chars.map((ch, i) => (
         <span
-          // biome-ignore lint/suspicious/noArrayIndexKey: digits have no stable id; index+char key is fine for a stateless animation rerun.
           key={`${i}-${ch}`}
           className="t-digit"
           data-stagger={

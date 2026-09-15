@@ -78,8 +78,8 @@ pub struct PullRequestDetail {
     pub merge_state: Option<String>,
     #[serde(default)]
     pub files: Vec<PullFile>,
-    /// Populated only when the diff is explicitly requested. Keeping it out of
-    /// the detail request avoids downloading large patches for every row.
+    
+    
     #[serde(default)]
     pub diff: Option<String>,
     #[serde(default)]

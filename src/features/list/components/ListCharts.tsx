@@ -5,7 +5,6 @@ import { fmtSigned } from "@/lib/format";
 import { delta, seriesWindow } from "@/lib/series";
 import type { SeriesPoint } from "@/lib/types";
 
-// Charts always show the trailing 30-day window.
 const PERIOD_DAYS = 30;
 
 export function ListCharts({

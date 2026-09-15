@@ -4,7 +4,6 @@ import { AreaChart } from "@/components/Charts";
 import { seriesWindow } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
-// Charts always show the trailing 30-day window.
 const PERIOD_DAYS = 30;
 
 export function HistoryCharts({

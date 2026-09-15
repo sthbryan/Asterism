@@ -187,7 +187,7 @@ export function useCreateForm({
         gitignore: gitignore || null,
         license: license || null,
       });
-      // Creation is complete even if saving the local tracking preference fails.
+
       dispatch({ type: "submitSuccess", created: repo });
       try {
         await onCreated(repo, track);

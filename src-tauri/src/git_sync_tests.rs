@@ -48,7 +48,7 @@ fn commit_file(dir: &Path, name: &str, content: &str, message: &str) {
     assert!(git(dir, &["commit", "-q", "-m", message]).status.success());
 }
 
-/// Seed repo with one commit pushed to a bare remote, plus a fresh clone.
+
 fn fixture(label: &str) -> (PathBuf, PathBuf) {
     let root = temp_root(label);
     let remote = root.join("remote.git");
@@ -131,7 +131,7 @@ fn fetch_updates_last_fetch_and_behind_count() {
     assert_eq!(status.behind, Some(1));
     assert!(status.last_fetch.is_some());
     assert!(work.join("peer.txt").exists() || !work.join("peer.txt").exists());
-    // Fetch alone never touches the worktree.
+    
     assert!(!work.join("peer.txt").exists());
     let _ = fs::remove_dir_all(root);
 }
@@ -154,7 +154,7 @@ fn dirty_worktree_counts_and_blocks_switch() {
         create_branch_dir(&work, "other", true).unwrap_err(),
         "GIT_DIRTY"
     );
-    // Creating without switching never touches the worktree, so it is allowed.
+    
     assert!(create_branch_dir(&work, "other", false).is_ok());
     let _ = fs::remove_dir_all(root);
 }
@@ -222,7 +222,7 @@ fn diverged_pull_is_rejected_without_touching_worktree() {
     assert_eq!(before.ahead, Some(1));
     assert_eq!(before.behind, Some(1));
     assert_eq!(pull_ff_dir(&work).unwrap_err(), "GIT_DIVERGED");
-    // The rejected pull leaves the worktree exactly as it was.
+    
     assert_eq!(
         fs::read_to_string(work.join("file.txt")).unwrap(),
         "local\n"
@@ -281,7 +281,7 @@ fn detached_head_reports_sha_and_refuses_branch_ops() {
         "GIT_DETACHED"
     );
     assert_eq!(pull_ff_dir(&work).unwrap_err(), "GIT_DETACHED");
-    // Coming back to a branch works on a clean tree.
+    
     assert_eq!(
         switch_branch_dir(&work, "main").unwrap().branch.as_deref(),
         Some("main")

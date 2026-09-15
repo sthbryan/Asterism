@@ -53,8 +53,8 @@ impl PullRequestFilters {
         if let Some(state) = self.state.as_mut() {
             *state = state.to_ascii_lowercase();
             if state == "merged" {
-                // gh reports merged PRs as CLOSED with a non-null mergedAt
-                // field. The parser preserves that information through state.
+                
+                
                 *state = "merged".into();
             }
         }
@@ -318,8 +318,8 @@ pub fn matches_filters(pull: &PullRequestSummary, filters: &PullRequestFilters) 
     }
     if let Some(want) = f.state {
         if want == "merged" {
-            // A merged summary is represented as MERGED when the API supplies
-            // mergedAt; older payloads can only expose CLOSED.
+            
+            
             if pull.state != "MERGED" {
                 return false;
             }

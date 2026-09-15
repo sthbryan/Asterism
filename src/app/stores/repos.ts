@@ -75,10 +75,7 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
     set({ selectedNames: repos, detail: null });
     try {
       const cfg = await saveConfig(repos);
-      // A local hydrate can happen while the write is in flight (for example
-      // when boot finishes after the picker opened). Keep the confirmed write
-      // for the same account, while ignoring stale responses from an older
-      // request or a different account.
+
       if (request !== selectionRequest || account !== get().account) return;
       set({
         selectedNames: cfg.repos,

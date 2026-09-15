@@ -68,7 +68,7 @@ pub(super) fn first_line(output: &str) -> String {
     output.lines().next().unwrap_or("").trim().to_string()
 }
 
-/// Runs a tool and returns its first output line plus an optional error.
+
 pub(crate) fn tool_version(program: &str, args: &[&str]) -> (Option<String>, Option<String>) {
     let mut cmd = Command::new(program);
     cmd.args(args)

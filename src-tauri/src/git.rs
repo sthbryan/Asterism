@@ -74,7 +74,7 @@ fn ref_lines(dir: &Path, namespace: &str) -> Result<Vec<String>, String> {
         .lines()
         .map(str::trim)
         .filter(|s| !s.is_empty())
-        // Drop symbolic refs such as `origin/HEAD`.
+        
         .filter(|s| !s.ends_with("/HEAD"))
         .map(str::to_string)
         .collect())
@@ -102,7 +102,7 @@ fn worktree_counts(dir: &Path) -> Result<(u32, u32, u32), String> {
     if !out.status.success() {
         return Err(format!("GIT_FAILED:{}", stderr_text(&out)));
     }
-    // NOTE: porcelain columns are positional; never trim the line start.
+    
     let body = String::from_utf8_lossy(&out.stdout).into_owned();
     let mut staged = 0u32;
     let mut unstaged = 0u32;
@@ -162,7 +162,7 @@ fn last_fetch_at(dir: &Path) -> Option<u64> {
         .map(|d| d.as_secs())
 }
 
-/// Read-only branch/sync snapshot for a checkout directory.
+
 pub fn sync_status_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let top = run_git(dir, &["rev-parse", "--show-toplevel"])?;
     if !top.status.success() {
@@ -233,7 +233,7 @@ fn require_branch(status: &GitSyncStatus) -> Result<String, String> {
         .ok_or_else(|| "GIT_DETACHED".to_string())
 }
 
-/// Fetch the default remote with pruning, then return a fresh status.
+
 pub fn fetch_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let out = run_git(dir, &["fetch", "--prune"])?;
     if !out.status.success() {
@@ -242,8 +242,8 @@ pub fn fetch_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     sync_status_dir(dir)
 }
 
-/// Fast-forward-only pull. Divergence and local changes are reported with
-/// dedicated codes instead of being resolved automatically.
+
+
 pub fn pull_ff_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     let status = sync_status_dir(dir)?;
     require_branch(&status)?;
@@ -271,9 +271,9 @@ pub fn pull_ff_dir(dir: &Path) -> Result<GitSyncStatus, String> {
     sync_status_dir(dir)
 }
 
-/// Push the current branch. Without an upstream this fails with
-/// `GIT_NO_UPSTREAM` unless `set_upstream` is set, in which case the branch
-/// is pushed to `remote` and the upstream is recorded. Never force-pushes.
+
+
+
 pub fn push_dir(dir: &Path, remote: &str, set_upstream: bool) -> Result<GitSyncStatus, String> {
     let status = sync_status_dir(dir)?;
     let branch = require_branch(&status)?;
@@ -299,8 +299,8 @@ pub fn push_dir(dir: &Path, remote: &str, set_upstream: bool) -> Result<GitSyncS
     sync_status_dir(dir)
 }
 
-/// Switch to an existing local branch. Refuses to run with a dirty worktree
-/// so local changes are never carried across branches implicitly.
+
+
 pub fn switch_branch_dir(dir: &Path, branch: &str) -> Result<GitSyncStatus, String> {
     if branch.trim().is_empty() {
         return Err("GIT_INVALID_BRANCH".into());
@@ -323,8 +323,8 @@ pub fn switch_branch_dir(dir: &Path, branch: &str) -> Result<GitSyncStatus, Stri
     sync_status_dir(dir)
 }
 
-/// Create a local branch, optionally switching to it. Switching with a dirty
-/// worktree is refused; creating without switching never touches the worktree.
+
+
 pub fn create_branch_dir(dir: &Path, branch: &str, switch: bool) -> Result<GitSyncStatus, String> {
     if branch.trim().is_empty() {
         return Err("GIT_INVALID_BRANCH".into());
@@ -360,10 +360,10 @@ where
         .map_err(|e| format!("background task failed: {e}"))?
 }
 
-// ---------------------------------------------------------------------------
-// Tauri commands. Status is read-only; mutating operations serialize per
-// checkout directory via `serialized_on`.
-// ---------------------------------------------------------------------------
+
+
+
+
 
 #[tauri::command]
 pub(crate) async fn git_sync_status(

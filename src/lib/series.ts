@@ -21,14 +21,13 @@ export function aggregateHistory(
   key: "stars" | "downloads" | "forks",
 ): SeriesPoint[] {
   const requestedSeries = names.map((name) => history[name]?.[key] ?? []);
-  // Do not present a partial repository set as a complete aggregate.
+
   if (requestedSeries.some((series) => series.length === 0)) return [];
   const seriesList = requestedSeries.map((series) =>
     [...series].sort((a, b) => a.ts - b.ts),
   );
   if (seriesList.length === 0) return [];
-  // Wait until every participating repo has an initial observation so a
-  // later-added repo cannot appear as artificial aggregate growth.
+
   const comparableFrom = dayBucket(
     Math.max(...seriesList.map((series) => series[0].ts)),
   );

@@ -9,7 +9,6 @@ import { KpiCard } from "@/components/KpiCard";
 import { pickKpiDelta, windowDelta } from "@/lib/series";
 import type { RepoDetail } from "@/lib/types";
 
-// KPI deltas always cover the trailing 30-day window.
 const PERIOD_DAYS = 30;
 
 export function Kpis({

@@ -10,7 +10,6 @@ import {
 import type { RepoHistory, TrackedRepo } from "@/lib/types";
 import type { ListSort } from "./useListControls";
 
-// KPI deltas and charts always cover the trailing 30-day window.
 const PERIOD_DAYS = 30;
 
 export type ListModelArgs = {

@@ -58,12 +58,10 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
       }));
     };
 
-    // 1. Instant path: in-memory cache from this session.
     const memCached = get().detailCache[fullName];
     if (memCached) {
       applySaved(memCached, true);
     } else {
-      // 2. Fast path: persistent SQLite cache, no network.
       set({
         detail: null,
         detailError: null,
@@ -76,9 +74,7 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
         const cached = await getCachedRepoDetail(fullName);
         if (!alive()) return;
         if (cached) applySaved(cached, true);
-      } catch {
-        // Cache miss/errors fall through to the network fetch below.
-      }
+      } catch {}
       if (!alive()) return;
       set(
         get().detail
@@ -87,7 +83,6 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
       );
     }
 
-    // 3. Background refresh: network fetch, UI updates when ready.
     try {
       const saved = await getRepoDetail(
         fullName,
@@ -97,7 +92,7 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
       applySaved(saved, false);
     } catch (err) {
       if (!alive()) return;
-      // Keep stale content visible; only hard-fail when we have nothing.
+
       if (get().detail) {
         set({ detailLoading: false, detailRefreshing: false });
       } else {
