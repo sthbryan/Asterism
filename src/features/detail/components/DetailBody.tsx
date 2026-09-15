@@ -26,7 +26,7 @@ export function DetailBody({
       <When condition={fetchedAt}>
         <p className="mb-3 flex items-center gap-2 text-xs text-mist">
           {t("list.updated", {
-            date: new Intl.DateTimeFormat(locale, {
+            value: new Intl.DateTimeFormat(locale, {
               dateStyle: "medium",
               timeStyle: "short",
             }).format((fetchedAt || 0) * 1000),

@@ -63,7 +63,7 @@ export function PickerView() {
 
   const fetchedText = fetchedAt
     ? t("list.updated", {
-        date: new Intl.DateTimeFormat(locale, {
+        value: new Intl.DateTimeFormat(locale, {
           dateStyle: "medium",
           timeStyle: "short",
         }).format(fetchedAt * 1000),
