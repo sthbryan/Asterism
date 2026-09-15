@@ -66,6 +66,16 @@ fn filename(key: &str) -> String {
 
 impl<R: Runtime> Storage<R> {
     pub fn cache_path(&self) -> Result<PathBuf, String> {
+        Ok(self
+            .root
+            .join(account_file(
+                &self.account()?.ok_or("No saved account is selected.")?,
+                "cache",
+            ))
+            .with_extension(""))
+    }
+
+    fn legacy_cache_path(&self) -> Result<PathBuf, String> {
         Ok(self.root.join(account_file(
             &self.account()?.ok_or("No saved account is selected.")?,
             "cache",
@@ -96,7 +106,7 @@ impl<R: Runtime> Storage<R> {
         namespace: &str,
         key: &str,
     ) -> Result<Option<CacheEntry<Value>>, String> {
-        let legacy = self.cache_path()?.display().to_string();
+        let legacy = self.legacy_cache_path()?.display().to_string();
         Ok(self
             .read::<CacheDocument>(&legacy)?
             .and_then(|document| document.entries.get(&format!("{namespace}:{key}")).cloned()))
@@ -197,7 +207,7 @@ impl<R: Runtime> Storage<R> {
                 removed += 1;
             }
         }
-        if namespace.is_none() && fs::remove_file(self.cache_path()?).is_ok() {
+        if namespace.is_none() && fs::remove_file(self.legacy_cache_path()?).is_ok() {
             removed += 1;
         }
         Ok(removed)
@@ -212,7 +222,7 @@ impl<R: Runtime> Storage<R> {
                 entries += 1;
             }
         }
-        if let Ok(metadata) = fs::metadata(self.cache_path()?) {
+        if let Ok(metadata) = fs::metadata(self.legacy_cache_path()?) {
             bytes += metadata.len();
         }
         Ok(CacheInfo {
