@@ -25,6 +25,11 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            commands::cache::read_cache,
+            commands::cache::write_cache,
+            commands::cache::remove_cache,
+            commands::cache::clear_cache,
+            commands::cache::get_cache_info,
             commands::state::get_local_state,
             commands::state::use_legacy_data,
             commands::state::import_legacy_data,

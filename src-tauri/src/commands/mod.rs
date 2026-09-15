@@ -1,3 +1,4 @@
+pub(crate) mod cache;
 pub(crate) mod catalog;
 pub(crate) mod local;
 pub(crate) mod pulls_cmds;

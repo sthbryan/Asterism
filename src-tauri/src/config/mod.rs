@@ -1,9 +1,11 @@
 //! Versioned Plugin Store persistence. Callers serialize compound operations.
+mod cache;
 mod paths;
 mod store;
 #[cfg(test)]
 mod tests;
 
+pub use cache::{CacheEntry, CacheInfo};
 pub(crate) use paths::{account_file, legacy_read};
 
 use crate::models::*;
