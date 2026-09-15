@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::models::{PullListResult, Traffic, TrafficStatus, TrackedRepo};
+use crate::models::{Traffic, TrafficStatus, TrackedRepo};
 
 use super::catalog::merge_cached_traffic;
 use super::state::merge_fetches;
