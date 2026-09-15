@@ -132,7 +132,7 @@ export function PickerView() {
               className="px-5 py-6 text-[13px] text-accent-soft"
             >
               <p>{t("errors.request")}</p>
-              <p className="mt-1 break-words">{error}</p>
+              <p className="mt-1 wrap-break-word">{error}</p>
             </div>
           ) : loading ? (
             <PickerSkeleton />
@@ -148,7 +148,7 @@ export function PickerView() {
             <ul>
               {groups.map((group) => (
                 <li key={group.owner}>
-                  <div className="sticky top-0 flex items-center gap-2 border-b border-hairline bg-wash px-4 py-1.5 text-[11px] font-semibold tracking-wide text-mist uppercase">
+                  <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-hairline bg-raised px-4 py-1.5 text-[11px] font-semibold tracking-wide text-mist uppercase">
                     {group.owner}
                     <span className="font-mono text-[10.5px] font-normal text-faint tabular">
                       {group.repos.length}
