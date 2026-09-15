@@ -169,8 +169,6 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
     set({
       detail: null,
       detailError: null,
-      // Keep the loading phase visible while the next detail is hydrated
-      // from disk or fetched from the network.
       detailLoading: true,
       detailRefreshing: false,
       detailFetchedAt: null,
