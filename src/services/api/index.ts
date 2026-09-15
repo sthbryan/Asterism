@@ -11,22 +11,17 @@ function client() {
 export const getLocalState = () => client().getLocalState();
 export const useLegacyData = () => client().useLegacyData();
 export const importLegacyData = () => client().importLegacyData();
-export const clearLocalCache = () => client().clearLocalCache();
 export const getStatus = () => client().getStatus();
 export const getConfig = () => client().getConfig();
 export const saveConfig = (repos: string[]) => client().saveConfig(repos);
-export const getCache = () => client().getCache();
 export const listCatalog = () => client().listCatalog();
 export const listCreateOptions = () => client().listCreateOptions();
 export const createRepo = (
   input: Parameters<typeof tauriClient.createRepo>[0],
 ) => client().createRepo(input);
 export const refreshTracked = () => client().refreshTracked();
-export const getRepoDetail = (fullName: string, offline = false) =>
-  client().getRepoDetail(fullName, offline);
-export const getCachedRepoDetail = (fullName: string) =>
-  client().getCachedRepoDetail(fullName);
-export const getCachedPullRequests = () => client().getCachedPullRequests();
+export const getRepoDetail = (fullName: string) =>
+  client().getRepoDetail(fullName);
 export const refreshPullRequests = (
   filters: Parameters<typeof tauriClient.refreshPullRequests>[0] = {},
 ) => client().refreshPullRequests(filters);
@@ -69,16 +64,7 @@ export const gitCreateBranch = (
   switchTo: boolean,
 ) => client().gitCreateBranch(fullName, path, branch, switchTo);
 export const chooseLocalFolder = () => client().chooseLocalFolder();
-export const listPullRequests = (
-  repos: string[],
-  limit = 100,
-  offline = false,
-) => client().listPullRequests(repos, limit, offline);
-export const getPullRequest = (repo: string, number: number, offline = false) =>
-  client().getPullRequest(repo, number, offline);
-export const getCachedPullRequest = (repo: string, number: number) =>
-  client().getCachedPullRequest(repo, number);
-export const getPullDiff = (repo: string, number: number, offline = false) =>
-  client().getPullDiff(repo, number, offline);
-export const getCachedPullDiff = (repo: string, number: number) =>
-  client().getCachedPullDiff(repo, number);
+export const getPullRequest = (repo: string, number: number) =>
+  client().getPullRequest(repo, number);
+export const getPullDiff = (repo: string, number: number) =>
+  client().getPullDiff(repo, number);

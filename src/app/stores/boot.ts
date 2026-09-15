@@ -12,7 +12,6 @@ import type { AppStore } from "./types";
 export type BootSlice = Pick<
   AppStore,
   | "account"
-  | "dataPath"
   | "legacyAvailable"
   | "connecting"
   | "dataRevision"
@@ -38,22 +37,20 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
   set,
 ) => ({
   account: null,
-  dataPath: "",
   legacyAvailable: false,
   connecting: true,
   dataRevision: 0,
   hydrateLocal: (local) =>
     set((state) => ({
       account: local.account,
-      dataPath: local.dataPath,
       legacyAvailable: local.legacyAvailable,
       booted: true,
       selectedNames: local.config.repos,
-      tracked: local.cache?.repos ?? [],
-      history: local.cache?.history ?? {},
-      fetchedAt: local.cache?.fetchedAt ?? null,
-      catalog: local.catalog?.data ?? [],
-      catalogFetchedAt: local.catalog?.fetchedAt ?? null,
+      tracked: [],
+      history: {},
+      fetchedAt: null,
+      catalog: [],
+      catalogFetchedAt: null,
       catalogError: null,
       catalogLoading: false,
       detail: null,
@@ -94,14 +91,14 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
     }));
   },
 
-  bootOk: (status, config, cache) => {
+  bootOk: (status, config) => {
     set({
       booted: true,
       status,
       selectedNames: config.repos,
-      tracked: cache?.repos ?? [],
-      fetchedAt: cache?.fetchedAt ?? null,
-      history: cache?.history ?? {},
+      tracked: [],
+      fetchedAt: null,
+      history: {},
     });
   },
 

@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { PullRequestDetail, Saved } from "@/lib/types";
-import {
-  getCachedPullDiff,
-  getCachedPullRequest,
-  getPullDiff,
-  getPullRequest,
-} from "@/services/api";
+import { getPullDiff, getPullRequest } from "@/services/api";
 
 type DetailState = {
   saved: Saved<PullRequestDetail> | null;
@@ -113,13 +108,11 @@ export function usePullDetail({
   account,
   repo,
   number,
-  offline,
   revision,
 }: {
   account: string | null;
   repo: string;
   number: number;
-  offline: boolean;
   revision: number;
 }) {
   const [state, dispatch] = useReducer(detailReducer, initialState);
@@ -138,23 +131,9 @@ export function usePullDetail({
       detailCache.set(key, saved);
       dispatch({ type: "success", saved });
     };
-    if (!cached) {
-      try {
-        const saved = await getCachedPullRequest(repo, number);
-        if (saved) apply(saved);
-      } catch {}
-    }
-    if (!alive() || offline) {
-      if (offline && !detailCache.has(key))
-        dispatch({
-          type: "failure",
-          error: "This pull request is not cached.",
-          hasData: false,
-        });
-      return;
-    }
+    if (!alive()) return;
     try {
-      apply(await getPullRequest(repo, number, false));
+      apply(await getPullRequest(repo, number));
     } catch (reason) {
       if (alive())
         dispatch({
@@ -163,7 +142,7 @@ export function usePullDetail({
           hasData: Boolean(detailCache.get(key)),
         });
     }
-  }, [key, number, offline, repo]);
+  }, [key, number, repo]);
 
   useEffect(() => {
     dispatch({ type: "reset" });
@@ -187,24 +166,14 @@ export function usePullDetail({
       diffCache.set(diffKey, saved);
       dispatch({ type: "diffSuccess", saved });
     };
-    if (!cached) {
-      try {
-        const saved = await getCachedPullDiff(repo, number);
-        if (saved) apply(saved);
-      } catch {}
-    }
-    if (!alive() || offline) {
-      if (offline && !diffCache.has(diffKey))
-        dispatch({ type: "diffFailure", error: "This diff is not cached." });
-      return;
-    }
+    if (!alive()) return;
     try {
-      apply(await getPullDiff(repo, number, false));
+      apply(await getPullDiff(repo, number));
     } catch (reason) {
       if (alive() && !diffCache.has(diffKey))
         dispatch({ type: "diffFailure", error: String(reason) });
     }
-  }, [key, number, offline, repo]);
+  }, [key, number, repo]);
 
   const toggleDiff = useCallback(() => {
     if (state.diffOpen) {

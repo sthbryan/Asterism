@@ -1,5 +1,4 @@
 import type {
-  Cache,
   CatalogRepo,
   Config,
   CreatedRepo,
@@ -15,7 +14,6 @@ import type {
 
 export type StoreState = {
   account: string | null;
-  dataPath: string;
   legacyAvailable: boolean;
   connecting: boolean;
   dataRevision: number;
@@ -51,7 +49,7 @@ export type StoreActions = {
   setPreferences: (config: Config) => void;
   setPreferenceError: (error: string | null) => void;
   bootStart: () => void;
-  bootOk: (status: Status, config: Config, cache: Cache | null) => void;
+  bootOk: (status: Status, config: Config) => void;
   bootFail: (status: Status) => void;
   retryBoot: () => void;
   runRefresh: () => Promise<void>;

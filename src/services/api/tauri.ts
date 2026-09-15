@@ -14,27 +14,18 @@ export const tauriClient: ApiClient = {
   getLocalState: () => local("get_local_state"),
   useLegacyData: () => local("use_legacy_data"),
   importLegacyData: () => local("import_legacy_data"),
-  clearLocalCache: () => local("clear_local_cache"),
   getStatus: () => invoke("get_status"),
   getConfig: () => invoke("get_config"),
   saveConfig: (repos) =>
     invoke("save_config", { repos, expectedAccount: account }),
-  getCache: () => invoke("get_cache"),
   listCatalog: () => invoke("list_catalog", { expectedAccount: account }),
   listCreateOptions: () =>
     invoke("list_create_options", { expectedAccount: account }),
   createRepo: (input) =>
     invoke("create_repo", { input, expectedAccount: account }),
   refreshTracked: () => invoke("refresh_tracked", { expectedAccount: account }),
-  getRepoDetail: (fullName, offline) =>
-    invoke("get_repo_detail", { fullName, offline, expectedAccount: account }),
-  getCachedRepoDetail: (fullName) =>
-    invoke("get_cached_detail", {
-      fullName,
-      expectedAccount: account,
-    }),
-  getCachedPullRequests: () =>
-    invoke("get_cached_pull_requests", { expectedAccount: account }),
+  getRepoDetail: (fullName) =>
+    invoke("get_repo_detail", { fullName, expectedAccount: account }),
   refreshPullRequests: (filters = {}) =>
     invoke("refresh_pull_requests", {
       filters,
@@ -102,37 +93,8 @@ export const tauriClient: ApiClient = {
     const selected = await open({ directory: true, multiple: false });
     return typeof selected === "string" ? selected : null;
   },
-  listPullRequests: (repos, limit = 100, offline = false) =>
-    invoke("list_pull_requests", {
-      repos,
-      limit,
-      offline,
-      expectedAccount: account,
-    }),
-  getPullRequest: (repo, number, offline = false) =>
-    invoke("get_pull_request", {
-      repo,
-      number,
-      offline,
-      expectedAccount: account,
-    }),
-  getCachedPullRequest: (repo, number) =>
-    invoke("get_cached_pull_request_detail", {
-      repo,
-      number,
-      expectedAccount: account,
-    }),
-  getPullDiff: (repo, number, offline = false) =>
-    invoke("get_pull_diff", {
-      repo,
-      number,
-      offline,
-      expectedAccount: account,
-    }),
-  getCachedPullDiff: (repo, number) =>
-    invoke("get_cached_pull_request_diff", {
-      repo,
-      number,
-      expectedAccount: account,
-    }),
+  getPullRequest: (repo, number) =>
+    invoke("get_pull_request", { repo, number, expectedAccount: account }),
+  getPullDiff: (repo, number) =>
+    invoke("get_pull_diff", { repo, number, expectedAccount: account }),
 };

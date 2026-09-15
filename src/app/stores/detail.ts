@@ -1,6 +1,6 @@
 import type { StateCreator } from "zustand";
 import type { RepoDetail, Saved } from "@/lib/types";
-import { getCachedRepoDetail, getRepoDetail } from "@/services/api";
+import { getRepoDetail } from "@/services/api";
 import type { AppStore } from "./types";
 
 export type DetailSlice = Pick<
@@ -91,30 +91,12 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
           detailLoading: true,
           detailRefreshing: false,
         });
-        try {
-          const cached = await withTimeout(
-            getCachedRepoDetail(fullName),
-            8000,
-            "Cached detail",
-          );
-          if (!alive()) return;
-          if (cached) applySaved(cached, true);
-        } catch {}
-        if (!alive()) return;
-        if (!get().detail) {
-          const diskCached = get().detailCache[fullName];
-          if (diskCached) applySaved(diskCached, true);
-        }
-        set(
-          get().detail
-            ? { detailLoading: false, detailRefreshing: true }
-            : { detailLoading: true, detailRefreshing: false },
-        );
+        set({ detailLoading: true, detailRefreshing: false });
       }
 
       try {
         const saved = await withTimeout(
-          getRepoDetail(fullName, !get().status?.ok || get().connecting),
+          getRepoDetail(fullName),
           90000,
           "Repo detail",
         );

@@ -22,21 +22,14 @@ export type ApiClient = {
   getLocalState: () => Promise<LocalState>;
   useLegacyData: () => Promise<LocalState>;
   importLegacyData: () => Promise<LocalState>;
-  clearLocalCache: () => Promise<LocalState>;
   getStatus: () => Promise<Status>;
   getConfig: () => Promise<Config>;
   saveConfig: (repos: string[]) => Promise<Config>;
-  getCache: () => Promise<Cache | null>;
   listCatalog: () => Promise<CatalogRepo[]>;
   listCreateOptions: () => Promise<CreateOptions>;
   createRepo: (input: CreateRepoInput) => Promise<CreatedRepo>;
   refreshTracked: () => Promise<Cache>;
-  getRepoDetail: (
-    fullName: string,
-    offline: boolean,
-  ) => Promise<Saved<RepoDetail>>;
-  getCachedRepoDetail: (fullName: string) => Promise<Saved<RepoDetail> | null>;
-  getCachedPullRequests: () => Promise<Saved<PullListResult> | null>;
+  getRepoDetail: (fullName: string) => Promise<Saved<RepoDetail>>;
   refreshPullRequests: (
     filters?: PullRequestFilters,
   ) => Promise<Saved<PullListResult>>;
@@ -75,27 +68,9 @@ export type ApiClient = {
     target: "folder" | "vscode" | "cursor" | "zed",
   ) => Promise<void>;
   chooseLocalFolder: () => Promise<string | null>;
-  listPullRequests: (
-    repos: string[],
-    limit?: number,
-    offline?: boolean,
-  ) => Promise<PullListResult>;
   getPullRequest: (
     repo: string,
     number: number,
-    offline?: boolean,
   ) => Promise<Saved<PullRequestDetail>>;
-  getCachedPullRequest: (
-    repo: string,
-    number: number,
-  ) => Promise<Saved<PullRequestDetail> | null>;
-  getPullDiff: (
-    repo: string,
-    number: number,
-    offline?: boolean,
-  ) => Promise<Saved<string>>;
-  getCachedPullDiff: (
-    repo: string,
-    number: number,
-  ) => Promise<Saved<string> | null>;
+  getPullDiff: (repo: string, number: number) => Promise<Saved<string>>;
 };

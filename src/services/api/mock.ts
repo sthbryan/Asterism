@@ -119,9 +119,9 @@ const MOCK_PULLS: PullRequestDetail[] = [
     ...mockPull(
       "sthbryan/asterism",
       39,
-      "Polish offline states",
+      "Polish connection states",
       "octocat",
-      "fix/offline",
+      "fix/connection",
       "main",
       {
         additions: 86,
@@ -227,15 +227,6 @@ const MOCK_PULLS: PullRequestDetail[] = [
   },
 ];
 
-const pullSavedAt = Math.floor(PULL_NOW.getTime() / 1000);
-let mockPullListCache: Saved<PullListResult> | null = null;
-const mockPullDetailCache: Record<string, Saved<PullRequestDetail>> = {};
-const mockPullDiffCache: Record<string, Saved<string>> = {};
-
-function pullCacheKey(repo: string, number: number): string {
-  return `${repo}#${number}`;
-}
-
 const mockCheckouts: Record<string, LocalCheckout[]> = {
   "sthbryan/asterism": [
     {
@@ -286,44 +277,22 @@ const MOCK_DIAGNOSTICS: Diagnostics = {
   gitError: null,
   configPath:
     "~/Library/Application Support/com.sthbryan.asterism/preferences.json",
-  cachePath:
-    "~/Library/Application Support/com.sthbryan.asterism/accounts/demo/cache.json",
   historyPath:
     "~/Library/Application Support/com.sthbryan.asterism/accounts/demo/history.json",
 };
 
-let cleared = false;
 function localState(): LocalState {
   const empty = new URLSearchParams(window.location.search).has("empty");
   return {
     account: empty ? null : "github.com/sthbryan",
     config: { version: 1, repos: empty ? [] : [...mockRepos], ...appearance() },
-    cache: empty || cleared ? null : cacheFor(mockRepos, MOCK_CACHE.fetchedAt),
-    catalog:
-      empty || cleared
-        ? null
-        : {
-            fetchedAt: MOCK_CACHE.fetchedAt,
-            data: [...MOCK_CATALOG],
-            warning: null,
-          },
     legacyAvailable: new URLSearchParams(window.location.search).has("legacy"),
-    dataPath: "~/Library/Application Support/com.sthbryan.asterism",
   };
 }
 export const mockClient: ApiClient = {
   getLocalState: () => delay(localState(), 25),
   useLegacyData: () => delay({ ...localState(), account: "legacy" }),
   importLegacyData: () => delay({ ...localState(), legacyAvailable: false }),
-  clearLocalCache: () => {
-    cleared = true;
-    mockPullListCache = null;
-    for (const key of Object.keys(mockPullDetailCache))
-      delete mockPullDetailCache[key];
-    for (const key of Object.keys(mockPullDiffCache))
-      delete mockPullDiffCache[key];
-    return delay(localState());
-  },
   getStatus: () => {
     const setup = new URLSearchParams(window.location.search).get("setup");
     if (setup === "missing" || setup === "auth" || setup === "network") {
@@ -347,18 +316,12 @@ export const mockClient: ApiClient = {
     mockRepos = [...repos];
     return delay({ version: 1, repos: [...mockRepos], ...appearance() });
   },
-  getCache: () => delay(cacheFor(mockRepos, MOCK_CACHE.fetchedAt)),
   listCatalog: () => delay([...MOCK_CATALOG], 400),
   listCreateOptions: () => delay({ ...MOCK_CREATE_OPTIONS }, 280),
   createRepo: (input) => delay(mockCreateRepo(input), 500),
   refreshTracked: () =>
     delay(cacheFor(mockRepos, Math.floor(Date.now() / 1000)), 600),
-  getRepoDetail: (fullName, offline) => {
-    if (
-      offline &&
-      (cleared || new URLSearchParams(window.location.search).has("empty"))
-    )
-      return Promise.reject("This detail has not been saved.");
+  getRepoDetail: (fullName) => {
     const mode = new URLSearchParams(window.location.search).get("traffic");
     const base = mockDetail(fullName);
     const old = Math.floor(Date.now() / 1000) - 10 * 86400;
@@ -411,28 +374,37 @@ export const mockClient: ApiClient = {
     return delay(
       {
         data,
-        fetchedAt: offline
-          ? MOCK_CACHE.fetchedAt
-          : Math.floor(Date.now() / 1000),
+        fetchedAt: Math.floor(Date.now() / 1000),
         warning: null,
       },
       350,
     );
   },
-  getCachedRepoDetail: () => delay(null, 25),
-  getCachedPullRequests: () => delay(mockPullListCache, 25),
   refreshPullRequests: async (filters = {}) => {
-    const result = await mockClient.listPullRequests(
-      filters.repos ?? (filters.repo ? [filters.repo] : []),
-      100,
-      false,
+    const requested = filters.repos ?? (filters.repo ? [filters.repo] : []);
+    const mode = new URLSearchParams(window.location.search).get("pulls");
+    if (mode === "error") return Promise.reject("GitHub unavailable");
+    const selected = requested.length ? requested : mockRepos;
+    const errors: Record<string, string> = {};
+    if (mode === "partial" && selected.includes("acme/nebula-api"))
+      errors["acme/nebula-api"] = "Permission denied for this repository.";
+    const pulls = MOCK_PULLS.filter(
+      (pull) => selected.includes(pull.repo) && !errors[pull.repo],
     );
+    const result: PullListResult = {
+      pulls,
+      errors,
+      fetchedAt: Math.floor(Date.now() / 1000),
+      page: 1,
+      perPage: 100,
+      total: pulls.length,
+      hasNextPage: false,
+    };
     const saved: Saved<PullListResult> = {
       data: result,
       fetchedAt: result.fetchedAt,
       warning: null,
     };
-    mockPullListCache = saved;
     return delay(saved, 20);
   },
   saveLocale: (locale: Locale) => {
@@ -534,39 +506,9 @@ export const mockClient: ApiClient = {
     return delay({ ...next }, 300);
   },
   chooseLocalFolder: () => delay("/Users/demo/projects"),
-  listPullRequests: (repos, limit = 100, offline = false) => {
+  getPullRequest: (repo, number) => {
     const mode = new URLSearchParams(window.location.search).get("pulls");
-    if (mode === "error" && !offline)
-      return Promise.reject("GitHub unavailable");
-    const requested = repos.length ? repos : mockRepos;
-    const errors: Record<string, string> = {};
-    if (mode === "partial" && requested.includes("acme/nebula-api"))
-      errors["acme/nebula-api"] = "Permission denied for this repository.";
-    const pulls = MOCK_PULLS.filter(
-      (pull) => requested.includes(pull.repo) && !errors[pull.repo],
-    ).slice(0, Math.max(1, Math.min(limit, 100)));
-    const result: PullListResult = {
-      pulls,
-      errors,
-      fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
-      page: 1,
-      perPage: Math.max(1, Math.min(limit, 100)),
-      total: pulls.length,
-      hasNextPage: false,
-    };
-    if (!offline) {
-      mockPullListCache = {
-        data: result,
-        fetchedAt: result.fetchedAt,
-        warning: null,
-      };
-    }
-    return delay(result, 420);
-  },
-  getPullRequest: (repo, number, offline = false) => {
-    const mode = new URLSearchParams(window.location.search).get("pulls");
-    if (mode === "error" && !offline)
-      return Promise.reject("GitHub unavailable");
+    if (mode === "error") return Promise.reject("GitHub unavailable");
     const pull = MOCK_PULLS.find(
       (item) => item.repo === repo && item.number === number,
     );
@@ -574,18 +516,14 @@ export const mockClient: ApiClient = {
       return Promise.reject("This pull request is not available locally.");
     const saved = {
       data: pull,
-      fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+      fetchedAt: Math.floor(Date.now() / 1000),
       warning: null,
     } satisfies Saved<PullRequestDetail>;
-    if (!offline) mockPullDetailCache[pullCacheKey(repo, number)] = saved;
     return delay(saved, 360);
   },
-  getCachedPullRequest: (repo, number) =>
-    delay(mockPullDetailCache[pullCacheKey(repo, number)] ?? null, 25),
-  getPullDiff: (repo, number, offline = false) => {
+  getPullDiff: (repo, number) => {
     const mode = new URLSearchParams(window.location.search).get("pulls");
-    if (mode === "error" && !offline)
-      return Promise.reject("GitHub unavailable");
+    if (mode === "error") return Promise.reject("GitHub unavailable");
     const pull = MOCK_PULLS.find(
       (item) => item.repo === repo && item.number === number,
     );
@@ -599,12 +537,9 @@ export const mockClient: ApiClient = {
       .join("\n");
     const saved = {
       data: diff,
-      fetchedAt: offline ? pullSavedAt : Math.floor(Date.now() / 1000),
+      fetchedAt: Math.floor(Date.now() / 1000),
       warning: null,
     } satisfies Saved<string>;
-    if (!offline) mockPullDiffCache[pullCacheKey(repo, number)] = saved;
     return delay(saved, 500);
   },
-  getCachedPullDiff: (repo, number) =>
-    delay(mockPullDiffCache[pullCacheKey(repo, number)] ?? null, 25),
 };

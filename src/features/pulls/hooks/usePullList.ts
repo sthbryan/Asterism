@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import type { PullListResult } from "@/lib/types";
-import { getCachedPullRequests, refreshPullRequests } from "@/services/api";
+import { refreshPullRequests } from "@/services/api";
 
 type ListState = {
   result: PullListResult | null;
@@ -72,12 +72,10 @@ function scopedResult(result: PullListResult, repos: string[]) {
 export function usePullList({
   account,
   repos,
-  offline,
   revision,
 }: {
   account: string | null;
   repos: string[];
-  offline: boolean;
   revision: number;
 }) {
   const [state, dispatch] = useReducer(listReducer, initialState);
@@ -101,23 +99,7 @@ export function usePullList({
         dispatch({ type: "success", result: scoped });
       };
 
-      if (!cached && !force) {
-        try {
-          const saved = await getCachedPullRequests();
-          if (saved) apply(saved.data);
-        } catch {}
-      }
       if (!alive()) return;
-      if (offline) {
-        if (!hasData) {
-          dispatch({
-            type: "failure",
-            error: "No cached pull requests are available.",
-            hasData: false,
-          });
-        }
-        return;
-      }
       try {
         const saved = await refreshPullRequests({ repos });
         apply(saved.data);
@@ -126,7 +108,7 @@ export function usePullList({
           dispatch({ type: "failure", error: String(reason), hasData });
       }
     },
-    [key, offline, repos],
+    [key, repos],
   );
 
   useEffect(() => {

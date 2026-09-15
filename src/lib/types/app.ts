@@ -24,7 +24,6 @@ export type Diagnostics = {
   gitVersion: string | null;
   gitError: string | null;
   configPath: string;
-  cachePath: string;
   historyPath: string;
 };
 
@@ -32,8 +31,5 @@ export type Saved<T> = { fetchedAt: number; data: T; warning: string | null };
 export type LocalState = {
   account: string | null;
   config: Config;
-  cache: import("./repository").Cache | null;
-  catalog: Saved<import("./repository").CatalogRepo[]> | null;
   legacyAvailable: boolean;
-  dataPath: string;
 };

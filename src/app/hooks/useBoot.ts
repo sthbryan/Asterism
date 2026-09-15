@@ -36,7 +36,7 @@ function bootErrorStatus(err: unknown): Status {
   };
 }
 
-/** Load preferences before connecting, then cache, route and GitHub data. */
+/** Load preferences before connecting, then route and fresh GitHub data. */
 export function useBoot() {
   const bootAttempt = useStore((s) => s.bootAttempt);
   const setPreferences = useStore((s) => s.setPreferences);
@@ -68,14 +68,13 @@ export function useBoot() {
         if (cancelled) return;
         if (!next.ok) {
           bootFail(next);
+          navigate("/setup", { replace: true });
           return;
         }
         if (next.login !== local.account?.split("/").pop()) {
           hydrateLocal({
             ...local,
             account: null,
-            cache: null,
-            catalog: null,
             config: { ...local.config, repos: [] },
           });
         }
