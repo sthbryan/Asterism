@@ -2,6 +2,7 @@ import { useI18n } from "@/app/hooks";
 import { PageHeader } from "@/components/PageHeader";
 import { AccountSection } from "./AccountSection";
 import { AppearanceSection } from "./AppearanceSection";
+import { CacheSection } from "./CacheSection";
 import { DiagnosticsSection } from "./DiagnosticsSection";
 
 export function SettingsView() {
@@ -19,6 +20,7 @@ export function SettingsView() {
           <AppearanceSection />
           <AccountSection />
           <DiagnosticsSection />
+          <CacheSection />
         </div>
       </div>
     </>

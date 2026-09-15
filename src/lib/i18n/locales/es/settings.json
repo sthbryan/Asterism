@@ -20,5 +20,19 @@
   "diagnosticsError": "No se pudo obtener el diagnóstico. Inténtalo de nuevo.",
   "configPath": "Preferencias",
   "historyPath": "Muestras del historial",
-  "localData": "Estos archivos se guardan en este dispositivo, sin respaldo en GitHub. Borrar los datos de la app elimina las preferencias y muestras locales."
+  "localData": "Estos archivos se guardan en este dispositivo, sin respaldo en GitHub. Borrar los datos de la app elimina las preferencias y muestras locales.",
+  "cache": "Caché",
+  "cacheHint": "Los datos de GitHub se guardan localmente para abrir las vistas más rápido. Expiran automáticamente según el tiempo de vigencia configurado.",
+  "cacheSize": "Uso en disco",
+  "cacheEntries": "Entradas",
+  "cacheEntriesCount": {
+    "one": "{count} entrada",
+    "other": "{count} entradas"
+  },
+  "cachePath": "Ruta del caché",
+  "cacheClear": "Limpiar caché",
+  "cacheClearing": "Limpiando…",
+  "cacheCleared": "Caché limpiado.",
+  "cacheError": "No se pudo leer o limpiar el caché.",
+  "loading": "Cargando…"
 }

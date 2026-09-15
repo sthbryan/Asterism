@@ -20,5 +20,16 @@
   "diagnosticsError": "Could not read diagnostics. Try again.",
   "configPath": "Preferences",
   "historyPath": "Snapshots",
-  "localData": "These files are stored on this device, not backed up to GitHub. Deleting app data removes local preferences and snapshots."
+  "localData": "These files are stored on this device, not backed up to GitHub. Deleting app data removes local preferences and snapshots.",
+  "cache": "Cache",
+  "cacheHint": "Cached GitHub data is stored locally to make views open faster. It expires automatically after the configured freshness window.",
+  "cacheSize": "Disk usage",
+  "cacheEntries": "Entries",
+  "cacheEntriesCount": { "one": "{count} entry", "other": "{count} entries" },
+  "cachePath": "Cache path",
+  "cacheClear": "Clear cache",
+  "cacheClearing": "Clearing…",
+  "cacheCleared": "Cache cleared.",
+  "cacheError": "Could not read or clear the cache.",
+  "loading": "Loading…"
 }
