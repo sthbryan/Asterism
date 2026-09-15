@@ -1,10 +1,13 @@
 mod commands;
 mod config;
 mod gh;
+mod git;
 mod history;
 mod models;
 mod platform;
 
+#[cfg(test)]
+mod git_sync_tests;
 #[cfg(test)]
 mod local_projects_tests;
 
@@ -40,7 +43,13 @@ pub fn run() {
             commands::link_local_checkout,
             commands::unlink_local_checkout,
             commands::clone_local_repository,
-            commands::open_local_checkout
+            commands::open_local_checkout,
+            git::git_sync_status,
+            git::git_fetch,
+            git::git_pull,
+            git::git_push,
+            git::git_switch_branch,
+            git::git_create_branch
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

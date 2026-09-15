@@ -637,11 +637,62 @@ pub(crate) async fn clear_local_cache(
     .await?
 }
 
-fn ensure_scope(expected: Option<&str>) -> Result<(), String> {
+pub(crate) fn ensure_scope(expected: Option<&str>) -> Result<(), String> {
     if config::storage()?.account()?.as_deref() != expected {
         return Err("Account changed. Reload the current account before continuing.".into());
     }
     Ok(())
+}
+
+/// Resolve a registered, healthy checkout directory for Git operations.
+/// Returns `LOCAL_*` errors when the link is missing, moved or unhealthy.
+pub(crate) fn require_ready_checkout(
+    full_name: &str,
+    path: &str,
+    expected_account: Option<&str>,
+) -> Result<std::path::PathBuf, String> {
+    ensure_scope(expected_account)?;
+    let registered = config::storage()?
+        .checkout_folders()?
+        .get(full_name)
+        .is_some_and(|paths| paths.iter().any(|p| p == path));
+    if !registered {
+        return Err("LOCAL_CHECKOUT_UNAVAILABLE".into());
+    }
+    let probe = checkout_probe(full_name, path);
+    if probe.status != "ready" {
+        return Err("LOCAL_CHECKOUT_UNAVAILABLE".into());
+    }
+    Path::new(path)
+        .canonicalize()
+        .map_err(|_| "LOCAL_INVALID_PATH".to_string())
+}
+
+/// Name of the remote whose URL matches the tracked repository, if any.
+pub(crate) fn matching_remote_name(full: &str, dir: &Path) -> Option<String> {
+    let out = Command::new("git")
+        .args(["-C"])
+        .arg(dir)
+        .args(["remote"])
+        .output()
+        .ok()?;
+    if !out.status.success() {
+        return None;
+    }
+    let stdout = String::from_utf8_lossy(&out.stdout).into_owned();
+    stdout.lines().map(str::trim).find_map(|name| {
+        if name.is_empty() {
+            return None;
+        }
+        let url = Command::new("git")
+            .args(["-C"])
+            .arg(dir)
+            .args(["remote", "get-url", name])
+            .output()
+            .ok()
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())?;
+        remote_matches(full, &url).then(|| name.to_string())
+    })
 }
 
 fn merge_fetches(
