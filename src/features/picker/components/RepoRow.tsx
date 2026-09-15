@@ -1,7 +1,9 @@
 import { CheckIcon, StarIcon } from "@phosphor-icons/react";
+import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { fmtNum } from "@/lib/format";
 import type { CatalogRepo } from "@/lib/types";
+import { RepoMeta } from "./RepoMeta";
 
 export function RepoRow({
   repo,
@@ -38,23 +40,27 @@ export function RepoRow({
             selected ? "border-accent bg-accent" : "border-line"
           }`}
         >
-          {selected ? (
+          <When condition={selected}>
             <CheckIcon size={10} weight="bold" className="text-white" />
-          ) : null}
+          </When>
         </span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-mono text-[12.5px] font-medium">
             {repo.fullName}
           </span>
-          {sub ? (
+          <When condition={Boolean(sub)}>
             <span className="mt-0.5 block truncate text-[11.5px] text-faint">
               {sub}
             </span>
-          ) : null}
+          </When>
         </span>
         <span className="flex shrink-0 items-center gap-3 font-mono text-[11.5px] text-mist">
-          {repo.private ? <Meta>{t("Private")}</Meta> : null}
-          {repo.archived ? <Meta>{t("Archived")}</Meta> : null}
+          <When condition={repo.private}>
+            <RepoMeta>{t("Private")}</RepoMeta>
+          </When>
+          <When condition={repo.archived}>
+            <RepoMeta>{t("Archived")}</RepoMeta>
+          </When>
           <span className="tabular">
             <StarIcon
               size={10}
@@ -65,13 +71,5 @@ export function RepoRow({
         </span>
       </button>
     </li>
-  );
-}
-
-function Meta({ children }: { children: string }) {
-  return (
-    <span className="rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase">
-      {children}
-    </span>
   );
 }

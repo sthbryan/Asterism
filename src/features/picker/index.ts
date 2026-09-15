@@ -1,2 +1,2 @@
-export { PickerTrailing } from "./PickerTrailing";
-export { PickerView } from "./PickerView";
+export { PickerTrailing } from "./components/PickerTrailing";
+export { PickerView } from "./components/PickerView";

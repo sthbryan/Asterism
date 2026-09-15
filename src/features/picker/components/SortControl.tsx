@@ -1,6 +1,6 @@
 import { useI18n } from "@/app/hooks";
 import { Select } from "@/components/Select";
-import type { PickerSort } from "./usePicker";
+import type { PickerSort } from "../hooks/usePicker";
 
 const OPTIONS: { value: PickerSort; label: string }[] = [
   { value: "selected", label: "Selected first" },
