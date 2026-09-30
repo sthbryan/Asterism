@@ -14,7 +14,7 @@ const initialState: ControlsState = {
   author: "all",
   assignee: "all",
   reviewer: "all",
-  state: "all",
+  state: "open",
   page: 1,
 };
 
