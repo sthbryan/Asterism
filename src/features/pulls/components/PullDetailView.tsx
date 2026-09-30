@@ -15,7 +15,7 @@ import { PullDetailBody } from "./PullDetailBody";
 
 export function PullDetailView() {
   const [, params] = useRoute("/pull/:repo/:number");
-  const { t } = useI18n();
+  const { t, formatDate } = useI18n();
   const navigate = useTransitionNavigate();
   const account = useStore((state) => state.account);
   const revision = useStore((state) => state.dataRevision);
@@ -53,6 +53,25 @@ export function PullDetailView() {
         }
       />
       <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
+        <When condition={Boolean(detail.fetchedAt)}>
+          <p className="mb-3 flex items-center gap-2 text-xs text-mist">
+            {t("list.updated", {
+              value: formatDate((detail.fetchedAt ?? 0) * 1000, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }),
+            })}
+            <When condition={detail.refreshing}>
+              <span role="status" className="inline-flex items-center gap-1">
+                <span
+                  aria-hidden
+                  className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
+                />
+                {t("Refreshing…")}
+              </span>
+            </When>
+          </p>
+        </When>
         <When condition={detail.loading && !detail.pull}>
           <LoadingRows />
         </When>
