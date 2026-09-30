@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   filterPullRequests,
+  mergePullResults,
   pageOf,
   pullPath,
 } from "../src/features/pulls/utils";
@@ -58,4 +59,17 @@ describe("pull request helpers", () => {
     expect(pageOf([1], 99, 2).currentPage).toBe(1);
     expect(pullPath("owner/repo", 42)).toBe("/pull/owner%2Frepo/42");
   });
+});
+
+test("partial PR failures retain saved rows while successful empty repositories stay empty", () => {
+  const previous = {
+    pulls: [pull(), pull({ repo: "acme/web", number: 2 })],
+    errors: {},
+    fetchedAt: 1,
+  };
+  const fresh = { pulls: [], errors: { "ACME/APP": "timeout" }, fetchedAt: 2 };
+  const merged = mergePullResults(fresh, previous);
+  expect(merged.pulls.map((pull) => pull.repo)).toEqual(["acme/app"]);
+  expect(merged.errors).toEqual(fresh.errors);
+  expect(merged.total).toBe(1);
 });

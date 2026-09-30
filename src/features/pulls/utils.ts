@@ -1,4 +1,4 @@
-import type { PullRequestSummary } from "@/lib/types";
+import type { PullListResult, PullRequestSummary } from "@/lib/types";
 
 export type PullFilters = {
   query?: string;
@@ -66,4 +66,18 @@ export function pageOf<T>(items: T[], page: number, pageSize: number) {
     pages,
     currentPage,
   };
+}
+
+/** Retain cached rows only for repositories that failed in this refresh. */
+export function mergePullResults(
+  fresh: PullListResult,
+  previous?: PullListResult,
+): PullListResult {
+  const failed = new Set(
+    Object.keys(fresh.errors).map((repo) => repo.toLowerCase()),
+  );
+  const kept =
+    previous?.pulls.filter((pull) => failed.has(pull.repo.toLowerCase())) ?? [];
+  const pulls = [...fresh.pulls, ...kept];
+  return { ...fresh, pulls, total: pulls.length };
 }
