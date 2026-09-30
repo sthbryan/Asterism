@@ -81,3 +81,26 @@ mod create_tests {
         assert_eq!(first_line("  \n"), "");
     }
 }
+
+#[test]
+fn limited_requests_overlap_without_exceeding_the_limit_and_keep_input_order() {
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
+    let active = Arc::new(AtomicUsize::new(0));
+    let peak = Arc::new(AtomicUsize::new(0));
+    let current = active.clone();
+    let max = peak.clone();
+    let output = crate::gh::map_limited((0..8).collect(), 4, move |value| {
+        let count = current.fetch_add(1, Ordering::SeqCst) + 1;
+        max.fetch_max(count, Ordering::SeqCst);
+        std::thread::sleep(std::time::Duration::from_millis(30));
+        current.fetch_sub(1, Ordering::SeqCst);
+        value * 2
+    });
+    assert_eq!(output, vec![0, 2, 4, 6, 8, 10, 12, 14]);
+    assert!(peak.load(Ordering::SeqCst) > 1);
+    assert!(peak.load(Ordering::SeqCst) <= 4);
+    assert_eq!(active.load(Ordering::SeqCst), 0);
+}

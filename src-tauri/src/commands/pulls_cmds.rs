@@ -147,10 +147,11 @@ fn pull_snapshot(
         return Err("PR_REQUEST_LIMIT:refresh would exceed request limit".into());
     }
     ensure_online()?;
-    let state = normalized.state.as_deref();
-    let fetches = repos.iter().map(|repo| {
-        let (rows, error) = pulls::list_repo_pulls_state(repo, pulls::MAX_LIST_LIMIT, state);
-        (repo.clone(), rows, error)
+    let state = normalized.state.clone();
+    let fetches = crate::gh::map_limited(repos.clone(), 4, move |repo| {
+        let (rows, error) =
+            pulls::list_repo_pulls_state(&repo, pulls::MAX_LIST_LIMIT, state.as_deref());
+        (repo, rows, error)
     });
     let now = history::now_secs();
     let result = merge_pull_fetches(

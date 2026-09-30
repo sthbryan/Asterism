@@ -9,6 +9,7 @@ mod status;
 #[cfg(test)]
 mod tests;
 
+pub(crate) use catalog::map_limited;
 pub use catalog::{list_catalog, refresh_tracked};
 pub use create::{create_repo, list_create_options};
 pub use detail::repo_detail;

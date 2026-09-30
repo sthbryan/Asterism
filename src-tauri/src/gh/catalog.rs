@@ -170,7 +170,7 @@ fn fetch_tracked(full_name: String) -> TrackedRepo {
     }
 }
 
-fn map_limited<T, R, F>(items: Vec<T>, limit: usize, f: F) -> Vec<R>
+pub(crate) fn map_limited<T, R, F>(items: Vec<T>, limit: usize, f: F) -> Vec<R>
 where
     T: Send + 'static,
     R: Send + 'static,
