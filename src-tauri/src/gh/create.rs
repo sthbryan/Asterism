@@ -20,12 +20,30 @@ pub(crate) fn validate_repo_name(name: &str) -> Result<(), String> {
     Ok(())
 }
 
+fn joined<T>(handle: std::thread::ScopedJoinHandle<'_, Result<T, String>>) -> Result<T, String> {
+    handle
+        .join()
+        .unwrap_or_else(|_| Err("A GitHub request failed unexpectedly.".into()))
+}
+
 pub fn list_create_options() -> Result<CreateOptions, String> {
-    let user = run_gh_json(&["api", "user"])?;
+    let (user, orgs, gitignores, licenses) = std::thread::scope(|scope| {
+        let user = scope.spawn(|| run_gh_json(&["api", "user"]));
+        let orgs = scope.spawn(|| run_gh_json(&["api", "--paginate", "/user/orgs?per_page=100"]));
+        let gitignores = scope.spawn(|| run_gh_json(&["api", "gitignore/templates"]));
+        let licenses = scope.spawn(|| run_gh_json(&["api", "licenses"]));
+        (
+            joined(user),
+            joined(orgs),
+            joined(gitignores),
+            joined(licenses),
+        )
+    });
+    let user = user?;
     let login = as_string(&user, "login")
         .ok_or_else(|| "GitHub CLI did not return an authenticated user.".to_string())?;
     let mut owners = vec![login];
-    if let Ok(orgs) = run_gh_json(&["api", "--paginate", "/user/orgs?per_page=100"]) {
+    if let Ok(orgs) = orgs {
         if let Some(arr) = orgs.as_array() {
             for item in arr {
                 if let Some(org) = as_string(item, "login") {
@@ -39,7 +57,7 @@ pub fn list_create_options() -> Result<CreateOptions, String> {
             }
         }
     }
-    let gitignores = match run_gh_json(&["api", "gitignore/templates"]) {
+    let gitignores = match gitignores {
         Ok(json) => json
             .as_array()
             .map(|items| {
@@ -52,7 +70,7 @@ pub fn list_create_options() -> Result<CreateOptions, String> {
             .unwrap_or_default(),
         Err(_) => Vec::new(),
     };
-    let licenses = match run_gh_json(&["api", "licenses"]) {
+    let licenses = match licenses {
         Ok(json) => json
             .as_array()
             .map(|items| {
