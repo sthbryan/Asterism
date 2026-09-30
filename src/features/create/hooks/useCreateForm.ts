@@ -1,11 +1,12 @@
 import { type FormEvent, useEffect, useReducer, useRef } from "react";
 import { useI18n } from "@/app/hooks";
+import { useResource } from "@/app/hooks/useResource";
 import type { CreatedRepo, CreateOptions } from "@/lib/types";
 import { createRepo, listCreateOptions } from "@/services/api";
+import { createOptionsCache } from "@/services/api/resources";
 import { isInvalidName } from "../utils/validate";
 
 type CreateState = {
-  options: CreateOptions | null;
   owner: string;
   name: string;
   description: string;
@@ -14,18 +15,13 @@ type CreateState = {
   gitignore: string;
   license: string;
   track: boolean;
-  loading: boolean;
   busy: boolean;
   error: string | null;
   created: CreatedRepo | null;
-  attempt: number;
 };
 
 type CreateAction =
-  | { type: "loadStart" }
   | { type: "optionsLoaded"; options: CreateOptions }
-  | { type: "optionsFailed"; error: string }
-  | { type: "loadEnd" }
   | { type: "setOwner"; owner: string }
   | { type: "setName"; name: string }
   | { type: "setDescription"; description: string }
@@ -39,12 +35,10 @@ type CreateAction =
   | { type: "submitSuccess"; created: CreatedRepo }
   | { type: "submitFailure"; error: string }
   | { type: "submitEnd" }
-  | { type: "resetAnother" }
-  | { type: "retry" };
+  | { type: "resetAnother" };
 
 function initCreate(login: string | null): CreateState {
   return {
-    options: null,
     owner: login ?? "",
     name: "",
     description: "",
@@ -53,29 +47,21 @@ function initCreate(login: string | null): CreateState {
     gitignore: "",
     license: "",
     track: true,
-    loading: true,
     busy: false,
     error: null,
     created: null,
-    attempt: 0,
   };
 }
 
 function createReducer(state: CreateState, action: CreateAction): CreateState {
   switch (action.type) {
-    case "loadStart":
-      return { ...state, loading: true, error: null };
     case "optionsLoaded": {
       const owners = action.options.owners;
       const owner = owners.includes(state.owner)
         ? state.owner
         : (owners[0] ?? "");
-      return { ...state, options: action.options, owner };
+      return { ...state, owner };
     }
-    case "optionsFailed":
-      return { ...state, error: action.error };
-    case "loadEnd":
-      return { ...state, loading: false };
     case "setOwner":
       return { ...state, owner: action.owner };
     case "setName":
@@ -110,9 +96,15 @@ function createReducer(state: CreateState, action: CreateAction): CreateState {
         description: "",
         error: null,
       };
-    case "retry":
-      return { ...state, attempt: state.attempt + 1 };
   }
+}
+
+async function fetchOptions() {
+  return {
+    data: await listCreateOptions(),
+    fetchedAt: Math.floor(Date.now() / 1_000),
+    warning: null,
+  };
 }
 
 /**
@@ -128,11 +120,17 @@ export function useCreateForm({
   onCreated: (repo: CreatedRepo, track: boolean) => Promise<void>;
 }) {
   const { t } = useI18n();
+  const optionsResource = useResource(
+    createOptionsCache,
+    "options",
+    fetchOptions,
+  );
+  const options = optionsResource.saved?.data ?? null;
+  const loading = optionsResource.loading;
   const [state, dispatch] = useReducer(createReducer, login, initCreate);
   const submitting = useRef(false);
 
   const {
-    options,
     owner,
     name,
     description,
@@ -141,32 +139,14 @@ export function useCreateForm({
     gitignore,
     license,
     track,
-    loading,
     busy,
     error,
     created,
-    attempt,
   } = state;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt is an intentional refetch signal for retry; it is not read inside the effect.
   useEffect(() => {
-    let active = true;
-    dispatch({ type: "loadStart" });
-    listCreateOptions()
-      .then((value) => {
-        if (!active) return;
-        dispatch({ type: "optionsLoaded", options: value });
-      })
-      .catch((err) => {
-        if (active) dispatch({ type: "optionsFailed", error: String(err) });
-      })
-      .finally(() => {
-        if (active) dispatch({ type: "loadEnd" });
-      });
-    return () => {
-      active = false;
-    };
-  }, [attempt]);
+    if (options) dispatch({ type: "optionsLoaded", options });
+  }, [options]);
 
   const cleanName = name.trim();
   const invalidName = isInvalidName(cleanName);
@@ -212,12 +192,9 @@ export function useCreateForm({
     dispatch({ type: "resetAnother" });
   }
 
-  function retry() {
-    dispatch({ type: "retry" });
-  }
-
   return {
     options,
+    loading,
     owner,
     setOwner: (owner: string) => dispatch({ type: "setOwner", owner }),
     name,
@@ -237,16 +214,15 @@ export function useCreateForm({
     setLicense: (license: string) => dispatch({ type: "setLicense", license }),
     track,
     setTrack: (track: boolean) => dispatch({ type: "setTrack", track }),
-    loading,
     busy,
-    error,
+    error: error ?? optionsResource.error,
     setError: (error: string | null) => dispatch({ type: "setError", error }),
     created,
     cleanName,
     invalidName,
     submit,
     resetForAnother,
-    retry,
+    retry: optionsResource.refresh,
   };
 }
 

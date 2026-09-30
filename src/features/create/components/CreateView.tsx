@@ -1,5 +1,7 @@
+import { useStore } from "@/app/store";
 import { OnlineCreateView } from "./OnlineCreateView";
 
 export function CreateView() {
-  return <OnlineCreateView />;
+  const account = useStore((state) => state.account);
+  return <OnlineCreateView key={account} />;
 }
