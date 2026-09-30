@@ -1,3 +1,4 @@
+import { clearResourceCaches } from "@/lib/resourceCache";
 import type { PersistentCache } from "@/lib/types";
 import { mockClient } from "./mock";
 import { isMockMode } from "./mode";
@@ -18,7 +19,10 @@ export const writeCache = <T>(
   entry: PersistentCache<T>,
 ) => client().writeCache(namespace, key, entry);
 export const getCacheInfo = () => client().getCacheInfo();
-export const clearCache = () => client().clearCache();
+export const clearCache = async () => {
+  clearResourceCaches();
+  return client().clearCache();
+};
 export const useLegacyData = () => client().useLegacyData();
 export const importLegacyData = () => client().importLegacyData();
 export const getStatus = () => client().getStatus();

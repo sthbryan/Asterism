@@ -2,6 +2,8 @@
 export const CACHE_TTL_MS = {
   detail: 60_000,
   overview: 60_000,
+  pulls: 60_000,
+  create: 3_600_000,
 } as const;
 
 export type CacheNamespace = keyof typeof CACHE_TTL_MS;
