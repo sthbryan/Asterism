@@ -42,6 +42,7 @@ pub(crate) async fn write_cache(
             warning: entry.warning,
         };
         config::serialized_write(move || {
+            ensure_scope(expected_account.as_deref())?;
             config::storage()?.write_cache(&entry.namespace, &entry.key, &cache)
         })
     })
@@ -56,7 +57,10 @@ pub(crate) async fn remove_cache(
 ) -> Result<bool, String> {
     offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
-        config::serialized_write(move || config::storage()?.remove_cache(&namespace, &key))
+        config::serialized_write(move || {
+            ensure_scope(expected_account.as_deref())?;
+            config::storage()?.remove_cache(&namespace, &key)
+        })
     })
     .await?
 }
@@ -68,7 +72,10 @@ pub(crate) async fn clear_cache(
 ) -> Result<usize, String> {
     offload_unlocked(move || {
         ensure_scope(expected_account.as_deref())?;
-        config::serialized_write(move || config::storage()?.clear_cache(namespace.as_deref()))
+        config::serialized_write(move || {
+            ensure_scope(expected_account.as_deref())?;
+            config::storage()?.clear_cache(namespace.as_deref())
+        })
     })
     .await?
 }

@@ -11,8 +11,8 @@ where
     F: FnOnce() -> T + Send + 'static,
 {
     tauri::async_runtime::spawn_blocking(f)
-    .await
-    .map_err(|e| format!("background task failed: {e}"))
+        .await
+        .map_err(|e| format!("background task failed: {e}"))
 }
 
 pub(crate) async fn offload_unlocked<T, F>(f: F) -> Result<T, String>
@@ -21,8 +21,8 @@ where
     F: FnOnce() -> T + Send + 'static,
 {
     tauri::async_runtime::spawn_blocking(f)
-    .await
-    .map_err(|e| format!("background task failed: {e}"))
+        .await
+        .map_err(|e| format!("background task failed: {e}"))
 }
 
 #[tauri::command]
@@ -31,7 +31,7 @@ pub(crate) async fn get_status() -> Result<Status, String> {
         let status = gh::status();
         gh::remember_status(&status);
         if status.ok {
-            config::storage()?.activate(account_key(&status)?)?;
+            config::serialized_write(|| config::storage()?.activate(account_key(&status)?))?;
         }
         Ok(status)
     })
