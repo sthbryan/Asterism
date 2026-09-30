@@ -1,16 +1,14 @@
 import { useEffect } from "react";
 import { useStore } from "@/app/store";
 
-/** Ensure the repo catalog is loaded (picker entry point). */
 export function useCatalog() {
-  const catalog = useStore((s) => s.catalog);
-  const catalogLoading = useStore((s) => s.catalogLoading);
-  const catalogError = useStore((s) => s.catalogError);
-  const loadCatalog = useStore((s) => s.loadCatalog);
-
+  const ready = useStore(
+    (state) => !state.connecting && Boolean(state.status?.ok),
+  );
+  const revision = useStore((state) => state.dataRevision);
+  const loadCatalog = useStore((state) => state.loadCatalog);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: account hydration must reload the catalog.
   useEffect(() => {
-    if (catalog.length === 0 && !catalogLoading && !catalogError) {
-      void loadCatalog();
-    }
-  }, [catalog.length, catalogLoading, catalogError, loadCatalog]);
+    if (ready) void loadCatalog();
+  }, [ready, revision, loadCatalog]);
 }

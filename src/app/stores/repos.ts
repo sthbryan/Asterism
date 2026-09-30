@@ -1,5 +1,6 @@
 import type { StateCreator } from "zustand";
 import { CACHE_TTL_MS, cacheKey, isCacheFresh } from "@/lib/cache";
+import { withTimeout } from "@/lib/resourceCache";
 import type { Cache, PersistentCache } from "@/lib/types";
 import {
   getLocalState,
@@ -16,16 +17,6 @@ let overviewCacheKey: string | null = null;
 let overviewCacheInFlight: Promise<PersistentCache<Cache> | null> | null = null;
 const OVERVIEW_CACHE_NAMESPACE = "overview";
 const OVERVIEW_CACHE_VERSION = 1;
-
-function withTimeout<T>(promise: Promise<T>, ms: number, label: string) {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => {
-    if (timer) clearTimeout(timer);
-  });
-}
 
 function cacheForSelection(cache: Cache, selectedNames: string[]): Cache {
   const selected = new Set(selectedNames);
@@ -83,6 +74,17 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
 
   runRefresh: async (force = false) => {
     if (!get().status?.ok || get().connecting || get().refreshing) return;
+    const { fetchedAt } = get();
+    if (
+      !force &&
+      fetchedAt &&
+      get().tracked.length === get().selectedNames.length &&
+      get().tracked.every((repo) =>
+        get().selectedNames.includes(repo.fullName),
+      ) &&
+      isCacheFresh(fetchedAt, CACHE_TTL_MS.overview)
+    )
+      return;
     const revision = get().dataRevision;
     set({ refreshing: true, banner: null });
     try {
@@ -94,8 +96,7 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
 
       const persisted = await withTimeout(
         readOverviewCache(account),
-        10_000,
-        "Overview cache",
+        1_000,
       ).catch(() => null);
       if (revision !== get().dataRevision) return;
       const selectedNames = get().selectedNames;
@@ -121,11 +122,7 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
         }
       }
 
-      const cache = await withTimeout(
-        refreshTracked(),
-        90_000,
-        "Overview refresh",
-      );
+      const cache = await withTimeout(refreshTracked(), 90_000);
       if (revision !== get().dataRevision) return;
       set({
         refreshing: false,
@@ -190,14 +187,14 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
   },
 
   handleCreated: async (repo, track) => {
-    void get().loadCatalog();
+    void get().loadCatalog(true);
     if (track) {
       const current = get().selectedNames;
       const cfg = await saveConfig(
         Array.from(new Set([...current, repo.fullName])),
       );
       set({ selectedNames: cfg.repos });
-      await get().runRefresh();
+      void get().runRefresh(true);
     }
   },
 
