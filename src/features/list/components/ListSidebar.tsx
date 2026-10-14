@@ -38,7 +38,7 @@ export function ListSidebar({
         <button
           type="button"
           onClick={() => top && onOpenRepo(top.fullName)}
-          className="card w-full p-4 text-left transition-colors hover:bg-hover"
+          className="card block w-full p-4 text-left transition-colors hover:bg-hover hover:text-paper"
         >
           <div className="flex items-center gap-2 text-mist">
             <StarIcon size={14} className="text-faint" />
