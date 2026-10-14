@@ -1,5 +1,6 @@
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { Button } from "@zovaris/sephiro";
 import { hrefFromMaybeUrl } from "@/lib/format";
 
 export function HomepageValue({ value }: { value: string | null }) {
@@ -7,16 +8,17 @@ export function HomepageValue({ value }: { value: string | null }) {
   const href = hrefFromMaybeUrl(value);
   if (!href) return value;
   return (
-    <button
-      type="button"
+    <Button
+      variant="quiet"
+      size="sm"
+      className="h-auto min-w-0 max-w-full gap-1 p-0 text-left text-accent-soft hover:bg-transparent hover:text-accent-soft [&_.sph-button__label]:min-w-0 [&_.sph-button__label]:max-w-full"
       title={href}
       onClick={() => {
         void openUrl(href);
       }}
-      className="inline-flex max-w-full items-center gap-1 text-left text-accent-soft hover:underline"
     >
-      <span className="truncate">{value}</span>
+      <span className="min-w-0 flex-1 truncate">{value}</span>
       <ArrowSquareOutIcon size={11} className="shrink-0" />
-    </button>
+    </Button>
   );
 }

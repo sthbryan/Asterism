@@ -1,8 +1,8 @@
 import { GlobeIcon, LockSimpleIcon } from "@phosphor-icons/react";
+import { Badge } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import type { RepoDetail } from "@/lib/types";
-import { Flag } from "./Flag";
 
 export function RepoIntro({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();
@@ -22,10 +22,10 @@ export function RepoIntro({ detail }: { detail: RepoDetail }) {
           </If>
         </span>
         <When condition={detail.archived}>
-          <Flag>{t("Archived")}</Flag>
+          <Badge variant="warning">{t("Archived")}</Badge>
         </When>
         <When condition={detail.isTemplate}>
-          <Flag>{t("Template")}</Flag>
+          <Badge>{t("Template")}</Badge>
         </When>
       </div>
       <When condition={detail.description}>

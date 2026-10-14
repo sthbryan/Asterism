@@ -4,13 +4,10 @@ import {
   ArrowUpIcon,
   CaretDownIcon,
   CheckCircleIcon,
-  CircleNotchIcon,
 } from "@phosphor-icons/react";
+import { Button, Collapsible, Spinner } from "@zovaris/sephiro";
 import { cn } from "cn";
-import type { ReactNode } from "react";
-import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 import { useGitSync } from "../hooks/useGitSync";
 import { GitBranchControls } from "./GitBranchControls";
 import { GitSyncSummary } from "./GitSyncSummary";
@@ -41,18 +38,12 @@ export function GitSyncPanel({
     doPull,
     doPush,
   } = sync;
-
-  function actionIcon(id: string, icon: ReactNode) {
-    return active === id ? (
-      <CircleNotchIcon size={14} aria-hidden className="animate-spin" />
-    ) : (
-      icon
-    );
-  }
-
   return (
     <div className="mt-2 border-t border-hairline pt-2">
       <Button
+        variant="secondary"
+        size="sm"
+        className="shrink-0"
         disabled={busy && !open}
         onClick={toggle}
         aria-expanded={open}
@@ -77,57 +68,73 @@ export function GitSyncPanel({
       >
         <div className="min-h-0 overflow-hidden">
           <div className="space-y-2 pt-2">
-            <When condition={busy && !status}>
+            {busy && !status && (
               <p className="text-[12px] text-faint">{t("local.git.loading")}</p>
-            </When>
-            <When condition={Boolean(status)}>
-              {status && <GitSyncSummary status={status} badge={badge} />}
-              <div className="flex flex-wrap gap-1">
-                <Button disabled={busy} onClick={() => void doFetch()}>
-                  {actionIcon(
-                    "fetch",
-                    <ArrowsClockwiseIcon size={14} aria-hidden />,
-                  )}
-                  {t("local.git.fetch")}
-                </Button>
-                <Button
-                  disabled={busy || status?.detached || !status?.upstream}
-                  onClick={() => void doPull()}
-                >
-                  {actionIcon("pull", <ArrowDownIcon size={14} aria-hidden />)}
-                  {t("local.git.pull")}
-                </Button>
-                <Button
-                  disabled={busy || status?.detached || !push}
-                  onClick={() => void doPush()}
-                >
-                  {actionIcon("push", <ArrowUpIcon size={14} aria-hidden />)}
-                  {push
-                    ? t(
-                        push.setsUpstream
-                          ? "local.git.pushSetUpstream"
-                          : "local.git.pushTo",
-                        { target: push.label },
-                      )
-                    : ""}
-                </Button>
-              </div>
-              <If condition={Boolean(active && progressKey)}>
-                <Then>
+            )}
+            {status && (
+              <>
+                <GitSyncSummary status={status} badge={badge} />
+                <div className="flex flex-wrap gap-1">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="shrink-0"
+                    disabled={busy}
+                    onClick={() => void doFetch()}
+                  >
+                    {active === "fetch" ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <ArrowsClockwiseIcon size={14} aria-hidden />
+                    )}
+                    {t("local.git.fetch")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="shrink-0"
+                    disabled={busy || status.detached || !status.upstream}
+                    onClick={() => void doPull()}
+                  >
+                    {active === "pull" ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <ArrowDownIcon size={14} aria-hidden />
+                    )}
+                    {t("local.git.pull")}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="shrink-0"
+                    disabled={busy || status.detached || !push}
+                    onClick={() => void doPush()}
+                  >
+                    {active === "push" ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      <ArrowUpIcon size={14} aria-hidden />
+                    )}
+                    {push
+                      ? t(
+                          push.setsUpstream
+                            ? "local.git.pushSetUpstream"
+                            : "local.git.pushTo",
+                          { target: push.label },
+                        )
+                      : ""}
+                  </Button>
+                </div>
+                {active && progressKey ? (
                   <p
                     role="status"
                     className="flex items-center gap-1.5 text-[12px] text-mist"
                   >
-                    <CircleNotchIcon
-                      size={14}
-                      aria-hidden
-                      className="animate-spin"
-                    />
-                    {progressKey && t(progressKey)}
+                    <Spinner size="sm" />
+                    {t(progressKey)}
                   </p>
-                </Then>
-                <Else>
-                  <When condition={Boolean(notice)}>
+                ) : (
+                  notice && (
                     <p
                       role="status"
                       className="flex items-center gap-1.5 text-[12px] text-mist"
@@ -135,24 +142,24 @@ export function GitSyncPanel({
                       <CheckCircleIcon size={14} aria-hidden />
                       {notice}
                     </p>
-                  </When>
-                </Else>
-              </If>
-              <GitBranchControls sync={sync} path={path} />
-            </When>
-            <When condition={Boolean(error)}>
+                  )
+                )}
+                <GitBranchControls sync={sync} path={path} />
+              </>
+            )}
+            {error && (
               <div role="alert" className="text-[12.5px] text-accent-soft">
                 <p>{code ? t(`local.errors.${code}`) : String(error)}</p>
-                <When condition={Boolean(detail)}>
-                  <details className="mt-1">
-                    <summary className="cursor-pointer text-[12px]">
-                      Details
-                    </summary>
+                {detail && (
+                  <Collapsible
+                    className="mt-1 [&_.sph-collapsible__trigger]:text-[12px] [&_.sph-collapsible__inner]:p-0"
+                    trigger="Details"
+                  >
                     <p className="mt-1 break-words text-[12px]">{detail}</p>
-                  </details>
-                </When>
+                  </Collapsible>
+                )}
               </div>
-            </When>
+            )}
           </div>
         </div>
       </div>

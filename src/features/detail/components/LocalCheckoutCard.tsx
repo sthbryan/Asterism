@@ -4,9 +4,9 @@ import {
   FolderOpenIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
+import { Button } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 import type { LocalCheckout } from "@/lib/types";
 import type { EditorTarget } from "../hooks/useLocalCheckouts";
 import { statusKey } from "../utils/localUtils";
@@ -47,6 +47,9 @@ export function LocalCheckoutCard({
         </div>
         <div className="flex gap-1">
           <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
             disabled={busy || !ready}
             onClick={() => onOpen(item.path, "folder")}
           >
@@ -54,6 +57,9 @@ export function LocalCheckoutCard({
             {t("local.open")}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
             disabled={busy || !ready}
             onClick={() => onOpen(item.path, editor)}
           >
@@ -61,6 +67,9 @@ export function LocalCheckoutCard({
             {t("local.editor")}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
             disabled={busy}
             onClick={() => onUnlink(item.path)}
             aria-label={t("local.unlink")}

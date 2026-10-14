@@ -1,5 +1,6 @@
+import { Surface, TimeSeriesChart } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
-import { AreaChart } from "@/components/Charts";
+import { fmtAxisDateLong, fmtCompact } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
 
 export function HistoryCharts({ detail }: { detail: RepoDetail }) {
@@ -9,7 +10,7 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
   return (
     <div className="mt-3">
       <div className="grid gap-3 lg:grid-cols-2">
-        <div className="card p-4">
+        <Surface padding="md" className="border border-hairline">
           <div className="text-[13px] font-semibold">
             {t("Stars over time")}
           </div>
@@ -17,14 +18,18 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
             {t("Star growth for this repository.")}
           </p>
           <div className="mt-3">
-            <AreaChart
+            <TimeSeriesChart
+              label={t("History chart")}
+              formatValue={fmtCompact}
+              formatDate={fmtAxisDateLong}
+              keyboardHelpText={t("common.chartKeyboardHelp")}
               points={stars}
               tone="paper"
-              empty={t("No stars yet, so there is nothing to plot.")}
+              emptyText={t("No stars yet, so there is nothing to plot.")}
             />
           </div>
-        </div>
-        <div className="card p-4">
+        </Surface>
+        <Surface padding="md" className="border border-hairline">
           <div className="text-[13px] font-semibold">
             {t("Downloads over time")}
           </div>
@@ -32,15 +37,19 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
             {t("Download growth for this repository.")}
           </p>
           <div className="mt-3">
-            <AreaChart
+            <TimeSeriesChart
+              label={t("History chart")}
+              formatValue={fmtCompact}
+              formatDate={fmtAxisDateLong}
+              keyboardHelpText={t("common.chartKeyboardHelp")}
               points={downloads}
               tone="accent"
-              empty={t(
+              emptyText={t(
                 "No download snapshots yet. Refresh to take the first point.",
               )}
             />
           </div>
-        </div>
+        </Surface>
       </div>
     </div>
   );

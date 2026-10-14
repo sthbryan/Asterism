@@ -1,9 +1,11 @@
 import { DownloadSimpleIcon, EyeIcon } from "@phosphor-icons/react";
+import { ColumnChart, Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
-import { ColumnChart } from "@/components/Charts";
+import { fmtAxisDate, fmtNum } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
+
 import { TrafficBlock } from "./TrafficBlock";
 
 export function TrafficSection({ detail }: { detail: RepoDetail }) {
@@ -19,7 +21,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
       timeZone: "UTC",
     }).format(ts * 1000);
   return (
-    <div className="card mt-3 p-4">
+    <Surface padding="md" className="mt-3 border border-hairline">
       <div className="flex items-baseline justify-between gap-3">
         <div className="text-[13px] font-semibold">
           {t("Traffic · 14 days")}
@@ -54,13 +56,16 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
               />
               <div className="mt-3">
                 <ColumnChart
+                  label={t("Traffic · 14 days")}
+                  formatValue={fmtNum}
+                  formatDate={fmtAxisDate}
                   tone="paper"
                   items={(detail.views?.days ?? []).map((day) => ({
                     ts: day.ts,
                     value: day.count,
                     hint: t("common.unique", { count: day.uniques }),
                   }))}
-                  empty={t("No view samples.")}
+                  emptyText={t("No view samples.")}
                 />
               </div>
             </div>
@@ -74,19 +79,22 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
               />
               <div className="mt-3">
                 <ColumnChart
+                  label={t("Traffic · 14 days")}
+                  formatValue={fmtNum}
+                  formatDate={fmtAxisDate}
                   tone="accent"
                   items={(detail.clones?.days ?? []).map((day) => ({
                     ts: day.ts,
                     value: day.count,
                     hint: t("common.unique", { count: day.uniques }),
                   }))}
-                  empty={t("No clone samples.")}
+                  emptyText={t("No clone samples.")}
                 />
               </div>
             </div>
           </div>
         </Else>
       </If>
-    </div>
+    </Surface>
   );
 }

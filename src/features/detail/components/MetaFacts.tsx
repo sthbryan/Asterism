@@ -1,3 +1,4 @@
+import { Surface } from "@zovaris/sephiro";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { fmtDate, fmtNum, fmtRepoSizeKb } from "@/lib/format";
@@ -19,7 +20,7 @@ export function MetaFacts({ detail }: { detail: RepoDetail }) {
   ];
 
   return (
-    <div className="card mt-3 p-4">
+    <Surface padding="md" className="mt-3 border border-hairline">
       <div className="text-[13px] font-semibold">{t("Details")}</div>
       <dl className="mt-3.5 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
         {facts.map(([label, value]) => (
@@ -41,6 +42,6 @@ export function MetaFacts({ detail }: { detail: RepoDetail }) {
           </dd>
         </div>
       </dl>
-    </div>
+    </Surface>
   );
 }
