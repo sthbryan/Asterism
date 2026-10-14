@@ -6,7 +6,7 @@ pub struct Cache {
     pub fetched_at: u64,
     pub repos: Vec<super::tracked::TrackedRepo>,
     #[serde(default)]
-    pub history: std::collections::BTreeMap<String, super::history_store::RepoHistory>,
+    pub history: std::collections::BTreeMap<String, super::RepoHistory>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -32,19 +32,14 @@ pub struct Traffic {
     pub sample_to: Option<u64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum TrafficStatus {
     Ok,
     Forbidden,
     Error,
+    #[default]
     Unavailable,
-}
-
-impl Default for TrafficStatus {
-    fn default() -> Self {
-        Self::Unavailable
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -41,7 +41,7 @@ pub fn list_catalog() -> Result<Vec<CatalogRepo>, String> {
             }
         }
     }
-    repos.sort_by(|a, b| a.full_name.to_lowercase().cmp(&b.full_name.to_lowercase()));
+    repos.sort_by_key(|repo| repo.full_name.to_lowercase());
     repos.dedup_by(|a, b| a.full_name == b.full_name);
     repos.shrink_to_fit();
     Ok(repos)
