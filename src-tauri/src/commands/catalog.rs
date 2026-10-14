@@ -26,11 +26,24 @@ pub(crate) async fn list_catalog(
 #[tauri::command]
 pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<Cache, String> {
     offload(move || {
-        ensure_scope(expected_account.as_deref())?;
-        ensure_online()?;
-        let db = config::storage()?;
-        let cfg = db.load_config()?;
-        let prev: HashMap<String, TrackedRepo> = HashMap::new();
+        let (cfg, prev) = config::serialized_write(|| {
+            ensure_scope(expected_account.as_deref())?;
+            ensure_online()?;
+            let db = config::storage()?;
+            let cfg = db.load_config()?;
+            let previous = db
+                .read_cache::<Cache>("overview", "snapshot")
+                .ok()
+                .flatten() // A corrupt optional snapshot must not prevent a live refresh.
+                .filter(|entry| entry.version == 1)
+                .map(|entry| entry.data.repos)
+                .unwrap_or_default();
+            let prev: HashMap<_, _> = previous
+                .into_iter()
+                .map(|repo| (repo.full_name.clone(), repo))
+                .collect();
+            Ok::<_, String>((cfg, prev))
+        })?;
         let fetches = gh::refresh_tracked(cfg.repos);
         let now = history::now_secs();
         config::serialized_write(move || {
@@ -39,11 +52,22 @@ pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<
             let mut store = db.load_history()?;
             let repos = merge_fetches(fetches, &prev, &mut store, now)?;
             db.save_history(&store)?;
-            Ok(Cache {
+            let cache = Cache {
                 fetched_at: now,
                 repos,
                 history: store.repos,
-            })
+            };
+            db.write_cache(
+                "overview",
+                "snapshot",
+                &config::CacheEntry {
+                    version: 1,
+                    fetched_at: now,
+                    data: &cache,
+                    warning: None,
+                },
+            )?;
+            Ok(cache)
         })
     })
     .await?

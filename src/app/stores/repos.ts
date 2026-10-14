@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import { CACHE_TTL_MS, cacheKey, isCacheFresh } from "@/lib/cache";
+import { CACHE_TTL_MS, isCacheFresh } from "@/lib/cache";
 import { withTimeout } from "@/lib/resourceCache";
 import type { Cache, PersistentCache } from "@/lib/types";
 import {
@@ -37,7 +37,7 @@ async function readOverviewCache(
   if (!overviewCacheInFlight) {
     overviewCacheInFlight = readCache<Cache>(
       OVERVIEW_CACHE_NAMESPACE,
-      cacheKey(OVERVIEW_CACHE_NAMESPACE, account),
+      "snapshot",
     );
   }
   try {
@@ -122,24 +122,21 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
         }
       }
 
-      const cache = await withTimeout(refreshTracked(), 90_000);
+      const fetched = await withTimeout(refreshTracked(), 90_000);
       if (revision !== get().dataRevision) return;
+      const cache = cacheForSelection(fetched, get().selectedNames);
       set({
         refreshing: false,
         tracked: cache.repos,
         fetchedAt: cache.fetchedAt,
         history: cache.history ?? {},
       });
-      void writeCache(
-        OVERVIEW_CACHE_NAMESPACE,
-        cacheKey(OVERVIEW_CACHE_NAMESPACE, account),
-        {
-          version: OVERVIEW_CACHE_VERSION,
-          fetchedAt: cache.fetchedAt,
-          data: cache,
-          warning: null,
-        },
-      ).catch(() => undefined);
+      void writeCache(OVERVIEW_CACHE_NAMESPACE, "snapshot", {
+        version: OVERVIEW_CACHE_VERSION,
+        fetchedAt: cache.fetchedAt,
+        data: cache,
+        warning: null,
+      }).catch(() => undefined);
     } catch (err) {
       if (revision !== get().dataRevision) return;
       set({ refreshing: false, banner: String(err) });
@@ -188,11 +185,13 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
 
   handleCreated: async (repo, track) => {
     void get().loadCatalog(true);
+    const account = get().account;
     if (track) {
       const current = get().selectedNames;
       const cfg = await saveConfig(
         Array.from(new Set([...current, repo.fullName])),
       );
+      if (account !== get().account) return;
       set({ selectedNames: cfg.repos });
       void get().runRefresh(true);
     }

@@ -2,7 +2,7 @@ import { afterEach, beforeEach, expect, mock, spyOn, test } from "bun:test";
 import { useStore } from "../src/app/store";
 import { mockDetail } from "../src/lib/mock";
 import { clearResourceCaches } from "../src/lib/resourceCache";
-import type { RepoDetail, Saved } from "../src/lib/types";
+import type { Cache, RepoDetail, Saved } from "../src/lib/types";
 import { tauriClient } from "../src/services/api/tauri";
 
 const saved = (name: string): Saved<RepoDetail> => ({
@@ -87,6 +87,30 @@ test("an empty catalog is cached and repeated entries do not contact GitHub", as
   await useStore.getState().loadCatalog();
   expect(fetch).toHaveBeenCalledTimes(1);
   expect(useStore.getState().catalogFetchedAt).not.toBeNull();
+});
+
+test("an overview result cannot restore a repository removed during its refresh", async () => {
+  useStore.setState({ selectedNames: ["one/a", "one/b"] });
+  let resolve!: (value: Cache) => void;
+  const fetch = spyOn(tauriClient, "refreshTracked").mockImplementation(
+    () =>
+      new Promise((done) => {
+        resolve = done;
+      }),
+  );
+  const request = useStore.getState().runRefresh(true);
+  await Bun.sleep(5);
+  expect(fetch).toHaveBeenCalledTimes(1);
+  useStore.setState({ selectedNames: ["one/b"] });
+  resolve({
+    repos: [mockDetail("one/a"), mockDetail("one/b")],
+    history: {},
+    fetchedAt: Date.now(),
+  });
+  await request;
+  expect(useStore.getState().tracked.map((repo) => repo.fullName)).toEqual([
+    "one/b",
+  ]);
 });
 
 test("a fresh overview in memory needs no disk read or network request", async () => {
