@@ -9,13 +9,13 @@ use crate::models::{
 };
 
 use super::state::{ensure_scope, merge_fetches};
-use super::status::{offload, offload_unlocked};
+use super::status::offload;
 
 #[tauri::command]
 pub(crate) async fn list_catalog(
     expected_account: Option<String>,
 ) -> Result<Vec<CatalogRepo>, String> {
-    offload_unlocked(move || {
+    offload(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
         gh::list_catalog()
@@ -25,7 +25,7 @@ pub(crate) async fn list_catalog(
 
 #[tauri::command]
 pub(crate) async fn refresh_tracked(expected_account: Option<String>) -> Result<Cache, String> {
-    offload_unlocked(move || {
+    offload(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
         let db = config::storage()?;
@@ -79,7 +79,7 @@ pub(crate) async fn get_repo_detail(
     full_name: String,
     expected_account: Option<String>,
 ) -> Result<config::Saved<RepoDetail>, String> {
-    offload_unlocked(move || {
+    offload(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
         let mut detail = gh::repo_detail(full_name.clone())?;

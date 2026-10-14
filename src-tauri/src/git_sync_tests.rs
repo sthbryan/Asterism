@@ -296,6 +296,59 @@ fn non_git_directory_is_rejected() {
 }
 
 #[test]
+fn mutations_serialize_per_checkout_but_not_across_checkouts() {
+    use crate::git::concurrency::{read_only, serialized_on};
+    use std::sync::{mpsc, Arc, Barrier};
+    use std::time::Duration;
+
+    let root = temp_root("serialization");
+    let first = root.join("first");
+    let second = root.join("second");
+    fs::create_dir_all(&first).unwrap();
+    fs::create_dir_all(&second).unwrap();
+    let (entered_tx, entered_rx) = mpsc::channel();
+    let (release_tx, release_rx) = mpsc::channel();
+    let held_dir = first.clone();
+    let held = tauri::async_runtime::spawn(read_only(move || {
+        serialized_on(&held_dir, || {
+            entered_tx.send(()).unwrap();
+            release_rx.recv().unwrap();
+            Ok(())
+        })
+    }));
+    entered_rx.recv_timeout(Duration::from_secs(2)).unwrap();
+
+    let ready = Arc::new(Barrier::new(2));
+    let worker_ready = ready.clone();
+    let (waiting_tx, waiting_rx) = mpsc::channel();
+    let waiting = tauri::async_runtime::spawn(read_only(move || {
+        worker_ready.wait();
+        serialized_on(&first.join("."), || {
+            waiting_tx.send(()).unwrap();
+            Ok(())
+        })
+    }));
+    ready.wait();
+    let (other_tx, other_rx) = mpsc::channel();
+    let other = tauri::async_runtime::spawn(read_only(move || {
+        serialized_on(&second, || {
+            other_tx.send(()).unwrap();
+            Ok(())
+        })
+    }));
+    let independent = other_rx.recv_timeout(Duration::from_secs(2));
+    let blocked = waiting_rx.try_recv();
+    release_tx.send(()).unwrap();
+    for task in [held, waiting, other] {
+        tauri::async_runtime::block_on(task).unwrap().unwrap();
+    }
+    assert!(independent.is_ok(), "an independent checkout was blocked");
+    assert_eq!(blocked, Err(mpsc::TryRecvError::Empty));
+    assert!(waiting_rx.recv_timeout(Duration::from_secs(2)).is_ok());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn concurrent_status_reads_are_consistent() {
     let (root, work) = fixture("concurrent");
     let handles: Vec<_> = (0..8)

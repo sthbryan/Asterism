@@ -8,9 +8,15 @@ pub(crate) async fn git_sync_status(
     path: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir =
-        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
-    read_only(move || sync_status_dir(&dir)).await
+    read_only(move || {
+        let dir = crate::commands::require_ready_checkout(
+            &full_name,
+            &path,
+            expected_account.as_deref(),
+        )?;
+        sync_status_dir(&dir)
+    })
+    .await
 }
 
 #[tauri::command]
@@ -19,9 +25,18 @@ pub(crate) async fn git_fetch(
     path: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir =
-        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
-    serialized_on(dir.clone(), move || fetch_dir(&dir)).await
+    read_only(move || {
+        let dir = crate::commands::require_ready_checkout(
+            &full_name,
+            &path,
+            expected_account.as_deref(),
+        )?;
+        serialized_on(&dir, || {
+            crate::commands::ensure_scope(expected_account.as_deref())?;
+            fetch_dir(&dir)
+        })
+    })
+    .await
 }
 
 #[tauri::command]
@@ -30,9 +45,18 @@ pub(crate) async fn git_pull(
     path: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir =
-        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
-    serialized_on(dir.clone(), move || pull_ff_dir(&dir)).await
+    read_only(move || {
+        let dir = crate::commands::require_ready_checkout(
+            &full_name,
+            &path,
+            expected_account.as_deref(),
+        )?;
+        serialized_on(&dir, || {
+            crate::commands::ensure_scope(expected_account.as_deref())?;
+            pull_ff_dir(&dir)
+        })
+    })
+    .await
 }
 
 #[tauri::command]
@@ -42,11 +66,20 @@ pub(crate) async fn git_push(
     set_upstream: bool,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir =
-        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
-    let remote = crate::commands::matching_remote_name(&full_name, &dir)
-        .ok_or_else(|| "LOCAL_REMOTE_MISMATCH".to_string())?;
-    serialized_on(dir.clone(), move || push_dir(&dir, &remote, set_upstream)).await
+    read_only(move || {
+        let dir = crate::commands::require_ready_checkout(
+            &full_name,
+            &path,
+            expected_account.as_deref(),
+        )?;
+        serialized_on(&dir, || {
+            crate::commands::ensure_scope(expected_account.as_deref())?;
+            let remote = crate::commands::matching_remote_name(&full_name, &dir)
+                .ok_or_else(|| "LOCAL_REMOTE_MISMATCH".to_string())?;
+            push_dir(&dir, &remote, set_upstream)
+        })
+    })
+    .await
 }
 
 #[tauri::command]
@@ -56,9 +89,18 @@ pub(crate) async fn git_switch_branch(
     branch: String,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir =
-        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
-    serialized_on(dir.clone(), move || switch_branch_dir(&dir, &branch)).await
+    read_only(move || {
+        let dir = crate::commands::require_ready_checkout(
+            &full_name,
+            &path,
+            expected_account.as_deref(),
+        )?;
+        serialized_on(&dir, || {
+            crate::commands::ensure_scope(expected_account.as_deref())?;
+            switch_branch_dir(&dir, &branch)
+        })
+    })
+    .await
 }
 
 #[tauri::command]
@@ -69,10 +111,16 @@ pub(crate) async fn git_create_branch(
     switch: bool,
     expected_account: Option<String>,
 ) -> Result<GitSyncStatus, String> {
-    let dir =
-        crate::commands::require_ready_checkout(&full_name, &path, expected_account.as_deref())?;
-    serialized_on(dir.clone(), move || {
-        create_branch_dir(&dir, &branch, switch)
+    read_only(move || {
+        let dir = crate::commands::require_ready_checkout(
+            &full_name,
+            &path,
+            expected_account.as_deref(),
+        )?;
+        serialized_on(&dir, || {
+            crate::commands::ensure_scope(expected_account.as_deref())?;
+            create_branch_dir(&dir, &branch, switch)
+        })
     })
     .await
 }

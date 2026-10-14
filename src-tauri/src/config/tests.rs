@@ -153,8 +153,8 @@ fn bounded_history_keeps_durable_data() {
 fn concurrent_preference_and_project_updates_preserve_each_other() {
     let (_app, db) = fixture();
     db.activate("github.com/one".into()).unwrap();
-    let barrier = std::sync::Arc::new(std::sync::Barrier::new(3));
-    let workers: Vec<_> = (0..3)
+    let barrier = std::sync::Arc::new(std::sync::Barrier::new(5));
+    let workers: Vec<_> = (0..5)
         .map(|i| {
             let db = Storage {
                 app: db.app.clone(),
@@ -164,11 +164,23 @@ fn concurrent_preference_and_project_updates_preserve_each_other() {
             let barrier = barrier.clone();
             std::thread::spawn(move || {
                 barrier.wait();
-                serialized_write(|| match i {
-                    0 => db.save_locale(Locale::Es),
-                    1 => db.save_appearance(ThemePref::System, true),
-                    _ => db.save_repos(vec!["one/repo".into()]),
-                })
+                tauri::async_runtime::block_on(crate::commands::status::offload_write(move || {
+                    match i {
+                        0 => db.save_locale(Locale::Es),
+                        1 => db.save_appearance(ThemePref::System, true),
+                        2 => db.save_repos(vec!["one/repo".into()]),
+                        _ => {
+                            let mut folders = db.checkout_folders()?;
+                            folders
+                                .entry("one/repo".into())
+                                .or_default()
+                                .push(format!("/checkout/{i}"));
+                            db.save_checkout_folders(folders)?;
+                            db.load_config()
+                        }
+                    }
+                }))
+                .unwrap()
                 .unwrap();
             })
         })
@@ -181,5 +193,8 @@ fn concurrent_preference_and_project_updates_preserve_each_other() {
     assert_eq!(cfg.theme, ThemePref::System);
     assert!(cfg.transparency);
     assert_eq!(cfg.repos, vec!["one/repo"]);
+    let mut folders = db.checkout_folders().unwrap()["one/repo"].clone();
+    folders.sort();
+    assert_eq!(folders, vec!["/checkout/3", "/checkout/4"]);
     fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
 }

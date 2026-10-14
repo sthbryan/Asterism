@@ -1,6 +1,8 @@
 pub(crate) mod cache;
 pub(crate) mod catalog;
+pub(crate) mod checkout;
 pub(crate) mod local;
+mod pull_helpers;
 pub(crate) mod pulls_cmds;
 pub(crate) mod state;
 pub(crate) mod status;
@@ -30,6 +32,6 @@ pub(crate) use state::{
 };
 #[allow(unused_imports)]
 pub(crate) use status::{
-    get_config, get_diagnostics, get_status, normalize_locale, offload, offload_unlocked,
+    get_config, get_diagnostics, get_status, normalize_locale, offload, offload_write,
     save_appearance, save_config, save_locale,
 };
