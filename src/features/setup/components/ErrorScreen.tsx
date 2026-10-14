@@ -1,9 +1,9 @@
 import { WarningCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { Alert, Button } from "@zovaris/sephiro";
 import { useState } from "react";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 import type { Status } from "@/lib/types";
 
 export function ErrorScreen({
@@ -44,9 +44,11 @@ export function ErrorScreen({
             <When condition={missing}>
               <li>
                 1.{" "}
-                <button
+                <Button
                   type="button"
-                  className="text-paper underline underline-offset-4"
+                  variant="quiet"
+                  size="sm"
+                  className="h-auto min-h-0 p-0 text-paper underline underline-offset-4"
                   onClick={() => {
                     void openUrl("https://cli.github.com").catch((err) =>
                       setActionError(String(err)),
@@ -54,7 +56,7 @@ export function ErrorScreen({
                   }}
                 >
                   {t("Open GitHub CLI installation instructions")}
-                </button>
+                </Button>
               </li>
             </When>
             <li>
@@ -72,7 +74,7 @@ export function ErrorScreen({
             <li>{t("3. Return here and check the connection.")}</li>
           </ol>
         </When>
-        <Button variant="primary" className="mt-6" onClick={onRetry}>
+        <Button variant="primary" size="sm" className="mt-6" onClick={onRetry}>
           {t("Check connection")}
         </Button>
         <When condition={Boolean(status.error)}>
@@ -86,9 +88,9 @@ export function ErrorScreen({
           </details>
         </When>
         <When condition={Boolean(actionError)}>
-          <p role="alert" className="mt-3 text-sm text-accent-soft">
+          <Alert variant="danger" className="mt-3">
             {t("errors.request")} {actionError}
-          </p>
+          </Alert>
         </When>
       </div>
     </div>

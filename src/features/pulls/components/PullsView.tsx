@@ -2,13 +2,14 @@ import {
   ArrowClockwiseIcon,
   CaretLeftIcon,
   CaretRightIcon,
+  MagnifyingGlassIcon,
 } from "@phosphor-icons/react";
+import { Button, EmptyState, IconButton, Spinner } from "@zovaris/sephiro";
 import { useMemo } from "react";
 import { Case, Default, If, Switch, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
-import { Button } from "@/components/Button";
 import { PageHeader } from "@/components/PageHeader";
 import { usePullControls } from "../hooks/usePullControls";
 import { usePullList } from "../hooks/usePullList";
@@ -79,18 +80,19 @@ export function PullsView() {
           </h1>
         }
         trailing={
-          <Button
-            variant="quiet"
-            aria-label={t("pulls.refresh")}
+          <IconButton
+            icon={
+              <ArrowClockwiseIcon
+                size={14}
+                className={data.refreshing ? "animate-spin" : ""}
+              />
+            }
+            label={t("pulls.refresh")}
+            size="sm"
             title={t("pulls.refresh")}
             onClick={() => void data.refresh()}
             disabled={data.refreshing}
-          >
-            <ArrowClockwiseIcon
-              size={14}
-              className={data.refreshing ? "animate-spin" : ""}
-            />
-          </Button>
+          />
         }
       />
       <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
@@ -108,10 +110,7 @@ export function PullsView() {
               role="status"
               className="inline-flex items-center gap-1 text-mist"
             >
-              <span
-                aria-hidden
-                className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
-              />
+              <Spinner size="sm" />
               {t("Refreshing…")}
             </span>
           </When>
@@ -127,14 +126,19 @@ export function PullsView() {
         </When>
         <If condition={!data.loading && !data.error && page.items.length === 0}>
           <Then>
-            <div className="card flex min-h-44 items-center justify-center p-8 text-center text-sm text-mist">
-              <Switch>
-                <Case condition={filtered.length > 0}>
-                  {t("pulls.noResults")}
-                </Case>
-                <Default>{t("pulls.empty")}</Default>
-              </Switch>
-            </div>
+            <EmptyState
+              compact
+              className="card mt-3 min-h-44 content-center"
+              icon={<MagnifyingGlassIcon />}
+              title={
+                <Switch>
+                  <Case condition={filtered.length > 0}>
+                    {t("pulls.noResults")}
+                  </Case>
+                  <Default>{t("pulls.empty")}</Default>
+                </Switch>
+              }
+            />
           </Then>
         </If>
         <div className="flex flex-col gap-2">
@@ -154,6 +158,8 @@ export function PullsView() {
           <div className="mt-4 flex items-center justify-center gap-3 text-[12px] text-mist">
             <Button
               variant="quiet"
+              size="sm"
+              className="shrink-0"
               disabled={page.currentPage <= 1}
               aria-label={t("pulls.previous")}
               onClick={() =>
@@ -168,6 +174,8 @@ export function PullsView() {
             </span>
             <Button
               variant="quiet"
+              size="sm"
+              className="shrink-0"
               disabled={page.currentPage >= page.pages}
               aria-label={t("pulls.next")}
               onClick={() =>

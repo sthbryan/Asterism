@@ -1,8 +1,6 @@
+import { Alert, Button, Field, Input, Select } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Select } from "@/components/Select";
 import { isMockMode } from "@/services/api";
 import type { CreateFormApi } from "../hooks/useCreateForm";
 import { SetupSection } from "./SetupSection";
@@ -50,78 +48,85 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
         </p>
       </When>
       <When condition={Boolean(error)}>
-        <div role="alert" className="mt-5 text-sm text-accent-soft">
+        <Alert variant="danger" className="mt-5">
           <p>{t("errors.request")}</p>
           <p className="mt-1 whitespace-pre-wrap break-words">{error}</p>
           <When condition={!options}>
-            <Button className="mt-3" onClick={retry} type="button">
+            <Button
+              className="mt-3"
+              onClick={retry}
+              type="button"
+              variant="secondary"
+              size="sm"
+            >
               {t("Retry loading")}
             </Button>
           </When>
-        </div>
+        </Alert>
       </When>
       <fieldset
         disabled={busy || loading || !options}
         className="mt-7 space-y-6 disabled:opacity-60"
       >
         <div className="grid gap-4 sm:grid-cols-[1fr_2fr]">
-          <label
-            id="create-owner-label"
-            htmlFor="create-owner"
-            className="text-[13px] font-medium"
-          >
-            {t("Owner")}
+          <Field label={t("Owner")} htmlFor="create-owner">
             <Select
               id="create-owner"
               value={owner}
-              onChange={setOwner}
-              className="mt-2"
-              ariaLabelledBy="create-owner-label"
+              onValueChange={setOwner}
+              size="sm"
               options={
                 options?.owners.map((item) => ({ value: item, label: item })) ??
                 []
               }
             />
-          </label>
-          <label
+          </Field>
+          <Field
+            label={t("Repository name")}
             htmlFor="create-repository-name"
-            className="text-[13px] font-medium"
+            message={
+              invalidName
+                ? t(
+                    "Use letters, numbers, periods, hyphens or underscores. Names cannot be . or .., or end in .git.",
+                  )
+                : `${owner || t("owner")}/${cleanName || t("my-project")}`
+            }
+            messageType={invalidName ? "error" : "hint"}
           >
-            {t("Repository name")}
             <Input
               id="create-repository-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               maxLength={100}
               required
+              className="mt-0"
+              size="sm"
               autoComplete="off"
               placeholder={t("my-project")}
               invalid={Boolean(invalidName)}
-              aria-describedby="name-help"
             />
-          </label>
+          </Field>
         </div>
-        <p id="name-help" className="-mt-3 text-xs text-mist">
-          {invalidName
-            ? t(
-                "Use letters, numbers, periods, hyphens or underscores. Names cannot be . or .., or end in .git.",
-              )
-            : `${owner || t("owner")}/${cleanName || t("my-project")}`}
-        </p>
-        <label
+
+        <Field
           htmlFor="create-description"
-          className="block text-[13px] font-medium"
+          label={
+            <>
+              {t("Description")}{" "}
+              <span className="font-normal text-mist">{t("(optional)")}</span>
+            </>
+          }
         >
-          {t("Description")}{" "}
-          <span className="font-normal text-mist">{t("(optional)")}</span>
           <Input
             id="create-description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={350}
+            className="mt-0"
+            size="sm"
             placeholder={t("What does this project do?")}
           />
-        </label>
+        </Field>
         <VisibilitySection form={form} />
         <SetupSection form={form} />
       </fieldset>

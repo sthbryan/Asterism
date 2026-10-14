@@ -1,4 +1,4 @@
-import { Select } from "@/components/Select";
+import { Select } from "@zovaris/sephiro";
 
 export type FilterOption = { value: string; label: string };
 
@@ -25,7 +25,7 @@ export function FilterSelect({
         ariaLabel={label}
         value={value}
         options={options}
-        onChange={onChange}
+        onValueChange={onChange}
       />
     </div>
   );

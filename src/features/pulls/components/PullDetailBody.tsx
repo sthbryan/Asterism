@@ -5,6 +5,7 @@ import {
   GitPullRequestIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
+import { Badge, Surface } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import type { PullRequestDetail, Saved } from "@/lib/types";
@@ -39,8 +40,7 @@ export function PullDetailBody({
   diffError: string | null;
 }) {
   const { t, formatRelative } = useI18n();
-  const status =
-    pull.state === "OPEN" ? "bg-ok/10 text-ok" : "bg-fill text-mist";
+  const statusVariant = pull.state === "OPEN" ? "success" : "neutral";
   const mergeableConflict = pull.mergeable === "CONFLICTING";
   const mergeableIcon = mergeableConflict ? (
     <WarningCircleIcon size={14} />
@@ -61,13 +61,9 @@ export function PullDetailBody({
             <h1 className="text-[20px] font-semibold tracking-[-0.03em]">
               {pull.title}
             </h1>
-            <span className={`rounded-full px-2 py-0.5 text-[11px] ${status}`}>
-              {pull.state.toLowerCase()}
-            </span>
+            <Badge variant={statusVariant}>{pull.state.toLowerCase()}</Badge>
             <When condition={pull.draft}>
-              <span className="rounded-full bg-fill px-2 py-0.5 text-[11px] text-mist">
-                {t("pulls.draft")}
-              </span>
+              <Badge variant="neutral">{t("pulls.draft")}</Badge>
             </When>
           </div>
           <p className="mt-1 font-mono text-[12px] text-faint">
@@ -105,7 +101,7 @@ export function PullDetailBody({
           value={`${pull.approvals} ✓ · ${pull.changesRequested} !`}
         />
       </div>
-      <div className="card mt-3 p-4">
+      <Surface padding="md" className="mt-3 border border-hairline">
         <div className="flex flex-wrap items-center gap-4 text-[12px] text-mist">
           <span>{pull.author ?? t("pulls.unknown")}</span>
           <span>
@@ -126,49 +122,56 @@ export function PullDetailBody({
             {pull.body}
           </p>
         </When>
-      </div>
+      </Surface>
       <section className="mt-3">
         <DetailDisclosure
           title={t("pulls.files")}
           count={pull.files.length}
           open={filesOpen}
-          onClick={toggleFiles}
+          onOpenChange={toggleFiles}
           actionLabel={t("pulls.loadFiles")}
-        />
-        <When condition={filesOpen}>
-          <div className="card mt-1 overflow-hidden">
+        >
+          <Surface
+            padding="none"
+            className="mt-1 overflow-hidden border border-hairline"
+          >
             <FileList files={pull.files} />
-          </div>
-        </When>
+          </Surface>
+        </DetailDisclosure>
       </section>
       <section className="mt-3">
         <DetailDisclosure
           title={t("pulls.diff")}
           open={diffOpen}
-          onClick={toggleDiff}
+          onOpenChange={toggleDiff}
           actionLabel={diffLabel}
-        />
-        <When condition={diffOpen}>
-          <div className="card mt-1 overflow-hidden">
+        >
+          <Surface
+            padding="none"
+            className="mt-1 overflow-hidden border border-hairline"
+          >
             <DiffBody
               diff={diff}
               loading={diffLoading}
               refreshing={diffRefreshing}
               error={diffError}
             />
-          </div>
-        </When>
+          </Surface>
+        </DetailDisclosure>
       </section>
       <When
         condition={pull.reviewRequests.length > 0 || pull.assignees.length > 0}
       >
-        <div className="card mt-3 grid gap-4 p-4 sm:grid-cols-2">
+        <Surface
+          padding="md"
+          className="mt-3 grid gap-4 sm:grid-cols-2 border border-hairline"
+        >
           <People
             title={t("pulls.reviewRequested")}
             values={pull.reviewRequests}
           />
           <People title={t("pulls.assignee")} values={pull.assignees} />
-        </div>
+        </Surface>
       </When>
     </div>
   );
