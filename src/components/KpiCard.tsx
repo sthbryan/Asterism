@@ -1,7 +1,7 @@
+import { PopNumber, Surface } from "@zovaris/sephiro";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { fmtCompact, fmtSigned } from "@/lib/format";
-import { PopNumber } from "./PopNumber";
 
 export function KpiCard({
   label,
@@ -22,7 +22,10 @@ export function KpiCard({
 }) {
   const { t } = useI18n();
   return (
-    <div className={`card min-w-0 p-4 ${hero ? "border-accent/25" : ""}`}>
+    <Surface
+      padding="md"
+      className={`min-w-0 border border-hairline ${hero ? "border-accent/25" : ""}`}
+    >
       <div className="flex items-center gap-2 text-mist">
         {icon ? <span className="text-faint">{icon}</span> : null}
         <span className="kpi-label">{label}</span>
@@ -54,6 +57,6 @@ export function KpiCard({
           {sub}
         </div>
       ) : null}
-    </div>
+    </Surface>
   );
 }
