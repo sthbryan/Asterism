@@ -1,5 +1,5 @@
+import { Select } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
-import { Select } from "@/components/Select";
 import type { PickerSort } from "../hooks/usePicker";
 
 const OPTIONS: { value: PickerSort; label: string }[] = [
@@ -16,6 +16,12 @@ export function SortControl({
   onChange: (sort: PickerSort) => void;
 }) {
   const { t } = useI18n();
+  const changeSort = (sort: string) => {
+    if (sort === "selected" || sort === "name" || sort === "stars") {
+      onChange(sort);
+    }
+  };
+
   return (
     <div className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-hairline bg-wash pl-2.5 transition-colors focus-within:border-line">
       <label
@@ -28,7 +34,7 @@ export function SortControl({
       <Select
         id="picker-sort"
         value={value}
-        onChange={(sort) => onChange(sort as PickerSort)}
+        onValueChange={changeSort}
         ariaLabel={t("Sort repositories")}
         ariaLabelledBy="picker-sort-label"
         className="min-w-44"
@@ -36,6 +42,7 @@ export function SortControl({
           value: option.value,
           label: t(option.label),
         }))}
+        size="sm"
       />
     </div>
   );

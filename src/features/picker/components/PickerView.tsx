@@ -1,3 +1,4 @@
+import { Alert, EmptyState, Surface } from "@zovaris/sephiro";
 import { useCallback, useEffect } from "react";
 import { Case, Default, Switch, When } from "react-if";
 import { useCatalog, useI18n } from "@/app/hooks";
@@ -105,33 +106,35 @@ export function PickerView() {
           <p className="mt-3 text-xs text-mist">{fetchedText}</p>
         </When>
         <When condition={Boolean(error) && catalog.length > 0}>
-          <p role="status" className="mt-3 text-sm text-mist">
+          <Alert variant="warning" className="mt-3">
             {t("errors.request")} {error}
-          </p>
+          </Alert>
         </When>
         <When condition={Boolean(saveError)}>
-          <p role="alert" className="mt-3 text-sm text-accent-soft">
+          <Alert variant="danger" className="mt-3">
             {t("errors.request")} {saveError}
-          </p>
+          </Alert>
         </When>
-        <div className="card mt-3 min-h-0 flex-1 overflow-auto">
+        <Surface
+          padding="none"
+          className="mt-3 min-h-0 flex-1 overflow-auto border border-hairline"
+        >
           <Switch>
             <Case condition={Boolean(error) && catalog.length === 0}>
-              <div
-                role="alert"
-                className="px-5 py-6 text-[13px] text-accent-soft"
-              >
+              <Alert variant="danger" className="m-4">
                 <p>{t("errors.request")}</p>
                 <p className="mt-1 wrap-break-word">{error}</p>
-              </div>
+              </Alert>
             </Case>
             <Case condition={loading}>
               <PickerSkeleton />
             </Case>
             <Case condition={filtered.length === 0}>
-              <p className="px-5 py-6 text-center text-[12.5px] text-faint">
-                {t("No repositories match that filter.")}
-              </p>
+              <EmptyState
+                title={t("No repositories match that filter.")}
+                compact
+                className="px-5 text-[12.5px]"
+              />
             </Case>
             <Case condition={Boolean(groups)}>
               <ul>
@@ -170,7 +173,7 @@ export function PickerView() {
               </ul>
             </Default>
           </Switch>
-        </div>
+        </Surface>
       </div>
     </>
   );

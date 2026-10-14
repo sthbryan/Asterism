@@ -4,6 +4,7 @@ import {
   GitForkIcon,
   StarIcon,
 } from "@phosphor-icons/react";
+import { BarList, Button, EmptyState, Surface } from "@zovaris/sephiro";
 import { cn } from "cn";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -11,12 +12,10 @@ import { detailPath } from "@/app/routes";
 import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { Banner } from "@/components/Banner";
-import { Button } from "@/components/Button";
-import { BarChart } from "@/components/Charts";
 import { KpiCard } from "@/components/KpiCard";
 import { PageHeader } from "@/components/PageHeader";
 import { ListSkeleton } from "@/components/Skeleton";
-import { fmtNum } from "@/lib/format";
+import { fmtCompact, fmtNum } from "@/lib/format";
 import { useListControls } from "../hooks/useListControls";
 import { useListModel } from "../hooks/useListModel";
 import { ListCharts } from "./ListCharts";
@@ -129,29 +128,33 @@ export function ListView() {
             </When>
             <If condition={repos.length === 0}>
               <Then>
-                <div className="card mt-3 flex min-h-60 flex-col items-center justify-center px-8 text-center">
-                  <h2 className="text-[16px] font-semibold tracking-[-0.02em]">
-                    {t("No repositories tracked")}
-                  </h2>
-                  <p className="mt-2 max-w-sm text-[12.5px] leading-relaxed text-mist">
-                    {t(
-                      "Choose the repositories you want to watch. Only that set is synced.",
-                    )}
-                  </p>
-                  <Button
-                    variant="primary"
-                    className="mt-4"
-                    onClick={() => navigate("/repos")}
-                  >
-                    {t("Edit repositories")}
-                  </Button>
-                </div>
+                <EmptyState
+                  className="card mt-3 min-h-60 content-center"
+                  icon={<FolderSimpleIcon />}
+                  title={t("No repositories tracked")}
+                  description={t(
+                    "Choose the repositories you want to watch. Only that set is synced.",
+                  )}
+                  action={
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={() => navigate("/repos")}
+                    >
+                      {t("Edit repositories")}
+                    </Button>
+                  }
+                />
               </Then>
               <Else>
                 <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
                   <div className="flex min-w-0 flex-col gap-3">
                     <When condition={chart.show}>
-                      <div className="card">
+                      <Surface
+                        padding="none"
+                        className="border border-hairline"
+                      >
                         <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
                           <span className="text-[13px] font-semibold">
                             {t("Downloads by repo")}
@@ -163,9 +166,17 @@ export function ListView() {
                           </span>
                         </div>
                         <div className="p-4">
-                          <BarChart items={chart.items} onSelect={openRepo} />
+                          <BarList
+                            label={t("Downloads by repo")}
+                            formatValue={fmtCompact}
+                            items={chart.items}
+                            onSelect={(item) => openRepo(item.label)}
+                            displayLabel={(label) =>
+                              label.split("/").pop() ?? label
+                            }
+                          />
                         </div>
-                      </div>
+                      </Surface>
                     </When>
                     <RepositoryTable
                       rows={rows}

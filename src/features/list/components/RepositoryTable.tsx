@@ -4,10 +4,10 @@ import {
   MagnifyingGlassIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
+import { Badge, EmptyState, Input, Surface } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { VList } from "virtua";
 import { useI18n } from "@/app/hooks";
-import { Input } from "@/components/Input";
 import { fmtNum, fmtSigned } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
@@ -79,9 +79,13 @@ export function RepositoryTable({
           </span>
         </When>
         <When condition={repo.private}>
-          <span className="shrink-0 rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase text-mist">
+          <Badge
+            size="sm"
+            variant="neutral"
+            className="shrink-0 rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase"
+          >
             {t("Private")}
-          </span>
+          </Badge>
         </When>
       </span>
       {[
@@ -112,7 +116,10 @@ export function RepositoryTable({
   );
 
   return (
-    <div className="card min-w-0 overflow-hidden">
+    <Surface
+      padding="none"
+      className="min-w-0 overflow-hidden border border-hairline"
+    >
       <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
         <span className="text-[13px] font-semibold">{t("Repositories")}</span>
         <label
@@ -122,7 +129,8 @@ export function RepositoryTable({
           <MagnifyingGlassIcon size={12} className="shrink-0 text-faint" />
           <Input
             id="repository-filter"
-            variant="compact"
+            size="sm"
+            className="app-input--compact"
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder={t("Filter…")}
@@ -147,9 +155,12 @@ export function RepositoryTable({
             <If condition={rows.length === 0}>
               <Then>
                 <li>
-                  <p className="px-5 py-8 text-center text-[13px] text-faint">
-                    {t("list.noResults", { query: query.trim() })}
-                  </p>
+                  <EmptyState
+                    compact
+                    icon={<MagnifyingGlassIcon />}
+                    title={t("list.noResults", { query: query.trim() })}
+                    className="py-5"
+                  />
                 </li>
               </Then>
               <Else>
@@ -181,6 +192,6 @@ export function RepositoryTable({
           </VList>
         </Else>
       </If>
-    </div>
+    </Surface>
   );
 }

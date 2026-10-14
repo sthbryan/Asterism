@@ -1,6 +1,6 @@
+import { SegmentedControl } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
 import type { OwnerEntry } from "../utils/pickerData";
-import { SegTab } from "./SegTab";
 
 export function OwnerFilter({
   total,
@@ -14,23 +14,38 @@ export function OwnerFilter({
   onChange: (owner: string | null) => void;
 }) {
   const { t } = useI18n();
+  const options = [
+    {
+      value: "",
+      label: (
+        <>
+          {t("All")}{" "}
+          <span className="font-mono text-[10.5px] text-faint tabular">
+            {total}
+          </span>
+        </>
+      ),
+    },
+    ...owners.map((owner) => ({
+      value: owner.name,
+      label: (
+        <>
+          {owner.name}{" "}
+          <span className="font-mono text-[10.5px] text-faint tabular">
+            {owner.count}
+          </span>
+        </>
+      ),
+    })),
+  ];
+
   return (
-    <div className="inline-flex gap-0.5 rounded-lg border border-hairline bg-wash p-[3px]">
-      <SegTab
-        label={t("All")}
-        count={total}
-        active={active === null}
-        onClick={() => onChange(null)}
-      />
-      {owners.map((owner) => (
-        <SegTab
-          key={owner.name}
-          label={owner.name}
-          count={owner.count}
-          active={active === owner.name}
-          onClick={() => onChange(owner.name)}
-        />
-      ))}
-    </div>
+    <SegmentedControl
+      options={options}
+      ariaLabel={t("Owner")}
+      value={active ?? ""}
+      onValueChange={(value) => onChange(value || null)}
+      size="sm"
+    />
   );
 }
