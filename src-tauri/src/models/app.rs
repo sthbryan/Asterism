@@ -18,6 +18,15 @@ pub enum ThemePref {
     System,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum ThemePreset {
+    Asterism,
+    Default,
+    Fizza,
+    Pulso,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "camelCase")]
 pub enum Locale {
@@ -34,6 +43,8 @@ pub struct Config {
     #[serde(default)]
     pub theme: ThemePref,
     #[serde(default)]
+    pub theme_preset: Option<ThemePreset>,
+    #[serde(default)]
     pub transparency: bool,
     #[serde(default)]
     pub locale: Option<Locale>,
@@ -45,6 +56,7 @@ impl Default for Config {
             version: 1,
             repos: Vec::new(),
             theme: ThemePref::Dark,
+            theme_preset: None,
             transparency: false,
             locale: None,
         }

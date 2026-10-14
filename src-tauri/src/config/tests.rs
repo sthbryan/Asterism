@@ -48,6 +48,7 @@ fn migration_is_repeatable_preserves_originals_and_requires_account_assignment()
     assert!(state.legacy_available);
     assert_eq!(state.config.locale, Some(Locale::Es));
     assert!(state.config.transparency);
+    assert!(state.config.theme_preset.is_none());
     db.activate("github.com/one".into()).unwrap();
     db.import_legacy().unwrap();
     db.import_legacy().unwrap();
@@ -80,7 +81,8 @@ fn explicit_saves_reload_preserves_preferences_projects_and_history() {
     db.activate("github.com/one".into()).unwrap();
     db.save_repos(vec!["one/private".into()]).unwrap();
     db.save_locale(Locale::Es).unwrap();
-    db.save_appearance(ThemePref::System, true).unwrap();
+    db.save_appearance(ThemePref::System, true, Some(ThemePreset::Pulso))
+        .unwrap();
     let mut projects = db.projects().unwrap();
     projects
         .folders
@@ -94,6 +96,10 @@ fn explicit_saves_reload_preserves_preferences_projects_and_history() {
     assert_eq!(db.load_config().unwrap().repos, vec!["one/private"]);
     assert_eq!(db.load_config().unwrap().locale, Some(Locale::Es));
     assert!(db.load_config().unwrap().transparency);
+    assert_eq!(
+        db.load_config().unwrap().theme_preset,
+        Some(ThemePreset::Pulso)
+    );
     assert_eq!(
         db.projects().unwrap().folders["one/private"],
         vec!["/my projects/repo"]
@@ -167,7 +173,7 @@ fn concurrent_preference_and_project_updates_preserve_each_other() {
                 tauri::async_runtime::block_on(crate::commands::status::offload_write(move || {
                     match i {
                         0 => db.save_locale(Locale::Es),
-                        1 => db.save_appearance(ThemePref::System, true),
+                        1 => db.save_appearance(ThemePref::System, true, Some(ThemePreset::Pulso)),
                         2 => db.save_repos(vec!["one/repo".into()]),
                         _ => {
                             let mut folders = db.checkout_folders()?;
@@ -191,10 +197,35 @@ fn concurrent_preference_and_project_updates_preserve_each_other() {
     let cfg = db.load_config().unwrap();
     assert_eq!(cfg.locale, Some(Locale::Es));
     assert_eq!(cfg.theme, ThemePref::System);
+    assert_eq!(cfg.theme_preset, Some(ThemePreset::Pulso));
     assert!(cfg.transparency);
     assert_eq!(cfg.repos, vec!["one/repo"]);
     let mut folders = db.checkout_folders().unwrap()["one/repo"].clone();
     folders.sort();
     assert_eq!(folders, vec!["/checkout/3", "/checkout/4"]);
+    fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
+}
+
+#[test]
+fn theme_presets_survive_mode_locale_and_account_changes() {
+    let (_app, db) = fixture();
+    db.activate("github.com/one".into()).unwrap();
+    for preset in [
+        ThemePreset::Asterism,
+        ThemePreset::Default,
+        ThemePreset::Fizza,
+        ThemePreset::Pulso,
+    ] {
+        db.save_appearance(ThemePref::Dark, false, Some(preset.clone()))
+            .unwrap();
+        db.save_locale(Locale::Es).unwrap();
+        db.save_appearance(ThemePref::System, true, None).unwrap();
+        db.activate("github.com/two".into()).unwrap();
+        let config = db.load_config().unwrap();
+        assert_eq!(config.theme_preset, Some(preset));
+        assert_eq!(config.theme, ThemePref::System);
+        assert!(config.transparency);
+    }
+    assert!(serde_json::from_str::<ThemePreset>("\"unknown\"").is_err());
     fs::remove_dir_all(db.root.parent().unwrap()).unwrap();
 }

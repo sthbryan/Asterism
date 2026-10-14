@@ -1,6 +1,6 @@
 use crate::config;
 use crate::gh;
-use crate::models::{Config, Diagnostics, Locale, Status, ThemePref};
+use crate::models::{Config, Diagnostics, Locale, Status, ThemePref, ThemePreset};
 
 use super::catalog::account_key;
 use super::state::ensure_scope;
@@ -54,7 +54,11 @@ pub(crate) async fn save_config(
 }
 
 #[tauri::command]
-pub(crate) async fn save_appearance(theme: String, transparency: bool) -> Result<Config, String> {
+pub(crate) async fn save_appearance(
+    theme: String,
+    transparency: bool,
+    theme_preset: Option<ThemePreset>,
+) -> Result<Config, String> {
     offload_write(move || {
         config::storage()?.save_appearance(
             match theme.as_str() {
@@ -63,6 +67,7 @@ pub(crate) async fn save_appearance(theme: String, transparency: bool) -> Result
                 _ => ThemePref::Dark,
             },
             transparency,
+            theme_preset,
         )
     })
     .await?

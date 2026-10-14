@@ -9,6 +9,7 @@ import type {
   Saved,
   Status,
   ThemePref,
+  ThemePreset,
   TrackedRepo,
 } from "@/lib/types";
 
@@ -30,6 +31,7 @@ export type StoreState = {
   refreshing: boolean;
   banner: string | null;
   theme: ThemePref;
+  themePreset: ThemePreset;
   transparency: boolean;
   locale: Locale;
   preferenceError: string | null;

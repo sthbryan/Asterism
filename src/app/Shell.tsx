@@ -10,10 +10,15 @@ import { useTransitionNavigate } from "./useViewTransition";
 export function Shell() {
   useBoot();
   const theme = useStore((s) => s.theme);
+  const themePreset = useStore((s) => s.themePreset);
   const transparency = useStore((s) => s.transparency);
 
   return (
-    <AppearanceProvider theme={theme} transparency={transparency}>
+    <AppearanceProvider
+      theme={theme}
+      themePreset={themePreset}
+      transparency={transparency}
+    >
       <HeaderProvider>
         <AppLayout />
       </HeaderProvider>

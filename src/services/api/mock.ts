@@ -1,4 +1,8 @@
-import { readStoredTheme, readStoredTransparency } from "@/lib/appearance";
+import {
+  readStoredPreset,
+  readStoredTheme,
+  readStoredTransparency,
+} from "@/lib/appearance";
 import {
   detectLocale,
   persistLocale,
@@ -26,9 +30,13 @@ import { mockLocalClient } from "./mockLocal";
 import { mockPullClient } from "./mockPulls";
 import type { ApiClient } from "./types";
 
-function appearance(): Pick<Config, "theme" | "transparency" | "locale"> {
+function appearance(): Pick<
+  Config,
+  "theme" | "themePreset" | "transparency" | "locale"
+> {
   return {
     theme: readStoredTheme(),
+    themePreset: readStoredPreset(),
     transparency: readStoredTransparency(),
     locale: readStoredLocale() ?? detectLocale(),
   };

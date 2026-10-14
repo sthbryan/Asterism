@@ -3,7 +3,7 @@
   "appearance": "Language and appearance",
   "saved": "Changes are saved automatically on this device.",
   "language": "Language",
-  "theme": "Theme",
+  "theme": "Appearance",
   "light": "Light",
   "dark": "Dark",
   "system": "System",
@@ -25,11 +25,16 @@
   "cacheHint": "Cached GitHub data is stored locally to make views open faster. It expires automatically after the configured freshness window.",
   "cacheSize": "Disk usage",
   "cacheEntries": "Entries",
-  "cacheEntriesCount": { "one": "{count} entry", "other": "{count} entries" },
+  "cacheEntriesCount": {
+    "one": "{count} entry",
+    "other": "{count} entries"
+  },
   "cachePath": "Cache path",
   "cacheClear": "Clear cache",
   "cacheClearing": "Clearing…",
   "cacheCleared": "Cache cleared.",
   "cacheError": "Could not read or clear the cache.",
-  "loading": "Loading…"
+  "loading": "Loading…",
+  "preset": "Color palette",
+  "darkPreset": "This palette is available in dark mode. Pine Rose and Pulso also support light mode and the system setting."
 }

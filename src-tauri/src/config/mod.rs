@@ -46,6 +46,7 @@ pub(crate) struct Document<T> {
 #[serde(default, rename_all = "camelCase")]
 pub(crate) struct Preferences {
     pub(crate) theme: ThemePref,
+    pub(crate) theme_preset: Option<ThemePreset>,
     pub(crate) transparency: bool,
     pub(crate) locale: Option<Locale>,
     pub(crate) last_account: Option<String>,
