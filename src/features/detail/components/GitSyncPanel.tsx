@@ -5,18 +5,15 @@ import {
   CaretDownIcon,
   CheckCircleIcon,
   CircleNotchIcon,
-  GitBranchIcon,
-  PlusIcon,
 } from "@phosphor-icons/react";
 import { cn } from "cn";
 import type { ReactNode } from "react";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Select } from "@/components/Select";
-import { isValidBranchName } from "@/lib/git";
 import { useGitSync } from "../hooks/useGitSync";
+import { GitBranchControls } from "./GitBranchControls";
+import { GitSyncSummary } from "./GitSyncSummary";
 
 export function GitSyncPanel({
   fullName,
@@ -25,7 +22,8 @@ export function GitSyncPanel({
   fullName: string;
   path: string;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
+  const sync = useGitSync(fullName, path);
   const {
     open,
     status,
@@ -38,19 +36,11 @@ export function GitSyncPanel({
     detail,
     push,
     badge,
-    switchTo,
-    setSwitchTo,
-    newBranch,
-    setNewBranch,
-    switchNew,
-    setSwitchNew,
     toggle,
     doFetch,
     doPull,
     doPush,
-    doSwitch,
-    doCreate,
-  } = useGitSync(fullName, path);
+  } = sync;
 
   function actionIcon(id: string, icon: ReactNode) {
     return active === id ? (
@@ -91,39 +81,7 @@ export function GitSyncPanel({
               <p className="text-[12px] text-faint">{t("local.git.loading")}</p>
             </When>
             <When condition={Boolean(status)}>
-              <dl className="space-y-1 text-[12px]">
-                <div className="flex gap-2">
-                  <dt className="text-faint">{t("local.git.branch")}</dt>
-                  <dd className="font-medium">
-                    {status?.detached
-                      ? `${t("local.git.detached")}${status.head ? ` · ${status.head}` : ""}`
-                      : (status?.branch ?? "—")}
-                    {badge ? ` · ${badge}` : ""}
-                  </dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-faint">{t("local.git.upstream")}</dt>
-                  <dd>{status?.upstream ?? "—"}</dd>
-                </div>
-                <div className="flex gap-2">
-                  <dt className="text-faint">{t("local.git.changes")}</dt>
-                  <dd>
-                    {status?.clean
-                      ? t("local.git.clean")
-                      : `${status?.staged} ${t("local.git.staged")} · ${status?.unstaged} ${t("local.git.unstaged")} · ${status?.untracked} ${t("local.git.untracked")}`}
-                  </dd>
-                </div>
-              </dl>
-              <p className="text-[12px] text-faint">
-                {status?.lastFetch
-                  ? t("local.git.lastFetch", {
-                      date: new Intl.DateTimeFormat(locale, {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }).format((status.lastFetch ?? 0) * 1000),
-                    })
-                  : t("local.git.neverFetched")}
-              </p>
+              {status && <GitSyncSummary status={status} badge={badge} />}
               <div className="flex flex-wrap gap-1">
                 <Button disabled={busy} onClick={() => void doFetch()}>
                   {actionIcon(
@@ -180,68 +138,7 @@ export function GitSyncPanel({
                   </When>
                 </Else>
               </If>
-              <div className="flex flex-wrap items-center gap-1">
-                <Select
-                  value={switchTo}
-                  onChange={(value) => setSwitchTo(value)}
-                  options={(status?.localBranches ?? []).map((branch) => ({
-                    value: branch,
-                    label: branch,
-                  }))}
-                  className="min-w-28 flex-1"
-                  ariaLabel={t("local.git.switchToBranch")}
-                />
-                <Button
-                  disabled={
-                    busy ||
-                    !switchTo ||
-                    switchTo === status?.branch ||
-                    !status?.clean
-                  }
-                  size="md"
-                  onClick={() => void doSwitch()}
-                >
-                  {actionIcon(
-                    "switch",
-                    <GitBranchIcon size={14} aria-hidden />,
-                  )}
-                  {t("local.git.switch")}
-                </Button>
-              </div>
-              <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-1">
-                  <Input
-                    value={newBranch}
-                    onChange={(e) => setNewBranch(e.target.value)}
-                    aria-label={t("local.git.newBranch")}
-                    placeholder={t("local.git.newBranch")}
-                    className="min-w-28 flex-1"
-                  />
-                  <Button
-                    disabled={
-                      busy || !isValidBranchName(newBranch) || !status?.clean
-                    }
-                    size="md"
-                    className="mt-2"
-                    onClick={() => void doCreate()}
-                  >
-                    {actionIcon("create", <PlusIcon size={14} aria-hidden />)}
-                    {t("local.git.create")}
-                  </Button>
-                </div>
-                <label
-                  htmlFor={`git-switch-new-${path}`}
-                  className="flex items-center gap-2 text-[12px] text-mist"
-                >
-                  <input
-                    id={`git-switch-new-${path}`}
-                    type="checkbox"
-                    checked={switchNew}
-                    onChange={(e) => setSwitchNew(e.target.checked)}
-                  />
-                  {t("local.git.switchToNew")}
-                </label>
-              </div>
+              <GitBranchControls sync={sync} path={path} />
             </When>
             <When condition={Boolean(error)}>
               <div role="alert" className="text-[12.5px] text-accent-soft">
