@@ -66,6 +66,7 @@ export async function applyWindowChrome(
   resolved: ResolvedTheme,
   transparency: boolean,
 ) {
+  if (!("__TAURI_INTERNALS__" in window)) return;
   try {
     const { Effect, EffectState, getCurrentWindow } = await import(
       "@tauri-apps/api/window"
@@ -83,11 +84,20 @@ export async function applyWindowChrome(
       });
     } else {
       await win.clearEffects();
-      await win.setBackgroundColor(
-        resolved === "dark"
-          ? { red: 17, green: 17, blue: 17, alpha: 255 }
-          : { red: 243, green: 243, blue: 243, alpha: 255 },
-      );
+      const background = getComputedStyle(document.documentElement)
+        .getPropertyValue("--sph-bg")
+        .trim();
+      const hex = /^#[0-9a-f]{6}$/i.test(background)
+        ? background
+        : resolved === "dark"
+          ? "#111111"
+          : "#f3f3f3";
+      await win.setBackgroundColor({
+        red: Number.parseInt(hex.slice(1, 3), 16),
+        green: Number.parseInt(hex.slice(3, 5), 16),
+        blue: Number.parseInt(hex.slice(5, 7), 16),
+        alpha: 255,
+      });
     }
   } catch {
     /* browser / mock */
