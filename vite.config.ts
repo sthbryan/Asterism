@@ -20,7 +20,7 @@ export default defineConfig(async () => ({
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        advancedChunks: {
+        codeSplitting: {
           groups: [
             {
               name: "vendor",
