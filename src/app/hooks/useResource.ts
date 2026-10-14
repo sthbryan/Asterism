@@ -9,12 +9,16 @@ export function useResource<T>(
   resource: string,
   fetch: () => Promise<Saved<T>>,
   enabled = true,
+  local = false,
 ) {
   const account = useStore((state) => state.account);
   const revision = useStore((state) => state.dataRevision);
   const ready = useStore(
     (state) =>
-      !state.connecting && Boolean(state.status?.ok) && Boolean(state.account),
+      local ||
+      (!state.connecting &&
+        Boolean(state.status?.ok) &&
+        Boolean(state.account)),
   );
   const scope = `${revision}:${account}`;
   const key = JSON.stringify([scope, resource]);

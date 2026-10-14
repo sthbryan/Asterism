@@ -1,5 +1,7 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
+import { useResource } from "@/app/hooks/useResource";
+import { useStore } from "@/app/store";
 import { aheadBehindText, pushTarget } from "@/lib/git";
 import type { GitSyncStatus } from "@/lib/types";
 import {
@@ -10,6 +12,7 @@ import {
   gitSwitchBranch,
   gitSyncStatus,
 } from "@/services/api";
+import { checkoutCache, gitStatusCache } from "@/services/api/resources";
 import { gitErrorCode, gitErrorDetail } from "../utils/gitErrors";
 
 /**
@@ -29,23 +32,48 @@ export function useGitSync(fullName: string, path: string) {
   const [newBranch, setNewBranch] = useState("");
   const [switchNew, setSwitchNew] = useState(true);
   const generation = useRef(0);
+  const running = useRef(false);
+  const account = useStore((state) => state.account);
+  const revision = useStore((state) => state.dataRevision);
+  const fetch = useCallback(
+    async () => ({
+      data: await gitSyncStatus(fullName, path),
+      fetchedAt: Math.floor(Date.now() / 1_000),
+      warning: null,
+    }),
+    [fullName, path],
+  );
+  const resource = useResource(
+    gitStatusCache,
+    JSON.stringify([fullName, path]),
+    fetch,
+    open,
+    true,
+  );
 
-  async function load() {
-    const request = ++generation.current;
-    setBusy(true);
+  useEffect(() => {
+    void fullName;
+    void path;
+    void account;
+    void revision;
+    generation.current++;
+    running.current = false;
+    setStatus(null);
     setError(null);
-    try {
-      const next = await gitSyncStatus(fullName, path);
-      if (request === generation.current) {
-        setStatus(next);
-        setSwitchTo(next.branch ?? "");
-      }
-    } catch (e) {
-      if (request === generation.current) setError(String(e));
-    } finally {
-      if (request === generation.current) setBusy(false);
+    setNotice(null);
+    setActive(null);
+    setBusy(false);
+    return () => {
+      generation.current++;
+    };
+  }, [fullName, path, account, revision]);
+
+  useEffect(() => {
+    if (resource.saved) {
+      setStatus(resource.saved.data);
+      setSwitchTo(resource.saved.data.branch ?? "");
     }
-  }
+  }, [resource.saved]);
 
   async function run(
     id: string,
@@ -53,7 +81,13 @@ export function useGitSync(fullName: string, path: string) {
     done: (next: GitSyncStatus) => string,
     op: () => Promise<GitSyncStatus>,
   ) {
+    if (running.current) return;
+    running.current = true;
     const request = generation.current;
+    const current = () =>
+      request === generation.current &&
+      account === useStore.getState().account &&
+      revision === useStore.getState().dataRevision;
     setBusy(true);
     setActive(id);
     setProgressKey(progress);
@@ -61,15 +95,19 @@ export function useGitSync(fullName: string, path: string) {
     setError(null);
     try {
       const next = await op();
-      if (request === generation.current) {
+      if (current()) {
         setStatus(next);
         setSwitchTo(next.branch ?? "");
         setNotice(done(next));
+        gitStatusCache.clear();
+        checkoutCache.clear();
+        await resource.refresh();
       }
     } catch (e) {
-      if (request === generation.current) setError(String(e));
+      if (current()) setError(String(e));
     } finally {
-      if (request === generation.current) {
+      if (current()) {
+        running.current = false;
         setBusy(false);
         setActive(null);
         setProgressKey(null);
@@ -80,22 +118,22 @@ export function useGitSync(fullName: string, path: string) {
   function toggle() {
     const next = !open;
     setOpen(next);
-    if (next && !status) void load();
   }
 
-  const code = error ? gitErrorCode(error) : null;
-  const detail = error ? gitErrorDetail(error) : "";
+  const failure = error ?? resource.error;
+  const code = failure ? gitErrorCode(failure) : null;
+  const detail = failure ? gitErrorDetail(failure) : "";
   const push = status ? pushTarget(status) : null;
   const badge = status ? aheadBehindText(status.ahead, status.behind) : null;
 
   return {
     open,
     status,
-    busy,
+    busy: busy || resource.loading,
     active,
     progressKey,
     notice,
-    error,
+    error: failure,
     code,
     detail,
     push,

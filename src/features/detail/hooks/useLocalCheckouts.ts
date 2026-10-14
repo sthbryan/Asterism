@@ -1,7 +1,7 @@
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
+import { useResource } from "@/app/hooks/useResource";
 import { useStore } from "@/app/store";
-import type { LocalCheckout } from "@/lib/types";
 import {
   chooseLocalFolder,
   cloneLocalRepository,
@@ -10,6 +10,7 @@ import {
   openLocalCheckout,
   unlinkLocalCheckout,
 } from "@/services/api";
+import { checkoutCache } from "@/services/api/resources";
 import { localError, suggestFolderName } from "../utils/localUtils";
 
 export type EditorTarget = "vscode" | "cursor" | "zed";
@@ -23,208 +24,119 @@ function readEditor(): EditorTarget {
   }
 }
 
-type CheckoutsState = {
-  items: LocalCheckout[];
-  parent: string | null;
-  name: string;
-  busy: boolean;
-  error: string | null;
-};
-
-type CheckoutsAction =
-  | { type: "reset"; name: string }
-  | { type: "runStart" }
-  | { type: "runEnd" }
-  | { type: "runFailure"; error: string }
-  | { type: "listSuccess"; items: LocalCheckout[] }
-  | { type: "upsert"; item: LocalCheckout }
-  | { type: "setParent"; parent: string | null }
-  | { type: "setName"; name: string };
-
-function initCheckouts(fullName: string): CheckoutsState {
+async function fetchCheckouts() {
   return {
-    items: [],
-    parent: null,
-    name: suggestFolderName(fullName),
-    busy: false,
-    error: null,
+    data: await listLocalCheckouts(),
+    fetchedAt: Math.floor(Date.now() / 1_000),
+    warning: null,
   };
 }
 
-function checkoutsReducer(
-  state: CheckoutsState,
-  action: CheckoutsAction,
-): CheckoutsState {
-  switch (action.type) {
-    case "reset":
-      return {
-        items: [],
-        parent: null,
-        name: action.name,
-        busy: false,
-        error: null,
-      };
-    case "runStart":
-      return { ...state, busy: true, error: null };
-    case "runEnd":
-      return { ...state, busy: false };
-    case "runFailure":
-      return { ...state, error: action.error };
-    case "listSuccess":
-      return { ...state, items: action.items };
-    case "upsert":
-      return {
-        ...state,
-        items: [
-          ...state.items.filter((entry) => entry.path !== action.item.path),
-          action.item,
-        ],
-      };
-    case "setParent":
-      return { ...state, parent: action.parent };
-    case "setName":
-      return { ...state, name: action.name };
-  }
-}
-
-/**
- * Checkout list state and guarded actions for one repository.
- * Every action shares the same busy/error/generation handling so a stale
- * response can never overwrite a newer view.
- */
 export function useLocalCheckouts(fullName: string) {
   const { t } = useI18n();
   const account = useStore((s) => s.account);
-  const online = useStore((s) => s.status?.ok === true);
-  const [state, dispatch] = useReducer(
-    checkoutsReducer,
-    fullName,
-    initCheckouts,
+  const revision = useStore((s) => s.dataRevision);
+  const resource = useResource(
+    checkoutCache,
+    "all",
+    fetchCheckouts,
+    true,
+    true,
   );
-
+  const [parent, setParent] = useState<string | null>(null);
+  const [name, setName] = useState(() => suggestFolderName(fullName));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [editor, setEditorState] = useState<EditorTarget>(readEditor);
   const generation = useRef(0);
-
-  const { items, parent, name, busy, error } = state;
+  const running = useRef(false);
 
   useEffect(() => {
     void account;
-    const request = ++generation.current;
-    let active = true;
-    dispatch({ type: "reset", name: suggestFolderName(fullName) });
-    void listLocalCheckouts()
-      .then((rows) => {
-        if (active && request === generation.current)
-          dispatch({
-            type: "listSuccess",
-            items: rows.filter((row) => row.fullName === fullName),
-          });
-      })
-      .catch((e) => {
-        if (active && request === generation.current)
-          dispatch({ type: "runFailure", error: localError(e, t) });
-      });
+    void revision;
+    setParent(null);
+    setName(suggestFolderName(fullName));
+    setBusy(false);
+    setError(null);
+    running.current = false;
+    generation.current++;
     return () => {
-      active = false;
       generation.current++;
     };
-  }, [fullName, account, t]);
+  }, [fullName, account, revision]);
 
-  async function run(task: (request: number) => Promise<void>) {
+  async function run(task: (current: () => boolean) => Promise<void>) {
+    if (running.current) return;
+    running.current = true;
     const request = generation.current;
-    dispatch({ type: "runStart" });
+    const current = () =>
+      request === generation.current &&
+      account === useStore.getState().account &&
+      revision === useStore.getState().dataRevision;
+    setBusy(true);
+    setError(null);
     try {
-      await task(request);
-    } catch (e) {
-      if (request === generation.current)
-        dispatch({ type: "runFailure", error: localError(e, t) });
+      await task(current);
+    } catch (err) {
+      if (current()) setError(localError(err, t));
     } finally {
-      if (request === generation.current) dispatch({ type: "runEnd" });
+      if (current()) {
+        running.current = false;
+        setBusy(false);
+      }
     }
   }
 
-  function upsert(item: LocalCheckout, request: number) {
-    if (request !== generation.current) return;
-    dispatch({ type: "upsert", item });
-  }
-
-  async function link() {
-    await run(async (request) => {
-      const path = await chooseLocalFolder();
-      if (!path || request !== generation.current) return;
-      upsert(await linkLocalCheckout(fullName, path), request);
-    });
-  }
-
-  async function confirmClone() {
-    if (!parent || !name.trim()) return;
-    const folder = name.trim();
-    await run(async (request) => {
-      const item = await cloneLocalRepository(fullName, parent, folder);
-      if (request !== generation.current) return;
-      upsert(item, request);
-      dispatch({ type: "setParent", parent: null });
-    });
-  }
-
-  async function unlink(path: string) {
-    if (busy) return;
-    await run(async (request) => {
-      await unlinkLocalCheckout(fullName, path);
-      if (request !== generation.current) return;
-      const rows = await listLocalCheckouts();
-      if (request === generation.current)
-        dispatch({
-          type: "listSuccess",
-          items: rows.filter((row) => row.fullName === fullName),
-        });
-    });
-  }
-
-  async function chooseCloneParent() {
-    await run(async (request) => {
-      const path = await chooseLocalFolder();
-      if (path && request === generation.current)
-        dispatch({ type: "setParent", parent: path });
-    });
-  }
-
-  async function open(path: string, target: "folder" | EditorTarget) {
-    await run(() => openLocalCheckout(fullName, path, target));
-  }
-
-  function setName(next: string) {
-    dispatch({ type: "setName", name: next });
-  }
-
-  function setEditor(next: EditorTarget) {
-    setEditorState(next);
-    try {
-      localStorage.setItem("asterism.editor", next);
-    } catch {
-      /* best effort */
-    }
-  }
-
-  function cancelClone() {
-    dispatch({ type: "setParent", parent: null });
+  async function reload(current: () => boolean) {
+    if (!current()) return;
+    checkoutCache.clear();
+    await resource.refresh();
   }
 
   return {
-    items,
-    busy,
-    error,
-    online,
+    items: (resource.saved?.data ?? []).filter(
+      (row) => row.fullName === fullName,
+    ),
+    busy: busy || resource.loading,
+    error: error ?? (resource.error ? localError(resource.error, t) : null),
     parent,
     name,
     setName,
     editor,
-    setEditor,
-    link,
-    confirmClone,
-    cancelClone,
-    unlink,
-    chooseCloneParent,
-    open,
+    setEditor: (next: EditorTarget) => {
+      setEditorState(next);
+      try {
+        localStorage.setItem("asterism.editor", next);
+      } catch {
+        /* best effort */
+      }
+    },
+    link: () =>
+      run(async (current) => {
+        const path = await chooseLocalFolder();
+        if (!path || !current()) return;
+        await linkLocalCheckout(fullName, path);
+        await reload(current);
+      }),
+    confirmClone: () =>
+      run(async (current) => {
+        if (!parent || !name.trim()) return;
+        await cloneLocalRepository(fullName, parent, name.trim());
+        if (current()) setParent(null);
+        await reload(current);
+      }),
+    cancelClone: () => setParent(null),
+    unlink: (path: string) =>
+      run(async (current) => {
+        await unlinkLocalCheckout(fullName, path);
+        await reload(current);
+      }),
+    chooseCloneParent: () =>
+      run(async (current) => {
+        const path = await chooseLocalFolder();
+        if (path && current()) setParent(path);
+      }),
+    open: (path: string, target: "folder" | EditorTarget) =>
+      run(() => openLocalCheckout(fullName, path, target)),
   };
 }
