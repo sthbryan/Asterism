@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, mock, spyOn, test } from "bun:test";
 import { useStore } from "../src/app/store";
-import { mockDetail } from "../src/lib/mock/fixtures";
+import { mockDetail } from "../src/lib/mock";
 import { clearResourceCaches } from "../src/lib/resourceCache";
 import type { RepoDetail, Saved } from "../src/lib/types";
 import { tauriClient } from "../src/services/api/tauri";
