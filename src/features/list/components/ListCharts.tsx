@@ -1,7 +1,8 @@
-import { Surface, TimeSeriesChart } from "@zovaris/sephiro";
+import { Surface } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { fmtAxisDateLong, fmtCompact, fmtSigned } from "@/lib/format";
+import { HistoryChart } from "@/components/charts";
+import { fmtSigned } from "@/lib/format";
 import { delta } from "@/lib/series";
 import type { SeriesPoint } from "@/lib/types";
 
@@ -33,13 +34,10 @@ export function ListCharts({
             {t("Star growth across tracked repositories.")}
           </p>
           <div className="mt-3">
-            <TimeSeriesChart
+            <HistoryChart
               label={t("History chart")}
-              formatValue={fmtCompact}
-              formatDate={fmtAxisDateLong}
-              keyboardHelpText={t("common.chartKeyboardHelp")}
               points={starSeries}
-              tone="paper"
+              tone="muted"
               emptyText={t(
                 "Open a repository or refresh to reconstruct star history from GitHub.",
               )}
@@ -61,11 +59,8 @@ export function ListCharts({
             {t("Download growth across tracked repositories.")}
           </p>
           <div className="mt-3">
-            <TimeSeriesChart
+            <HistoryChart
               label={t("History chart")}
-              formatValue={fmtCompact}
-              formatDate={fmtAxisDateLong}
-              keyboardHelpText={t("common.chartKeyboardHelp")}
               points={downloadSeries}
               tone="accent"
               emptyText={t("This chart fills in from the next refresh onward.")}

@@ -142,6 +142,5 @@
     "traffic": "GitHub proporciona una ventana de 14 días; esta app muestra la respuesta más reciente.",
     "period": "Período de la respuesta: {from} – {to}",
     "storageError": "No se pudieron leer o guardar los ajustes locales. Revisa la ubicación y los permisos en Ajustes y vuelve a intentarlo."
-  },
-  "chartKeyboardHelp": "Usa las flechas izquierda y derecha para consultar las muestras. Inicio y Fin llevan a la primera y la última."
+  }
 }
