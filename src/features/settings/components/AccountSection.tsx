@@ -1,6 +1,6 @@
+import { Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
-import { Button } from "@/components/Button";
 
 export function AccountSection() {
   const { t } = useI18n();
@@ -24,7 +24,9 @@ export function AccountSection() {
             {status?.ok ? t("GitHub · connected") : t("settings.disconnected")}
           </p>
         </div>
-        <Button onClick={retryBoot}>{t("Check connection")}</Button>
+        <Button variant="secondary" size="sm" onClick={retryBoot}>
+          {t("Check connection")}
+        </Button>
       </div>
     </section>
   );

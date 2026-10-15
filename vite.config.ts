@@ -16,11 +16,10 @@ export default defineConfig(async () => ({
   clearScreen: false,
   build: {
     sourcemap: false,
-    minify: "esbuild",
     chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
-        advancedChunks: {
+        codeSplitting: {
           groups: [
             {
               name: "vendor",

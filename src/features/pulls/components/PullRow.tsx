@@ -1,4 +1,5 @@
 import { GitBranchIcon, GitPullRequestIcon } from "@phosphor-icons/react";
+import { Badge } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import type { PullRequestSummary } from "@/lib/types";
@@ -16,8 +17,7 @@ export function PullRow({
   onOpen: () => void;
 }) {
   const { t } = useI18n();
-  const stateClass =
-    pull.state === "OPEN" ? "bg-ok/10 text-ok" : "bg-fill text-mist";
+  const stateVariant = pull.state === "OPEN" ? "success" : "neutral";
   return (
     <button
       type="button"
@@ -37,15 +37,21 @@ export function PullRow({
               {pull.title}
             </span>
             <When condition={pull.draft}>
-              <span className="rounded-full bg-fill px-1.5 py-0.5 text-[10px] text-mist">
+              <Badge
+                size="sm"
+                variant="neutral"
+                className="px-1.5 py-0.5 text-[10px]"
+              >
                 {t("pulls.draft")}
-              </span>
+              </Badge>
             </When>
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] ${stateClass}`}
+            <Badge
+              size="sm"
+              variant={stateVariant}
+              className="px-1.5 py-0.5 text-[10px]"
             >
               {pull.state.toLowerCase()}
-            </span>
+            </Badge>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-mist">
             <span>{pull.author ?? t("pulls.unknown")}</span>

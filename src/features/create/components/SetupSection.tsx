@@ -1,6 +1,5 @@
+import { Button, Checkbox, Select } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
-import { Select } from "@/components/Select";
 import type { CreateFormApi } from "../hooks/useCreateForm";
 
 type SetupForm = Pick<
@@ -41,15 +40,12 @@ export function SetupSection({ form }: { form: SetupForm }) {
   return (
     <>
       <div className="border-t border-hairline pt-5">
-        <label className="flex items-center gap-3 text-[13px]">
-          <input
-            type="checkbox"
-            checked={readme}
-            onChange={(event) => setReadme(event.target.checked)}
-            className="accent-accent"
-          />
-          {t("Add a README")}
-        </label>
+        <Checkbox
+          size="sm"
+          checked={readme}
+          onChange={(event) => setReadme(event.target.checked)}
+          label={t("Add a README")}
+        />
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <label
             id="create-gitignore-label"
@@ -62,7 +58,8 @@ export function SetupSection({ form }: { form: SetupForm }) {
               value={gitignore}
               className="mt-2"
               ariaLabelledBy="create-gitignore-label"
-              onChange={setGitignore}
+              onValueChange={setGitignore}
+              size="sm"
               options={[
                 { value: "", label: t("None") },
                 ...(options?.gitignores.map((item) => ({
@@ -83,7 +80,8 @@ export function SetupSection({ form }: { form: SetupForm }) {
               value={license}
               className="mt-2"
               ariaLabelledBy="create-license-label"
-              onChange={setLicense}
+              onValueChange={setLicense}
+              size="sm"
               options={[
                 { value: "", label: t("None") },
                 ...(options?.licenses.map((item) => ({
@@ -95,19 +93,19 @@ export function SetupSection({ form }: { form: SetupForm }) {
           </label>
         </div>
       </div>
-      <label className="flex items-center gap-3 border-t border-hairline pt-5 text-[13px]">
-        <input
-          type="checkbox"
+      <div className="border-t border-hairline pt-5">
+        <Checkbox
+          size="sm"
           checked={track}
           onChange={(event) => setTrack(event.target.checked)}
-          className="accent-accent"
+          label={t("Track this repository in Asterism")}
         />
-        {t("Track this repository in Asterism")}
-      </label>
+      </div>
       <div className="flex justify-end pb-4">
         <Button
           type="submit"
           variant="primary"
+          size="sm"
           disabled={busy || !owner || !cleanName || Boolean(invalidName)}
         >
           {busy ? t("Creating repository…") : t("Create repository")}

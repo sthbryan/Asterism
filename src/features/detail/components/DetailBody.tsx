@@ -1,3 +1,4 @@
+import { Collapsible, Spinner } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
@@ -33,10 +34,7 @@ export function DetailBody({
           })}
           <When condition={refreshing}>
             <span role="status" className="inline-flex items-center gap-1">
-              <span
-                aria-hidden
-                className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
-              />
+              <Spinner size="sm" />
               {t("Refreshing…")}
             </span>
           </When>
@@ -45,10 +43,12 @@ export function DetailBody({
       <When condition={warning}>
         <div role="status" className="mb-4 text-sm text-mist">
           <p>{t("errors.request")}</p>
-          <details>
-            <summary>{t("Connection details")}</summary>
+          <Collapsible
+            className="[&_.sph-collapsible__trigger]:text-sm [&_.sph-collapsible__inner]:p-0"
+            trigger={t("Connection details")}
+          >
             <p className="mt-2 wrap-break-word">{warning}</p>
-          </details>
+          </Collapsible>
         </div>
       </When>
       <RepoIntro detail={detail} />

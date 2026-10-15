@@ -3,12 +3,15 @@ import { createResourceCache } from "@/lib/resourceCache";
 import type {
   CatalogRepo,
   CreateOptions,
+  Diagnostics,
+  GitSyncStatus,
+  LocalCheckout,
   PullListResult,
   PullRequestDetail,
 } from "@/lib/types";
 import { readCache, writeCache } from "./index";
 
-function apiCache<T>(namespace: string, ttl: number) {
+export function apiCache<T>(namespace: string, ttl: number) {
   return createResourceCache<T>(ttl, {
     read: (key) => readCache<T>(namespace, key),
     write: (key, entry) => writeCache(namespace, key, entry),
@@ -28,6 +31,11 @@ export const createOptionsCache = apiCache<CreateOptions>(
   "create-options",
   CACHE_TTL_MS.create,
 );
+
+// Local probes have short TTLs: cached state is display-only, never permission to mutate.
+export const checkoutCache = apiCache<LocalCheckout[]>("checkouts", 5_000);
+export const gitStatusCache = apiCache<GitSyncStatus>("git-status", 5_000);
+export const diagnosticsCache = apiCache<Diagnostics>("diagnostics", 300_000);
 
 export const catalogCache = apiCache<CatalogRepo[]>(
   "catalog",

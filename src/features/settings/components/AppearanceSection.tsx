@@ -1,16 +1,18 @@
+import { Alert, Select, Toggle } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useAppearance } from "@/components/Appearance";
-import { Select } from "@/components/Select";
-import { Toggle } from "@/components/Toggle";
-import type { Locale, ThemePref } from "@/lib/types";
+import { presetSupportsMode } from "@/lib/appearance";
+import type { Locale, ThemePref, ThemePreset } from "@/lib/types";
 
 export function AppearanceSection() {
   const { t, locale, setLocale } = useI18n();
   const {
     theme,
     setTheme,
+    themePreset,
+    setThemePreset,
     transparency,
     setTransparency,
     error: appearanceError,
@@ -40,7 +42,29 @@ export function AppearanceSection() {
             { value: "es", label: "Español" },
             { value: "en", label: "English" },
           ]}
-          onChange={(value) => setLocale(value as Locale)}
+          onValueChange={(value) => setLocale(value as Locale)}
+        />
+      </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <label
+          id="app-preset-label"
+          htmlFor="app-preset"
+          className="text-sm font-medium"
+        >
+          {t("settings.preset")}
+        </label>
+        <Select
+          id="app-preset"
+          value={themePreset}
+          className="min-w-40"
+          ariaLabelledBy="app-preset-label"
+          options={[
+            { value: "asterism", label: "Asterism" },
+            { value: "default", label: "Pine Rose" },
+            { value: "fizza", label: "Fizza" },
+            { value: "pulso", label: "Pulso" },
+          ]}
+          onValueChange={(value) => setThemePreset(value as ThemePreset)}
         />
       </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -53,7 +77,8 @@ export function AppearanceSection() {
         </label>
         <Select
           id="app-theme"
-          value={theme}
+          value={presetSupportsMode(themePreset) ? theme : "dark"}
+          disabled={!presetSupportsMode(themePreset)}
           className="min-w-40"
           ariaLabelledBy="app-theme-label"
           options={[
@@ -61,9 +86,12 @@ export function AppearanceSection() {
             { value: "dark", label: t("settings.dark") },
             { value: "system", label: t("settings.system") },
           ]}
-          onChange={(value) => setTheme(value as ThemePref)}
+          onValueChange={(value) => setTheme(value as ThemePref)}
         />
       </div>
+      <When condition={!presetSupportsMode(themePreset)}>
+        <p className="mt-2 text-sm text-mist">{t("settings.darkPreset")}</p>
+      </When>
       <div className="mt-5 flex items-center justify-between gap-6">
         <div>
           <p className="text-sm font-medium">{t("settings.transparency")}</p>
@@ -72,18 +100,21 @@ export function AppearanceSection() {
           </p>
         </div>
         <Toggle
-          on={transparency}
-          onChange={setTransparency}
+          checked={transparency}
+          onCheckedChange={setTransparency}
           label={t("settings.transparency")}
         />
       </div>
       <When condition={Boolean(appearanceError || preferenceError)}>
-        <div role="alert" className="mt-4 text-sm text-accent-soft">
-          <p>{t("settings.saveError")}</p>
+        <Alert
+          variant="danger"
+          title={t("settings.saveError")}
+          className="mt-4"
+        >
           <p className="mt-1 wrap-break-word">
             {appearanceError || preferenceError}
           </p>
-        </div>
+        </Alert>
       </When>
     </section>
   );

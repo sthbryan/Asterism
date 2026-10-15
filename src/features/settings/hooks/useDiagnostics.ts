@@ -1,78 +1,27 @@
-import { useEffect, useReducer } from "react";
-import type { Diagnostics } from "@/lib/types";
+import { useResource } from "@/app/hooks/useResource";
 import { getDiagnostics } from "@/services/api";
+import { diagnosticsCache } from "@/services/api/resources";
 
-type DiagnosticsState = {
-  diagnostics: Diagnostics | null;
-  error: string | null;
-  loading: boolean;
-  attempt: number;
-};
-
-type DiagnosticsAction =
-  | { type: "loadStart" }
-  | { type: "loadSuccess"; value: Diagnostics }
-  | { type: "loadFailure"; error: string }
-  | { type: "loadEnd" }
-  | { type: "retry" };
-
-const initialDiagnostics: DiagnosticsState = {
-  diagnostics: null,
-  error: null,
-  loading: true,
-  attempt: 0,
-};
-
-function diagnosticsReducer(
-  state: DiagnosticsState,
-  action: DiagnosticsAction,
-): DiagnosticsState {
-  switch (action.type) {
-    case "loadStart":
-      return { ...state, loading: true, error: null };
-    case "loadSuccess":
-      return { ...state, diagnostics: action.value };
-    case "loadFailure":
-      return { ...state, error: action.error };
-    case "loadEnd":
-      return { ...state, loading: false };
-    case "retry":
-      return { ...state, attempt: state.attempt + 1 };
-  }
+async function fetchDiagnostics() {
+  return {
+    data: await getDiagnostics(),
+    fetchedAt: Math.floor(Date.now() / 1_000),
+    warning: null,
+  };
 }
 
-/**
- * Environment diagnostics fetch with a retry signal.
- * Loading/error/diagnostics share one reducer; attempt only retriggers
- * the effect below.
- */
 export function useDiagnostics() {
-  const [state, dispatch] = useReducer(diagnosticsReducer, initialDiagnostics);
-  const { diagnostics, error, loading, attempt } = state;
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: attempt is an intentional refetch signal for retry; it is not read inside the effect.
-  useEffect(() => {
-    let active = true;
-    dispatch({ type: "loadStart" });
-    getDiagnostics()
-      .then((value) => {
-        if (active) dispatch({ type: "loadSuccess", value });
-      })
-      .catch((err) => {
-        if (active) dispatch({ type: "loadFailure", error: String(err) });
-      })
-      .finally(() => {
-        if (active) dispatch({ type: "loadEnd" });
-      });
-    return () => {
-      active = false;
-    };
-  }, [attempt]);
-
+  const state = useResource(
+    diagnosticsCache,
+    "tools",
+    fetchDiagnostics,
+    true,
+    true,
+  );
   return {
-    diagnostics,
-    error,
-    loading,
-    retry: () => dispatch({ type: "retry" }),
+    diagnostics: state.saved?.data ?? null,
+    error: state.error,
+    loading: state.loading || state.refreshing,
+    retry: state.refresh,
   };
 }

@@ -7,10 +7,10 @@ import {
   StarIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
+import { BarList, Surface } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { BarChart } from "@/components/Charts";
-import { fmtNum } from "@/lib/format";
+import { fmtCompact, fmtNum } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
 
@@ -37,8 +37,8 @@ export function ListSidebar({
       <When condition={Boolean(top)}>
         <button
           type="button"
+          className="card block w-full p-4 text-left transition-colors hover:bg-hover hover:text-paper"
           onClick={() => top && onOpenRepo(top.fullName)}
-          className="card w-full p-4 text-left transition-colors hover:bg-hover"
         >
           <div className="flex items-center gap-2 text-mist">
             <StarIcon size={14} className="text-faint" />
@@ -78,24 +78,26 @@ export function ListSidebar({
       </When>
 
       <When condition={platformBars.length > 0}>
-        <div className="card p-4">
+        <Surface padding="md" className="border border-hairline">
           <div className="flex items-center gap-2 text-mist">
             <DesktopIcon size={14} className="text-faint" />
             <span className="kpi-label">{t("Downloads by platform")}</span>
           </div>
           <div className="mt-3">
-            <BarChart
+            <BarList
+              label={t("Downloads by platform")}
+              formatValue={fmtCompact}
               items={platformBars.map((item) => ({
                 ...item,
                 label: item.label === "Other" ? t("Other") : item.label,
               }))}
             />
           </div>
-        </div>
+        </Surface>
       </When>
 
       <When condition={languages.items.length > 0}>
-        <div className="card p-4">
+        <Surface padding="md" className="border border-hairline">
           <div className="flex items-center gap-2 text-mist">
             <CodeIcon size={14} className="text-faint" />
             <span className="kpi-label">{t("Languages")}</span>
@@ -136,10 +138,10 @@ export function ListSidebar({
               );
             })}
           </ul>
-        </div>
+        </Surface>
       </When>
 
-      <div className="card p-4">
+      <Surface padding="md" className="border border-hairline">
         <div className="flex items-center gap-2 text-mist">
           <FolderSimpleIcon size={14} className="text-faint" />
           <span className="kpi-label">{t("Tracked set")}</span>
@@ -175,7 +177,7 @@ export function ListSidebar({
             </div>
           </When>
         </dl>
-      </div>
+      </Surface>
     </div>
   );
 }

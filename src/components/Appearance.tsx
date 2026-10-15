@@ -10,18 +10,23 @@ import {
 import {
   applyDocumentAppearance,
   applyWindowChrome,
+  isThemePreset,
+  presetSupportsMode,
   type ResolvedTheme,
+  readStoredPreset,
   readStoredTheme,
   readStoredTransparency,
   resolveTheme,
   saveAppearance,
 } from "@/lib/appearance";
-import type { ThemePref } from "@/lib/types";
+import type { ThemePref, ThemePreset } from "@/lib/types";
 
 type AppearanceValue = {
   error: string | null;
   theme: ThemePref;
   resolved: ResolvedTheme;
+  themePreset: ThemePreset;
+  setThemePreset: (preset: ThemePreset) => void;
   transparency: boolean;
   setTheme: (theme: ThemePref) => void;
   setTransparency: (on: boolean) => void;
@@ -32,10 +37,12 @@ const AppearanceContext = createContext<AppearanceValue | null>(null);
 export function AppearanceProvider({
   children,
   theme: themeFromConfig,
+  themePreset: presetFromConfig,
   transparency: transparencyFromConfig,
 }: {
   children: ReactNode;
   theme?: ThemePref;
+  themePreset?: ThemePreset;
   transparency?: boolean;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +51,17 @@ export function AppearanceProvider({
     if (q === "light" || q === "dark" || q === "system") return q;
     return themeFromConfig ?? readStoredTheme();
   });
+  const [themePreset, setPresetState] = useState<ThemePreset>(() => {
+    const q = new URLSearchParams(window.location.search).get("preset");
+    return isThemePreset(q) ? q : (presetFromConfig ?? readStoredPreset());
+  });
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("preset");
+    if (isThemePreset(q)) return;
+    if (presetFromConfig) setPresetState(presetFromConfig);
+  }, [presetFromConfig]);
+
   const [transparency, setTransparencyState] = useState(() => {
     const q = new URLSearchParams(window.location.search).get("glass");
     if (q === "1") return true;
@@ -74,40 +92,74 @@ export function AppearanceProvider({
     return () => media.removeEventListener("change", onChange);
   }, []);
 
-  const resolved: ResolvedTheme =
-    theme === "system" ? (systemDark ? "dark" : "light") : theme;
+  const resolved: ResolvedTheme = !presetSupportsMode(themePreset)
+    ? "dark"
+    : theme === "system"
+      ? systemDark
+        ? "dark"
+        : "light"
+      : theme;
 
   useEffect(() => {
-    applyDocumentAppearance(theme, resolved, transparency);
+    applyDocumentAppearance(theme, resolved, transparency, themePreset);
     void applyWindowChrome(resolved, transparency);
-  }, [theme, resolved, transparency]);
+  }, [theme, resolved, transparency, themePreset]);
 
-  const persist = useCallback((nextTheme: ThemePref, nextGlass: boolean) => {
-    setError(null);
-    void saveAppearance(nextTheme, nextGlass).catch((err) =>
-      setError(String(err)),
-    );
-  }, []);
+  const persist = useCallback(
+    (nextTheme: ThemePref, nextGlass: boolean, nextPreset: ThemePreset) => {
+      setError(null);
+      void saveAppearance(nextTheme, nextGlass, nextPreset).catch((err) =>
+        setError(String(err)),
+      );
+    },
+    [],
+  );
 
   const setTheme = useCallback(
     (next: ThemePref) => {
       setThemeState(next);
-      persist(next, transparency);
+      persist(next, transparency, themePreset);
     },
-    [persist, transparency],
+    [persist, transparency, themePreset],
   );
 
   const setTransparency = useCallback(
     (on: boolean) => {
       setTransparencyState(on);
-      persist(theme, on);
+      persist(theme, on, themePreset);
     },
-    [persist, theme],
+    [persist, theme, themePreset],
+  );
+
+  const setThemePreset = useCallback(
+    (next: ThemePreset) => {
+      setPresetState(next);
+      persist(theme, transparency, next);
+    },
+    [persist, theme, transparency],
   );
 
   const value = useMemo(
-    () => ({ theme, resolved, transparency, setTheme, setTransparency, error }),
-    [theme, resolved, transparency, setTheme, setTransparency, error],
+    () => ({
+      theme,
+      resolved,
+      themePreset,
+      setThemePreset,
+      transparency,
+      setTheme,
+      setTransparency,
+      error,
+    }),
+    [
+      theme,
+      resolved,
+      themePreset,
+      setThemePreset,
+      transparency,
+      setTheme,
+      setTransparency,
+      error,
+    ],
   );
 
   return (
@@ -124,6 +176,8 @@ export function useAppearance() {
       error: null,
       theme: "dark" as ThemePref,
       resolved: resolveTheme(readStoredTheme()),
+      themePreset: readStoredPreset(),
+      setThemePreset: () => undefined,
       transparency: false,
       setTheme: () => undefined,
       setTransparency: () => undefined,

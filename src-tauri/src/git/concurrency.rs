@@ -24,16 +24,9 @@ fn slot_for(dir: &Path) -> Arc<Mutex<()>> {
         .clone()
 }
 
-pub async fn serialized_on<T, F>(dir: PathBuf, f: F) -> Result<T, String>
-where
-    T: Send + 'static,
-    F: FnOnce() -> Result<T, String> + Send + 'static,
-{
-    let slot = slot_for(&dir);
-    tauri::async_runtime::spawn_blocking(move || {
-        let _guard = slot.lock().unwrap_or_else(|e| e.into_inner());
-        f()
-    })
-    .await
-    .map_err(|e| format!("background task failed: {e}"))?
+// Called inside read_only: canonicalization and lock waits must stay off the executor.
+pub fn serialized_on<T>(dir: &Path, f: impl FnOnce() -> Result<T, String>) -> Result<T, String> {
+    let slot = slot_for(dir);
+    let _guard = slot.lock().unwrap_or_else(|e| e.into_inner());
+    f()
 }

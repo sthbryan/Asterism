@@ -1,7 +1,8 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { BarList, Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { BarChart } from "@/components/Charts";
+import { fmtCompact } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import { platformItems, shortPath } from "@/lib/platform";
 import type { RepoDetail } from "@/lib/types";
@@ -19,7 +20,7 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
   return (
     <>
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <div className="card p-4">
+        <Surface padding="md" className="border border-hairline">
           <div className="text-[13px] font-semibold">
             {t("Referrers · 14 days")}
           </div>
@@ -33,7 +34,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
             </Then>
             <Else>
               <div className="mt-3">
-                <BarChart
+                <BarList
+                  label={t("Referrers · 14 days")}
+                  formatValue={fmtCompact}
                   items={referrers.map((row) => ({
                     label: row.referrer,
                     value: row.count,
@@ -42,8 +45,8 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </div>
-        <div className="card p-4">
+        </Surface>
+        <Surface padding="md" className="border border-hairline">
           <div className="text-[13px] font-semibold">
             {t("Popular paths · 14 days")}
           </div>
@@ -57,7 +60,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
             </Then>
             <Else>
               <div className="mt-3">
-                <BarChart
+                <BarList
+                  label={t("Popular paths · 14 days")}
+                  formatValue={fmtCompact}
                   items={paths.map((row) => ({
                     label:
                       shortPath(row.path, detail.fullName) === "Overview"
@@ -65,12 +70,13 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
                         : shortPath(row.path, detail.fullName),
                     value: row.count,
                   }))}
-                  onSelect={(label) => {
+                  onSelect={(item) => {
                     const match = paths.find(
                       (row) =>
                         (shortPath(row.path, detail.fullName) === "Overview"
                           ? t("Overview")
-                          : shortPath(row.path, detail.fullName)) === label,
+                          : shortPath(row.path, detail.fullName)) ===
+                        item.label,
                     );
                     if (match) void openUrl(`https://github.com${match.path}`);
                   }}
@@ -78,11 +84,11 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </div>
+        </Surface>
       </div>
 
       <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <div className="card p-4">
+        <Surface padding="md" className="border border-hairline">
           <div className="text-[13px] font-semibold">
             {t("Downloads by platform")}
           </div>
@@ -94,7 +100,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
             </Then>
             <Else>
               <div className="mt-3">
-                <BarChart
+                <BarList
+                  label={t("Downloads by platform")}
+                  formatValue={fmtCompact}
                   items={platformBars.map((item) => ({
                     ...item,
                     label: item.label === "Other" ? t("Other") : item.label,
@@ -103,8 +111,8 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </div>
-        <div className="card p-4">
+        </Surface>
+        <Surface padding="md" className="border border-hairline">
           <div className="text-[13px] font-semibold">{t("Languages")}</div>
           <If condition={detail.languages.length === 0}>
             <Then>
@@ -151,7 +159,7 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </ul>
             </Else>
           </If>
-        </div>
+        </Surface>
       </div>
     </>
   );

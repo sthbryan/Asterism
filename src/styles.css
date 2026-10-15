@@ -1,5 +1,7 @@
 @import "./styles/fonts.css";
 @import "tailwindcss";
+@import "@zovaris/sephiro/themes.css";
+@import "@zovaris/sephiro/components.css";
 @import "./styles/transitions-root.css";
 @import "./styles/transitions.css";
 
@@ -28,13 +30,13 @@
 }
 
 html {
-  --void-base: #111111;
-  --night-base: #191919;
-  --panel-base: #1c1c1c;
-  --raised-base: #232323;
-  --overlay-base: #2a2a2a;
-  --line-base: #2e2e2e;
-  --hairline-base: #242424;
+  --void-base: var(--sph-bg);
+  --night-base: color-mix(in srgb, var(--sph-bg) 40%, var(--sph-surface));
+  --panel-base: var(--sph-surface);
+  --raised-base: var(--sph-raised);
+  --overlay-base: var(--sph-surface-elevated);
+  --line-base: var(--sph-border);
+  --hairline-base: color-mix(in srgb, var(--sph-border) 70%, var(--sph-bg));
   --void: var(--void-base);
   --night: var(--night-base);
   --panel: var(--panel-base);
@@ -42,46 +44,19 @@ html {
   --overlay: var(--overlay-base);
   --line: var(--line-base);
   --hairline: var(--hairline-base);
-  --mist: #a3a3a3;
-  --faint: #8a8a8a;
-  --paper: #ececec;
-  --accent: #d71921;
-  --accent-hover: #ea343c;
-  --accent-press: #b9151c;
-  --accent-soft: #ef4444;
-  --ok: #28c840;
-  --hover: rgb(255 255 255 / 0.03);
-  --fill: rgb(255 255 255 / 0.06);
-  --wash: rgb(255 255 255 / 0.02);
-  --thumb: #3a3a3a;
-  --switch-track: #3f3f3f;
-  --toggle-travel: 16px;
+  --mist: var(--sph-text-muted);
+  --faint: var(--sph-text-muted);
+  --paper: var(--sph-text);
+  --accent: var(--sph-accent);
+  --accent-hover: var(--sph-accent-hover);
+  --accent-press: var(--sph-accent-pressed);
+  --accent-soft: var(--sph-accent-strong);
+  --ok: var(--sph-success);
+  --hover: color-mix(in srgb, var(--sph-text) 3%, transparent);
+  --fill: color-mix(in srgb, var(--sph-text) 6%, transparent);
+  --wash: color-mix(in srgb, var(--sph-text) 2%, transparent);
+  --thumb: var(--sph-border-strong);
   --pulse-count: infinite;
-  color-scheme: dark;
-}
-
-html[data-theme="light"] {
-  --void-base: #f3f3f3;
-  --night-base: #ececec;
-  --panel-base: #ffffff;
-  --raised-base: #f6f6f6;
-  --overlay-base: #e8e8e8;
-  --line-base: #dcdcdc;
-  --hairline-base: #e4e4e4;
-  --mist: #5c5c5c;
-  --faint: #6e6e6e;
-  --paper: #161616;
-  --accent: #d71921;
-  --accent-hover: #c1161d;
-  --accent-press: #a51319;
-  --accent-soft: #c1161d;
-  --ok: #188a2c;
-  --hover: rgb(0 0 0 / 0.045);
-  --fill: rgb(0 0 0 / 0.06);
-  --wash: rgb(0 0 0 / 0.03);
-  --thumb: #c4c4c4;
-  --switch-track: #d0d0d0;
-  color-scheme: light;
 }
 
 html[data-transparency="on"] {
@@ -235,4 +210,66 @@ textarea {
   font-size: 10.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Window geometry belongs to Asterism; navigation behavior and colors to Sephiro. */
+.app-sidebar {
+  position: relative;
+  flex: 0 0 212px;
+  inline-size: 212px;
+  min-block-size: 0;
+  overflow: hidden;
+  gap: 0;
+  padding: 48px 10px 10px;
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  background: var(--night);
+}
+
+.app-sidebar .sph-sidebar__header {
+  padding: 0 6px;
+}
+
+.app-sidebar .sph-sidebar__nav {
+  flex: 0 1 auto;
+  padding-top: 4px;
+}
+
+.app-sidebar .sph-sidebar__footer {
+  flex: 1 1 auto;
+  align-items: stretch;
+  min-block-size: 0;
+  border: 0;
+}
+
+.app-sidebar .sph-sidebar__footer-content {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+.app-sidebar .sph-sidebar__footer .sph-button {
+  justify-content: flex-start;
+  inline-size: 100%;
+}
+
+/* Embedded search fields share their parent label's border and background. */
+.app-input--compact.sph-input {
+  block-size: 100%;
+  min-block-size: 0;
+  inline-size: 100%;
+  padding-inline: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 12.5px;
+}
+
+.app-input--compact.sph-input:focus-visible {
+  background: transparent;
+}
+
+.app-skeleton.sph-skeleton {
+  display: block;
+  min-block-size: 0;
 }

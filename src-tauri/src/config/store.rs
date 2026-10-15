@@ -119,6 +119,7 @@ impl<R: Runtime> Storage<R> {
         self.seed(&account_file("legacy", "projects"), &projects)?;
         self.seed(&account_file("legacy", "history"), &hist)?;
         prefs.theme = cfg.theme;
+        prefs.theme_preset = cfg.theme_preset;
         prefs.transparency = cfg.transparency;
         prefs.locale = cfg.locale;
         prefs.migrated = true;
@@ -143,6 +144,7 @@ impl<R: Runtime> Storage<R> {
             version: VERSION,
             repos: self.projects()?.repos,
             theme: p.theme,
+            theme_preset: p.theme_preset,
             transparency: p.transparency,
             locale: p.locale,
         })
@@ -156,10 +158,18 @@ impl<R: Runtime> Storage<R> {
         self.write(&self.account_file("projects")?, &projects)?;
         self.load_config()
     }
-    pub fn save_appearance(&self, theme: ThemePref, transparency: bool) -> Result<Config, String> {
+    pub fn save_appearance(
+        &self,
+        theme: ThemePref,
+        transparency: bool,
+        theme_preset: Option<ThemePreset>,
+    ) -> Result<Config, String> {
         self.migrate()?;
         let mut p = self.prefs()?;
         p.theme = theme;
+        if theme_preset.is_some() {
+            p.theme_preset = theme_preset;
+        }
         p.transparency = transparency;
         self.write("preferences.json", &p)?;
         self.load_config()

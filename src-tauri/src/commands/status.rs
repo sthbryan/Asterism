@@ -1,6 +1,6 @@
 use crate::config;
 use crate::gh;
-use crate::models::{Config, Diagnostics, Locale, Status, ThemePref};
+use crate::models::{Config, Diagnostics, Locale, Status, ThemePref, ThemePreset};
 
 use super::catalog::account_key;
 use super::state::ensure_scope;
@@ -15,14 +15,12 @@ where
         .map_err(|e| format!("background task failed: {e}"))
 }
 
-pub(crate) async fn offload_unlocked<T, F>(f: F) -> Result<T, String>
+pub(crate) async fn offload_write<T, F>(f: F) -> Result<T, String>
 where
     T: Send + 'static,
     F: FnOnce() -> T + Send + 'static,
 {
-    tauri::async_runtime::spawn_blocking(f)
-        .await
-        .map_err(|e| format!("background task failed: {e}"))
+    offload(move || config::serialized_write(f)).await
 }
 
 #[tauri::command]
@@ -40,7 +38,7 @@ pub(crate) async fn get_status() -> Result<Status, String> {
 
 #[tauri::command]
 pub(crate) async fn get_config() -> Result<Config, String> {
-    offload(|| config::storage()?.load_config()).await?
+    offload_write(|| config::storage()?.load_config()).await?
 }
 
 #[tauri::command]
@@ -48,7 +46,7 @@ pub(crate) async fn save_config(
     repos: Vec<String>,
     expected_account: Option<String>,
 ) -> Result<Config, String> {
-    offload(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
         config::storage()?.save_repos(repos)
     })
@@ -56,8 +54,12 @@ pub(crate) async fn save_config(
 }
 
 #[tauri::command]
-pub(crate) async fn save_appearance(theme: String, transparency: bool) -> Result<Config, String> {
-    offload(move || {
+pub(crate) async fn save_appearance(
+    theme: String,
+    transparency: bool,
+    theme_preset: Option<ThemePreset>,
+) -> Result<Config, String> {
+    offload_write(move || {
         config::storage()?.save_appearance(
             match theme.as_str() {
                 "light" => ThemePref::Light,
@@ -65,6 +67,7 @@ pub(crate) async fn save_appearance(theme: String, transparency: bool) -> Result
                 _ => ThemePref::Dark,
             },
             transparency,
+            theme_preset,
         )
     })
     .await?
@@ -79,7 +82,7 @@ pub(crate) fn normalize_locale(raw: &str) -> Locale {
 
 #[tauri::command]
 pub(crate) async fn save_locale(locale: String) -> Result<Config, String> {
-    offload(move || config::storage()?.save_locale(normalize_locale(&locale))).await?
+    offload_write(move || config::storage()?.save_locale(normalize_locale(&locale))).await?
 }
 
 #[tauri::command]

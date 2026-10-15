@@ -1,43 +1,35 @@
-import { CaretDownIcon } from "@phosphor-icons/react";
-import { cn } from "cn";
-import { When } from "react-if";
+import type { Renderable } from "@zovaris/sephiro";
+import { Badge, Collapsible } from "@zovaris/sephiro";
 
 export function DetailDisclosure({
   title,
   count,
   open,
-  onClick,
+  onOpenChange,
   actionLabel,
+  children,
 }: {
   title: string;
   count?: number;
   open: boolean;
-  onClick: () => void;
+  onOpenChange: (open: boolean) => void;
   actionLabel: string;
+  children: Renderable;
 }) {
   return (
-    <button
-      type="button"
-      className="flex h-9 w-full items-center justify-between gap-3 rounded-md border border-line bg-wash px-3 text-left text-sm text-paper outline-none transition-colors hover:bg-fill focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent/30"
-      aria-expanded={open}
-      onClick={onClick}
+    <Collapsible
+      className="[&_.sph-collapsible__trigger]:h-9 [&_.sph-collapsible__trigger]:justify-between [&_.sph-collapsible__trigger]:gap-3 [&_.sph-collapsible__trigger]:rounded-md [&_.sph-collapsible__trigger]:border [&_.sph-collapsible__trigger]:border-line [&_.sph-collapsible__trigger]:bg-wash [&_.sph-collapsible__trigger]:px-3 [&_.sph-collapsible__trigger]:text-sm [&_.sph-collapsible__trigger]:text-paper [&_.sph-collapsible__trigger]:hover:bg-fill [&_.sph-collapsible__trigger]:hover:text-paper [&_.sph-collapsible__inner]:p-0"
+      open={open}
+      onOpenChange={onOpenChange}
+      trigger={
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate">{actionLabel}</span>
+          {count != null && <Badge size="sm">{count}</Badge>}
+          <span className="sr-only">{title}</span>
+        </span>
+      }
     >
-      <span className="flex min-w-0 items-center gap-2">
-        <span className="truncate">{actionLabel}</span>
-        <When condition={count != null}>
-          <span className="rounded-full bg-fill px-1.5 py-0.5 font-mono text-[10px] text-mist">
-            {count}
-          </span>
-        </When>
-        <span className="sr-only">{title}</span>
-      </span>
-      <CaretDownIcon
-        aria-hidden
-        className={cn(
-          "size-3.5 shrink-0 transition-transform mt-1",
-          open ? "-translate-y-px rotate-180" : "-translate-y-0.5",
-        )}
-      />
-    </button>
+      {open ? children : null}
+    </Collapsible>
   );
 }

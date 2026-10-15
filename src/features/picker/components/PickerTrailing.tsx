@@ -1,6 +1,6 @@
+import { Button } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 
 export function PickerTrailing({
   dirty,
@@ -16,11 +16,11 @@ export function PickerTrailing({
   const { t } = useI18n();
   return (
     <>
-      <Button variant="quiet" onClick={onCancel}>
+      <Button variant="quiet" size="sm" onClick={onCancel}>
         {t("Cancel")}
       </Button>
       <When condition={dirty}>
-        <Button variant="primary" onClick={onSave} disabled={loading}>
+        <Button variant="primary" size="sm" onClick={onSave} disabled={loading}>
           {t("Save changes")}
         </Button>
       </When>

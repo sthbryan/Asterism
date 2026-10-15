@@ -1,6 +1,6 @@
+import { Alert, Button } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 import { useCacheInfo } from "../hooks/useCacheInfo";
 
 function formatBytes(bytes: number) {
@@ -30,10 +30,17 @@ export function CacheSection() {
           {t("settings.cache")}
         </h2>
         <div className="flex gap-2">
-          <Button disabled={loading || clearing} onClick={refresh}>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={loading || clearing}
+            onClick={refresh}
+          >
             {t("Refresh")}
           </Button>
           <Button
+            variant="secondary"
+            size="sm"
             disabled={loading || clearing || !info?.entries}
             onClick={clear}
           >
@@ -43,12 +50,9 @@ export function CacheSection() {
       </div>
       <p className="mt-2 text-sm text-mist">{t("settings.cacheHint")}</p>
       <When condition={Boolean(error)}>
-        <p
-          role="alert"
-          className="mt-3 wrap-break-word text-sm text-accent-soft"
-        >
+        <Alert variant="danger" className="mt-3">
           {t("settings.cacheError")} {error}
-        </p>
+        </Alert>
       </When>
       <When condition={notice}>
         <p role="status" className="mt-3 text-sm text-mist">

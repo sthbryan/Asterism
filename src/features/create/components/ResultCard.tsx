@@ -1,8 +1,8 @@
 import { ArrowSquareOutIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { Alert, Button } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 import type { CreatedRepo } from "@/lib/types";
 import { isMockMode } from "@/services/api";
 
@@ -34,16 +34,18 @@ export function ResultCard({
         })}
       </p>
       <When condition={Boolean(error)}>
-        <p role="alert" className="mt-4 text-sm text-accent-soft">
+        <Alert variant="danger" className="mt-4">
           {error}
-        </p>
+        </Alert>
       </When>
       <div className="mt-6 flex flex-wrap gap-2">
-        <Button variant="primary" onClick={onOverview}>
+        <Button variant="primary" size="sm" onClick={onOverview}>
           {t("View overview")}
         </Button>
         <When condition={!isMockMode()}>
           <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               void openUrl(created.htmlUrl).catch((err) =>
                 setError(String(err)),
@@ -54,7 +56,7 @@ export function ResultCard({
             <ArrowSquareOutIcon size={14} />
           </Button>
         </When>
-        <Button disabled={busy} onClick={onReset}>
+        <Button variant="secondary" size="sm" disabled={busy} onClick={onReset}>
           {t("Create another")}
         </Button>
       </div>

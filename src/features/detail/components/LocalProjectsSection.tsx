@@ -1,9 +1,7 @@
 import { LinkSimpleIcon, PlusIcon } from "@phosphor-icons/react";
+import { Button, Input, Select } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Select } from "@/components/Select";
 import { useLocalCheckouts } from "../hooks/useLocalCheckouts";
 import { LocalCheckoutCard } from "./LocalCheckoutCard";
 
@@ -33,11 +31,23 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
           {t("local.title")}
         </h2>
         <div className="flex gap-2">
-          <Button disabled={busy} onClick={() => void link()}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
+            disabled={busy}
+            onClick={() => void link()}
+          >
             <LinkSimpleIcon size={14} />
             {t("local.link")}
           </Button>
-          <Button disabled={busy} onClick={() => void chooseCloneParent()}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="shrink-0"
+            disabled={busy}
+            onClick={() => void chooseCloneParent()}
+          >
             <PlusIcon size={14} />
             {t("local.clone")}
           </Button>
@@ -51,7 +61,11 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
         <Select
           id="local-editor"
           value={editor}
-          onChange={(value) => setEditor(value as typeof editor)}
+          onValueChange={(value) => {
+            if (value === "vscode" || value === "cursor" || value === "zed") {
+              setEditor(value);
+            }
+          }}
           options={[
             { value: "vscode", label: "VS Code" },
             { value: "cursor", label: "Cursor" },
@@ -68,16 +82,25 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
             {t("local.destination", { path: `${parent}/${name}` })}
           </p>
           <Input
+            size="md"
+            className="mt-2"
             value={name}
             onChange={(e) => setName(e.target.value)}
             aria-label={t("local.name")}
           />
           <div className="mt-3 flex justify-end gap-2">
-            <Button disabled={busy} size="md" onClick={cancelClone}>
+            <Button
+              variant="secondary"
+              className="shrink-0"
+              disabled={busy}
+              size="md"
+              onClick={cancelClone}
+            >
               {t("Cancel")}
             </Button>
             <Button
               variant="primary"
+              className="shrink-0"
               size="md"
               disabled={busy || !name.trim()}
               onClick={() => void confirmClone()}

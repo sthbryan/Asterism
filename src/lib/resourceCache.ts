@@ -39,6 +39,13 @@ async function diskKey(resource: string) {
 export function createResourceCache<T>(ttlMs: number, storage: Storage<T>) {
   const memory = new Map<string, Saved<T>>();
   const pending = new Map<string, Promise<Saved<T>>>();
+  const reads = new Map<string, Promise<PersistentCache<T> | null>>();
+  const remember = (key: string, saved: Saved<T>) => {
+    memory.delete(key);
+    memory.set(key, saved);
+    // Bounded per-resource snapshots; older entries remain available on disk.
+    if (memory.size > 128) memory.delete(memory.keys().next().value as string);
+  };
   let generation = 0;
   const id = (scope: string, resource: string) =>
     JSON.stringify([scope, resource]);
@@ -46,6 +53,7 @@ export function createResourceCache<T>(ttlMs: number, storage: Storage<T>) {
     generation += 1;
     memory.clear();
     pending.clear();
+    reads.clear();
   };
   caches.add(clear);
 
@@ -68,12 +76,17 @@ export function createResourceCache<T>(ttlMs: number, storage: Storage<T>) {
       let saved = memory.get(key);
       const persistedKey = await diskKey(resource);
       if (!saved && current()) {
-        const entry = await withTimeout(
-          storage.read(persistedKey, resource),
-          1_000,
-        ).catch(() => null);
+        let read = reads.get(key);
+        if (!read) {
+          read = withTimeout(storage.read(persistedKey, resource), 1_000).catch(
+            () => null,
+          );
+          reads.set(key, read);
+        }
+        const entry = await read;
+        if (reads.get(key) === read) reads.delete(key);
         saved = memory.get(key) ?? (entry?.version === 1 ? entry : undefined);
-        if (saved && current()) memory.set(key, saved);
+        if (saved && current()) remember(key, saved);
       }
       if (!current()) throw new Error("Account or cache changed.");
       if (saved) {
@@ -85,7 +98,7 @@ export function createResourceCache<T>(ttlMs: number, storage: Storage<T>) {
       if (!request) {
         request = withTimeout(fetch(), 90_000).then((result) => {
           if (current()) {
-            memory.set(key, result);
+            remember(key, result);
             // Persistence is best-effort; a disk error keeps the memory result usable.
             void storage
               .write(persistedKey, { version: 1, ...result }, resource)

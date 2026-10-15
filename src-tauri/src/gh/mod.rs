@@ -3,6 +3,7 @@ use serde_json::Value;
 mod catalog;
 mod create;
 mod detail;
+mod detail_parse;
 mod process;
 mod status;
 

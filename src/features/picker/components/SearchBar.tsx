@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon } from "@phosphor-icons/react";
+import { Input } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
-import { Input } from "@/components/Input";
 
 export function SearchBar({
   value,
@@ -18,7 +18,8 @@ export function SearchBar({
       <MagnifyingGlassIcon size={13} className="shrink-0 text-faint" />
       <Input
         id="picker-search"
-        variant="compact"
+        className="app-input--compact"
+        size="sm"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={t("Search by name or language…")}

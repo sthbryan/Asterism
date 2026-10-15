@@ -1,7 +1,7 @@
 use crate::config::{self, CacheEntry, CacheInfo};
 
 use super::state::ensure_scope;
-use super::status::offload_unlocked;
+use super::status::offload_write;
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,7 +21,7 @@ pub(crate) async fn read_cache(
     key: String,
     expected_account: Option<String>,
 ) -> Result<Option<CacheEntry<serde_json::Value>>, String> {
-    offload_unlocked(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
         config::storage()?.read_cache(&namespace, &key)
     })
@@ -33,7 +33,7 @@ pub(crate) async fn write_cache(
     entry: CacheWrite,
     expected_account: Option<String>,
 ) -> Result<(), String> {
-    offload_unlocked(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
         let cache = CacheEntry {
             version: entry.version,
@@ -41,10 +41,7 @@ pub(crate) async fn write_cache(
             data: entry.data,
             warning: entry.warning,
         };
-        config::serialized_write(move || {
-            ensure_scope(expected_account.as_deref())?;
-            config::storage()?.write_cache(&entry.namespace, &entry.key, &cache)
-        })
+        config::storage()?.write_cache(&entry.namespace, &entry.key, &cache)
     })
     .await?
 }
@@ -55,12 +52,9 @@ pub(crate) async fn remove_cache(
     key: String,
     expected_account: Option<String>,
 ) -> Result<bool, String> {
-    offload_unlocked(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
-        config::serialized_write(move || {
-            ensure_scope(expected_account.as_deref())?;
-            config::storage()?.remove_cache(&namespace, &key)
-        })
+        config::storage()?.remove_cache(&namespace, &key)
     })
     .await?
 }
@@ -70,19 +64,16 @@ pub(crate) async fn clear_cache(
     namespace: Option<String>,
     expected_account: Option<String>,
 ) -> Result<usize, String> {
-    offload_unlocked(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
-        config::serialized_write(move || {
-            ensure_scope(expected_account.as_deref())?;
-            config::storage()?.clear_cache(namespace.as_deref())
-        })
+        config::storage()?.clear_cache(namespace.as_deref())
     })
     .await?
 }
 
 #[tauri::command]
 pub(crate) async fn get_cache_info(expected_account: Option<String>) -> Result<CacheInfo, String> {
-    offload_unlocked(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
         config::storage()?.cache_info()
     })

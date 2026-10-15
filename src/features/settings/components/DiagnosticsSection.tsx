@@ -1,6 +1,6 @@
+import { Alert, Button } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
-import { Button } from "@/components/Button";
 import { isMockMode } from "@/services/api";
 import { useDiagnostics } from "../hooks/useDiagnostics";
 
@@ -17,7 +17,12 @@ export function DiagnosticsSection() {
         <h2 id="diagnostics-heading" className="text-base font-semibold">
           {t("settings.diagnostics")}
         </h2>
-        <Button disabled={loading} onClick={retry}>
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={loading}
+          onClick={retry}
+        >
           {loading ? t("settings.checking") : t("Refresh")}
         </Button>
       </div>
@@ -26,12 +31,9 @@ export function DiagnosticsSection() {
         <p className="mt-2 text-sm text-mist">{t("settings.demo")}</p>
       </When>
       <When condition={Boolean(error)}>
-        <p
-          role="alert"
-          className="mt-3 wrap-break-word text-sm text-accent-soft"
-        >
+        <Alert variant="danger" className="mt-3">
           {t("settings.diagnosticsError")} {error}
-        </p>
+        </Alert>
       </When>
       <When condition={Boolean(diagnostics)}>
         <dl className="mt-4 space-y-4">

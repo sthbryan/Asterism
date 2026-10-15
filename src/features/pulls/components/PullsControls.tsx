@@ -1,4 +1,4 @@
-import { Input } from "@/components/Input";
+import { Button, Input } from "@zovaris/sephiro";
 import type { PullFilters } from "../utils";
 import { FilterSelect } from "./FilterSelect";
 
@@ -41,7 +41,7 @@ export function PullsControls({
         </label>
         <Input
           id="pull-search"
-          variant="field"
+          size="md"
           className="mt-1"
           value={filters.query ?? ""}
           onChange={(event) => onChange("query", event.target.value)}
@@ -64,13 +64,14 @@ export function PullsControls({
           all,
         ]}
       />
-      <button
-        type="button"
-        className="h-8 rounded-md px-2 text-[12px] text-mist hover:bg-hover hover:text-paper"
+      <Button
+        variant="quiet"
+        size="sm"
+        className="shrink-0 text-mist hover:bg-hover hover:text-paper"
         onClick={onClear}
       >
         {labels.clear}
-      </button>
+      </Button>
     </div>
   );
 }

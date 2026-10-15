@@ -1,11 +1,11 @@
 import { ArrowSquareOutIcon, CaretLeftIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { Button, Spinner } from "@zovaris/sephiro";
 import { If, Then, When } from "react-if";
 import { useRoute } from "wouter";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
-import { Button } from "@/components/Button";
 import { PageHeader } from "@/components/PageHeader";
 import type { PullRequestDetail } from "@/lib/types";
 import { usePullDetail } from "../hooks/usePullDetail";
@@ -31,14 +31,15 @@ export function PullDetailView() {
       <PageHeader
         title={
           <nav className="flex items-center gap-2 text-[13px]">
-            <button
-              type="button"
-              className="-ml-2 inline-flex items-center gap-1.5 rounded-md px-2 py-1 font-medium text-mist hover:bg-hover hover:text-paper"
+            <Button
+              variant="quiet"
+              size="sm"
+              className="-ml-2 shrink-0 text-mist hover:bg-hover hover:text-paper"
               onClick={() => navigate("/pulls")}
             >
               <CaretLeftIcon size={13} />
               {t("pulls.back")}
-            </button>
+            </Button>
             <span className="text-faint">/</span>
             <span className="font-mono font-semibold">
               {repo} #{number}
@@ -46,7 +47,12 @@ export function PullDetailView() {
           </nav>
         }
         trailing={
-          <Button variant="quiet" onClick={openGithub}>
+          <Button
+            variant="quiet"
+            size="sm"
+            className="shrink-0"
+            onClick={openGithub}
+          >
             <span>{t("pulls.openGithub")}</span>
             <ArrowSquareOutIcon size={12} />
           </Button>
@@ -63,10 +69,7 @@ export function PullDetailView() {
             })}
             <When condition={detail.refreshing}>
               <span role="status" className="inline-flex items-center gap-1">
-                <span
-                  aria-hidden
-                  className="inline-block size-3 animate-spin rounded-full border border-current border-t-transparent"
-                />
+                <Spinner size="sm" />
                 {t("Refreshing…")}
               </span>
             </When>

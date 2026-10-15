@@ -8,15 +8,15 @@ use crate::models::TrackedRepo;
 
 use super::catalog::ensure_online;
 use super::local::{checkout_probe, remote_matches};
-use super::status::offload;
+use super::status::offload_write;
 
 #[tauri::command]
 pub(crate) async fn get_local_state() -> Result<config::LocalState, String> {
-    offload(|| config::storage()?.local_state()).await?
+    offload_write(|| config::storage()?.local_state()).await?
 }
 #[tauri::command]
 pub(crate) async fn use_legacy_data() -> Result<config::LocalState, String> {
-    offload(move || {
+    offload_write(move || {
         let db = config::storage()?;
         db.activate("legacy".into())?;
         db.local_state()
@@ -27,7 +27,7 @@ pub(crate) async fn use_legacy_data() -> Result<config::LocalState, String> {
 pub(crate) async fn import_legacy_data(
     expected_account: Option<String>,
 ) -> Result<config::LocalState, String> {
-    offload(move || {
+    offload_write(move || {
         ensure_scope(expected_account.as_deref())?;
         ensure_online()?;
         config::storage()?.import_legacy()
@@ -46,11 +46,15 @@ pub(crate) fn require_ready_checkout(
     path: &str,
     expected_account: Option<&str>,
 ) -> Result<std::path::PathBuf, String> {
-    ensure_scope(expected_account)?;
-    let registered = config::storage()?
-        .checkout_folders()?
-        .get(full_name)
-        .is_some_and(|paths| paths.iter().any(|p| p == path));
+    let registered = config::serialized_write(|| {
+        ensure_scope(expected_account)?;
+        Ok::<_, String>(
+            config::storage()?
+                .checkout_folders()?
+                .get(full_name)
+                .is_some_and(|paths| paths.iter().any(|p| p == path)),
+        )
+    })?;
     if !registered {
         return Err("LOCAL_CHECKOUT_UNAVAILABLE".into());
     }

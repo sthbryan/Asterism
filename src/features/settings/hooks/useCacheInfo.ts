@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useStore } from "@/app/store";
 import type { CacheInfo } from "@/lib/types";
 import { clearCache, getCacheInfo } from "@/services/api";
 
 export function useCacheInfo() {
+  const account = useStore((state) => state.account);
+  const revision = useStore((state) => state.dataRevision);
+  const generation = useRef(0);
   const [info, setInfo] = useState<CacheInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [clearing, setClearing] = useState(false);
@@ -10,35 +14,53 @@ export function useCacheInfo() {
   const [notice, setNotice] = useState(false);
 
   const refresh = useCallback(async () => {
+    const request = ++generation.current;
+    const current = () =>
+      request === generation.current &&
+      account === useStore.getState().account &&
+      revision === useStore.getState().dataRevision;
     setLoading(true);
     setError(null);
     try {
-      setInfo(await getCacheInfo());
+      const next = await getCacheInfo();
+      if (current()) setInfo(next);
     } catch (err) {
-      setError(String(err));
+      if (current()) setError(String(err));
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
-  }, []);
+  }, [account, revision]);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    setInfo(null);
+    setNotice(false);
+    setClearing(false);
+    if (account) void refresh();
+    else setLoading(false);
+    return () => {
+      generation.current++;
+    };
+  }, [refresh, account]);
 
   const clear = useCallback(async () => {
+    const current = () =>
+      account === useStore.getState().account &&
+      revision === useStore.getState().dataRevision;
     setClearing(true);
     setError(null);
     setNotice(false);
     try {
       await clearCache();
-      setNotice(true);
-      await refresh();
+      if (current()) {
+        setNotice(true);
+        await refresh();
+      }
     } catch (err) {
-      setError(String(err));
+      if (current()) setError(String(err));
     } finally {
-      setClearing(false);
+      if (current()) setClearing(false);
     }
-  }, [refresh]);
+  }, [refresh, account, revision]);
 
   return { info, loading, clearing, error, notice, refresh, clear };
 }

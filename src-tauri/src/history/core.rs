@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::models::{HistoryStore, RepoHistory, SeriesPoint, TrackedRepo};
+use crate::models::{HistoryStore, SeriesPoint, TrackedRepo};
 
 pub const DAY: u64 = 86_400;
 const MAX_POINTS: usize = 180;
@@ -97,10 +97,7 @@ pub fn apply_fetch(store: &mut HistoryStore, repo: &TrackedRepo, now: u64) {
     if store.version == 0 {
         store.version = 1;
     }
-    let entry = store
-        .repos
-        .entry(repo.full_name.clone())
-        .or_insert_with(RepoHistory::default);
+    let entry = store.repos.entry(repo.full_name.clone()).or_default();
     upsert(&mut entry.stars, now, repo.stars);
     upsert(&mut entry.downloads, now, repo.downloads);
     upsert(&mut entry.forks, now, repo.forks);

@@ -32,6 +32,39 @@ function cacheFor(entry: PersistentCache<string> | null = null) {
 }
 
 describe("resource loading", () => {
+  test("concurrent cold loads share both disk reads and network work", async () => {
+    const disk = deferred<PersistentCache<string> | null>();
+    const read = mock(() => disk.promise);
+    const cache = createResourceCache<string>(60_000, {
+      read,
+      write: async () => {},
+    });
+    const fetch = mock(async () => snapshot("fresh"));
+    const requests = Array.from({ length: 8 }, () =>
+      cache.load("a", "repo", fetch, controls()),
+    );
+    await Bun.sleep(5);
+    expect(read).toHaveBeenCalledTimes(1);
+    disk.resolve(null);
+    await Promise.all(requests);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  test("memory snapshots stay bounded and evicted resources reload from disk", async () => {
+    const { cache, read } = cacheFor();
+    for (let i = 0; i < 130; i++) {
+      await cache.load(
+        "a",
+        String(i),
+        async () => snapshot(String(i)),
+        controls(),
+      );
+    }
+    expect(cache.peek("a", "0")).toBeUndefined();
+    expect(cache.peek("a", "129")?.data).toBe("129");
+    await cache.load("a", "0", async () => snapshot("reloaded"), controls());
+    expect(read).toHaveBeenCalledTimes(131);
+  });
   test("fresh persisted data opens without contacting GitHub; force refresh still fetches", async () => {
     const { cache, read, write } = cacheFor({
       version: 1,

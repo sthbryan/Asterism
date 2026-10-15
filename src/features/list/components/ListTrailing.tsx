@@ -1,4 +1,5 @@
 import { ArrowClockwiseIcon } from "@phosphor-icons/react";
+import { IconButton } from "@zovaris/sephiro";
 import { Case, Switch } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { fmtFetched } from "@/lib/format";
@@ -41,19 +42,19 @@ export function ListTrailing({
           </span>
         </Case>
       </Switch>
-      <button
-        type="button"
+      <IconButton
+        icon={
+          <ArrowClockwiseIcon
+            size={14}
+            className={refreshing ? "animate-spin" : ""}
+          />
+        }
+        label={t("Refresh")}
+        size="sm"
         onClick={onRefresh}
         disabled={refreshing}
-        aria-label={t("Refresh")}
         title={t("Refresh")}
-        className="grid h-7 w-7 place-items-center rounded-md text-mist transition-colors hover:bg-hover hover:text-paper disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <ArrowClockwiseIcon
-          size={14}
-          className={refreshing ? "animate-spin" : ""}
-        />
-      </button>
+      />
     </div>
   );
 }

@@ -1,5 +1,9 @@
 import type { StateCreator } from "zustand";
-import { readStoredTheme, readStoredTransparency } from "@/lib/appearance";
+import {
+  readStoredPreset,
+  readStoredTheme,
+  readStoredTransparency,
+} from "@/lib/appearance";
 import {
   applyDocumentLocale,
   detectLocale,
@@ -21,6 +25,7 @@ export type BootSlice = Pick<
   | "booted"
   | "status"
   | "theme"
+  | "themePreset"
   | "transparency"
   | "locale"
   | "preferenceError"
@@ -69,6 +74,7 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
   booted: false,
   status: null,
   theme: readStoredTheme(),
+  themePreset: readStoredPreset(),
   transparency: readStoredTransparency(),
   locale: readStoredLocale() ?? detectLocale(),
   preferenceError: null,
@@ -76,6 +82,7 @@ export const createBootSlice: StateCreator<AppStore, [], [], BootSlice> = (
   setPreferences: (config) => {
     set((state) => ({
       theme: config.theme ?? state.theme,
+      themePreset: config.themePreset ?? state.themePreset,
       transparency: Boolean(config.transparency),
       locale: config.locale ?? state.locale,
     }));

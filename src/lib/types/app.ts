@@ -8,12 +8,15 @@ export type Status = {
 
 export type ThemePref = "dark" | "light" | "system";
 
+export type ThemePreset = "asterism" | "default" | "fizza" | "pulso";
+
 export type Locale = "es" | "en";
 
 export type Config = {
   version: number;
   repos: string[];
   theme?: ThemePref;
+  themePreset?: ThemePreset;
   transparency?: boolean;
   locale?: Locale;
 };
