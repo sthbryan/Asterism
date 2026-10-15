@@ -253,6 +253,11 @@ textarea {
   inline-size: 100%;
 }
 
+/* Sephiro's label span has no gap, so an icon passed alongside text sits flush against it. */
+.sph-button__label {
+  gap: calc(var(--spacing, 0.25rem) * 1.5);
+}
+
 /* Embedded search fields share their parent label's border and background. */
 .app-input--compact.sph-input {
   block-size: 100%;
