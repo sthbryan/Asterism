@@ -1,6 +1,6 @@
 import { ArrowSquareOutIcon, CheckCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Alert, Button } from "@zovaris/sephiro";
+import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import type { CreatedRepo } from "@/lib/types";
@@ -34,9 +34,9 @@ export function ResultCard({
         })}
       </p>
       <When condition={Boolean(error)}>
-        <Alert variant="danger" className="mt-4">
+        <Notice variant="danger" className="mt-4">
           {error}
-        </Alert>
+        </Notice>
       </When>
       <div className="mt-6 flex flex-wrap gap-2">
         <Button variant="primary" size="sm" onClick={onOverview}>

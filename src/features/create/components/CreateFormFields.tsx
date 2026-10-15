@@ -1,4 +1,4 @@
-import { Alert, Button, Field, Input, Select } from "@zovaris/sephiro";
+import { Button, Field, Input, Notice, Select } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { isMockMode } from "@/services/api";
@@ -48,7 +48,7 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
         </p>
       </When>
       <When condition={Boolean(error)}>
-        <Alert variant="danger" className="mt-5">
+        <Notice variant="danger" className="mt-5">
           <p>{t("errors.request")}</p>
           <p className="mt-1 whitespace-pre-wrap break-words">{error}</p>
           <When condition={!options}>
@@ -62,7 +62,7 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
               {t("Retry loading")}
             </Button>
           </When>
-        </Alert>
+        </Notice>
       </When>
       <fieldset
         disabled={busy || loading || !options}

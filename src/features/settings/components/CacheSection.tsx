@@ -1,4 +1,4 @@
-import { Alert, Button } from "@zovaris/sephiro";
+import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useCacheInfo } from "../hooks/useCacheInfo";
@@ -50,9 +50,9 @@ export function CacheSection() {
       </div>
       <p className="mt-2 text-sm text-mist">{t("settings.cacheHint")}</p>
       <When condition={Boolean(error)}>
-        <Alert variant="danger" className="mt-3">
+        <Notice variant="danger" className="mt-3">
           {t("settings.cacheError")} {error}
-        </Alert>
+        </Notice>
       </When>
       <When condition={notice}>
         <p role="status" className="mt-3 text-sm text-mist">

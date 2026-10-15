@@ -1,4 +1,4 @@
-import { Alert, Button } from "@zovaris/sephiro";
+import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { isMockMode } from "@/services/api";
@@ -31,9 +31,9 @@ export function DiagnosticsSection() {
         <p className="mt-2 text-sm text-mist">{t("settings.demo")}</p>
       </When>
       <When condition={Boolean(error)}>
-        <Alert variant="danger" className="mt-3">
+        <Notice variant="danger" className="mt-3">
           {t("settings.diagnosticsError")} {error}
-        </Alert>
+        </Notice>
       </When>
       <When condition={Boolean(diagnostics)}>
         <dl className="mt-4 space-y-4">
