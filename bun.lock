@@ -12,7 +12,7 @@
         "@tauri-apps/api": "2",
         "@tauri-apps/plugin-dialog": "2",
         "@tauri-apps/plugin-opener": "2",
-        "@zovaris/sephiro": "./vendor/sephiro-0.9.0-asterism.0.tgz",
+        "@zovaris/sephiro": "0.11.0",
         "cn": "^0.3.0",
         "react": "19.3.0",
         "react-dom": "19.3.0",
@@ -209,7 +209,7 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@6.1.1", "", { "dependencies": { "@rolldown/pluginutils": "^1.0.1" }, "peerDependencies": { "@rolldown/plugin-babel": "^0.1.7 || ^0.2.0", "babel-plugin-react-compiler": "^1.0.0", "oxc-transform-react": "^0.145.0", "vite": "^8.0.0" }, "optionalPeers": ["@rolldown/plugin-babel", "babel-plugin-react-compiler", "oxc-transform-react"] }, "sha512-yxLaQV9gkhS8ezJqCM6+ndU7mDY6gqAg75NQ+0IjwEI8IYOmQCgkRwHKVSfWXW076DsqMo0Dk+0FK1U+M5RgFw=="],
 
-    "@zovaris/sephiro": ["@zovaris/sephiro@./vendor/sephiro-0.9.0-asterism.0.tgz", { "dependencies": { "@phosphor-icons/react": "2.1.10", "cn": "0.4.0", "sonner": "2.0.8" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" }, "optionalPeers": ["react", "react-dom"] }, "sha512-Ll8SrtDwfSTEQYVZkZSrCvAFz7ebMkRWWxU7/z89SgGZiRi7OcTl9SMAywulQkuTyeM+Rh63c+UL87erxsf7sA=="],
+    "@zovaris/sephiro": ["@zovaris/sephiro@0.11.0", "", { "dependencies": { "@phosphor-icons/react": "2.1.10", "cn": "0.4.0", "sonner": "2.0.8" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" }, "optionalPeers": ["react", "react-dom"] }, "sha512-vjPPytogqUUg7LbIQ9NTN1Z1+8bUUlhqyLdl8yXQtD3YpaKzuuup0ej6FZ94r0kI7sr7aJsbYXw8SnUPmOMP+g=="],
 
     "cn": ["cn@0.3.0", "", { "bin": { "cn": "bin/cn.mjs" } }, "sha512-qRoU0ARrZD3Bbj1wKFftEKxPjSnzTEdFkf22NVhW+zU9D/wajhoP+qUZ5DChhhSOBCH1onV12hrmGqfu1+5Z2Q=="],
 

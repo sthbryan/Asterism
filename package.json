@@ -25,7 +25,7 @@
     "@tauri-apps/api": "2",
     "@tauri-apps/plugin-dialog": "2",
     "@tauri-apps/plugin-opener": "2",
-    "@zovaris/sephiro": "./vendor/sephiro-0.9.0-asterism.0.tgz",
+    "@zovaris/sephiro": "0.11.0",
     "cn": "^0.3.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
