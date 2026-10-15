@@ -7,9 +7,10 @@ import {
   StarIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { BarList, Surface } from "@zovaris/sephiro";
+import { Surface } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { BarList } from "@/components/BarList";
 import { fmtCompact, fmtNum } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";

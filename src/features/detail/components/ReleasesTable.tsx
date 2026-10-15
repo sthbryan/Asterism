@@ -1,7 +1,8 @@
-import { Badge, BarList, Collapsible, Surface } from "@zovaris/sephiro";
+import { Badge, Collapsible, Surface } from "@zovaris/sephiro";
 import { useState } from "react";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { BarList } from "@/components/BarList";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
 

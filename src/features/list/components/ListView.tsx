@@ -4,7 +4,7 @@ import {
   GitForkIcon,
   StarIcon,
 } from "@phosphor-icons/react";
-import { BarList, Button, EmptyState, Surface } from "@zovaris/sephiro";
+import { Button, EmptyState, Surface } from "@zovaris/sephiro";
 import { cn } from "cn";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -12,6 +12,7 @@ import { detailPath } from "@/app/routes";
 import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { Banner } from "@/components/Banner";
+import { BarList } from "@/components/BarList";
 import { KpiCard } from "@/components/KpiCard";
 import { PageHeader } from "@/components/PageHeader";
 import { ListSkeleton } from "@/components/Skeleton";
