@@ -35,6 +35,5 @@
   "cacheCleared": "Cache cleared.",
   "cacheError": "Could not read or clear the cache.",
   "loading": "Loading…",
-  "preset": "Color palette",
-  "darkPreset": "This palette is available in dark mode. Pine Rose and Pulso also support light mode and the system setting."
+  "preset": "Color palette"
 }

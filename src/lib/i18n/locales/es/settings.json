@@ -35,6 +35,5 @@
   "cacheCleared": "Caché limpiado.",
   "cacheError": "No se pudo leer o limpiar el caché.",
   "loading": "Cargando…",
-  "preset": "Paleta de colores",
-  "darkPreset": "Esta paleta está disponible en modo oscuro. Pine Rose y Pulso también admiten modo claro y la preferencia del sistema."
+  "preset": "Paleta de colores"
 }

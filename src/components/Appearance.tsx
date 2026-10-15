@@ -11,7 +11,6 @@ import {
   applyDocumentAppearance,
   applyWindowChrome,
   isThemePreset,
-  presetSupportsMode,
   type ResolvedTheme,
   readStoredPreset,
   readStoredTheme,
@@ -92,13 +91,8 @@ export function AppearanceProvider({
     return () => media.removeEventListener("change", onChange);
   }, []);
 
-  const resolved: ResolvedTheme = !presetSupportsMode(themePreset)
-    ? "dark"
-    : theme === "system"
-      ? systemDark
-        ? "dark"
-        : "light"
-      : theme;
+  const resolved: ResolvedTheme =
+    theme === "system" ? (systemDark ? "dark" : "light") : theme;
 
   useEffect(() => {
     applyDocumentAppearance(theme, resolved, transparency, themePreset);

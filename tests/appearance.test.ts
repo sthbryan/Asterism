@@ -96,13 +96,24 @@ describe("Sephiro appearance", () => {
     expect(readStoredPreset()).toBe("pulso");
   });
 
-  test("preset identity is independent of light/dark mode", () => {
+  test("preset identity is independent of light/dark mode and all presets support both modes", () => {
+    const css = readFileSync(
+      "node_modules/@zovaris/sephiro/dist/themes.css",
+      "utf8",
+    );
+    expect(css).toContain(
+      '[data-sephiro-theme="asterism"][data-theme="light"]',
+    );
+    expect(css).toContain('[data-sephiro-theme="fizza"][data-theme="light"]');
     expect(sephiroTheme("default", "light")).toBe("light");
     expect(sephiroTheme("default", "dark")).toBe("dark");
+    expect(sephiroTheme("asterism", "light")).toBe("asterism");
+    expect(sephiroTheme("fizza", "light")).toBe("fizza");
     expect(sephiroTheme("pulso", "light")).toBe("pulso");
+    expect(presetSupportsMode("default")).toBe(true);
     expect(presetSupportsMode("pulso")).toBe(true);
-    expect(presetSupportsMode("asterism")).toBe(false);
-    expect(presetSupportsMode("fizza")).toBe(false);
+    expect(presetSupportsMode("asterism")).toBe(true);
+    expect(presetSupportsMode("fizza")).toBe(true);
     expect(isThemePreset("unknown")).toBe(false);
   });
 

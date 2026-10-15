@@ -31,7 +31,6 @@
                 : "dark";
           preset = params.get("preset") || localStorage.getItem("asterism:theme-preset") || "asterism";
           if (!["asterism", "default", "fizza", "pulso"].includes(preset)) preset = "asterism";
-          if (preset === "asterism" || preset === "fizza") resolved = "dark";
           document.documentElement.dataset.sephiroTheme = preset === "default" ? resolved : preset;
           document.documentElement.dataset.theme = resolved;
           document.documentElement.dataset.themePref = pref;
