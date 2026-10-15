@@ -1,6 +1,6 @@
-import { Surface, TimeSeriesChart } from "@zovaris/sephiro";
+import { Surface } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
-import { fmtAxisDateLong, fmtCompact } from "@/lib/format";
+import { HistoryChart } from "@/components/charts";
 import type { RepoDetail } from "@/lib/types";
 
 export function HistoryCharts({ detail }: { detail: RepoDetail }) {
@@ -18,13 +18,10 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
             {t("Star growth for this repository.")}
           </p>
           <div className="mt-3">
-            <TimeSeriesChart
+            <HistoryChart
               label={t("History chart")}
-              formatValue={fmtCompact}
-              formatDate={fmtAxisDateLong}
-              keyboardHelpText={t("common.chartKeyboardHelp")}
               points={stars}
-              tone="paper"
+              tone="muted"
               emptyText={t("No stars yet, so there is nothing to plot.")}
             />
           </div>
@@ -37,11 +34,8 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
             {t("Download growth for this repository.")}
           </p>
           <div className="mt-3">
-            <TimeSeriesChart
+            <HistoryChart
               label={t("History chart")}
-              formatValue={fmtCompact}
-              formatDate={fmtAxisDateLong}
-              keyboardHelpText={t("common.chartKeyboardHelp")}
               points={downloads}
               tone="accent"
               emptyText={t(

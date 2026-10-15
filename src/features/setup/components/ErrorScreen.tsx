@@ -1,6 +1,6 @@
 import { WarningCircleIcon } from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Alert, Button } from "@zovaris/sephiro";
+import { Button, Notice } from "@zovaris/sephiro";
 import { useState } from "react";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -88,9 +88,9 @@ export function ErrorScreen({
           </details>
         </When>
         <When condition={Boolean(actionError)}>
-          <Alert variant="danger" className="mt-3">
+          <Notice variant="danger" className="mt-3">
             {t("errors.request")} {actionError}
-          </Alert>
+          </Notice>
         </When>
       </div>
     </div>

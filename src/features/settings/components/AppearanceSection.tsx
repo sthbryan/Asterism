@@ -1,4 +1,4 @@
-import { Alert, Select, Toggle } from "@zovaris/sephiro";
+import { Notice, Select, Toggle } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
@@ -106,7 +106,7 @@ export function AppearanceSection() {
         />
       </div>
       <When condition={Boolean(appearanceError || preferenceError)}>
-        <Alert
+        <Notice
           variant="danger"
           title={t("settings.saveError")}
           className="mt-4"
@@ -114,7 +114,7 @@ export function AppearanceSection() {
           <p className="mt-1 wrap-break-word">
             {appearanceError || preferenceError}
           </p>
-        </Alert>
+        </Notice>
       </When>
     </section>
   );

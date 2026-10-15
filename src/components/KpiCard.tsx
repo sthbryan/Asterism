@@ -1,4 +1,4 @@
-import { PopNumber, Surface } from "@zovaris/sephiro";
+import { AnimatedNumber, Surface } from "@zovaris/sephiro";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { fmtCompact, fmtSigned } from "@/lib/format";
@@ -35,7 +35,11 @@ export function KpiCard({
           hero ? "text-accent-soft" : value === 0 ? "text-faint" : ""
         }`}
       >
-        <PopNumber value={fmtCompact(value)} />
+        {value == null ? (
+          fmtCompact(value)
+        ) : (
+          <AnimatedNumber value={value} format={fmtCompact} />
+        )}
       </div>
       {delta != null ? (
         <div

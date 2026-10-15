@@ -1,10 +1,10 @@
-import { Alert } from "@zovaris/sephiro";
+import { Notice } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
 
 export function PartialErrors({ errors }: { errors: Record<string, string> }) {
   const { t } = useI18n();
   return (
-    <Alert variant="warning" title={t("pulls.partial")} className="mb-3">
+    <Notice variant="warning" title={t("pulls.partial")} className="mb-3">
       <div className="grid gap-1">
         {Object.entries(errors).map(([repo, message]) => (
           <div key={repo} className="flex flex-wrap gap-2">
@@ -13,6 +13,6 @@ export function PartialErrors({ errors }: { errors: Record<string, string> }) {
           </div>
         ))}
       </div>
-    </Alert>
+    </Notice>
   );
 }

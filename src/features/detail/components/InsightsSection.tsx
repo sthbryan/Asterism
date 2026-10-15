@@ -1,7 +1,8 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { BarList, Surface } from "@zovaris/sephiro";
+import { Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { BarList } from "@/components/BarList";
 import { fmtCompact } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import { platformItems, shortPath } from "@/lib/platform";

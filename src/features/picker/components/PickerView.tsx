@@ -1,4 +1,4 @@
-import { Alert, EmptyState, Surface } from "@zovaris/sephiro";
+import { EmptyState, Notice, Surface } from "@zovaris/sephiro";
 import { useCallback, useEffect } from "react";
 import { Case, Default, Switch, When } from "react-if";
 import { useCatalog, useI18n } from "@/app/hooks";
@@ -106,14 +106,14 @@ export function PickerView() {
           <p className="mt-3 text-xs text-mist">{fetchedText}</p>
         </When>
         <When condition={Boolean(error) && catalog.length > 0}>
-          <Alert variant="warning" className="mt-3">
+          <Notice variant="warning" className="mt-3">
             {t("errors.request")} {error}
-          </Alert>
+          </Notice>
         </When>
         <When condition={Boolean(saveError)}>
-          <Alert variant="danger" className="mt-3">
+          <Notice variant="danger" className="mt-3">
             {t("errors.request")} {saveError}
-          </Alert>
+          </Notice>
         </When>
         <Surface
           padding="none"
@@ -121,10 +121,10 @@ export function PickerView() {
         >
           <Switch>
             <Case condition={Boolean(error) && catalog.length === 0}>
-              <Alert variant="danger" className="m-4">
+              <Notice variant="danger" className="m-4">
                 <p>{t("errors.request")}</p>
                 <p className="mt-1 wrap-break-word">{error}</p>
-              </Alert>
+              </Notice>
             </Case>
             <Case condition={loading}>
               <PickerSkeleton />

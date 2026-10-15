@@ -1,9 +1,9 @@
 import { DownloadSimpleIcon, EyeIcon } from "@phosphor-icons/react";
-import { ColumnChart, Surface } from "@zovaris/sephiro";
+import { Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
-import { fmtAxisDate, fmtNum } from "@/lib/format";
+import { TrafficChart } from "@/components/charts";
 import type { RepoDetail } from "@/lib/types";
 
 import { TrafficBlock } from "./TrafficBlock";
@@ -55,15 +55,12 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
                 fetchedAt={detail.views?.fetchedAt}
               />
               <div className="mt-3">
-                <ColumnChart
+                <TrafficChart
                   label={t("Traffic · 14 days")}
-                  formatValue={fmtNum}
-                  formatDate={fmtAxisDate}
-                  tone="paper"
-                  items={(detail.views?.days ?? []).map((day) => ({
+                  tone="muted"
+                  points={(detail.views?.days ?? []).map((day) => ({
                     ts: day.ts,
                     value: day.count,
-                    hint: t("common.unique", { count: day.uniques }),
                   }))}
                   emptyText={t("No view samples.")}
                 />
@@ -78,15 +75,12 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
                 fetchedAt={detail.clones?.fetchedAt}
               />
               <div className="mt-3">
-                <ColumnChart
+                <TrafficChart
                   label={t("Traffic · 14 days")}
-                  formatValue={fmtNum}
-                  formatDate={fmtAxisDate}
                   tone="accent"
-                  items={(detail.clones?.days ?? []).map((day) => ({
+                  points={(detail.clones?.days ?? []).map((day) => ({
                     ts: day.ts,
                     value: day.count,
-                    hint: t("common.unique", { count: day.uniques }),
                   }))}
                   emptyText={t("No clone samples.")}
                 />

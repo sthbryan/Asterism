@@ -142,6 +142,5 @@
     "traffic": "GitHub provides a 14-day window; this app displays the latest response.",
     "period": "Response period: {from} – {to}",
     "storageError": "Local settings could not be read or saved. Check the storage location and permissions in Settings, then try again."
-  },
-  "chartKeyboardHelp": "Use the left and right arrow keys to inspect samples. Home and End move to the first and last sample."
+  }
 }
