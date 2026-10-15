@@ -3,7 +3,6 @@ import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useAppearance } from "@/components/Appearance";
-import { presetSupportsMode } from "@/lib/appearance";
 import type { Locale, ThemePref, ThemePreset } from "@/lib/types";
 
 export function AppearanceSection() {
@@ -77,8 +76,7 @@ export function AppearanceSection() {
         </label>
         <Select
           id="app-theme"
-          value={presetSupportsMode(themePreset) ? theme : "dark"}
-          disabled={!presetSupportsMode(themePreset)}
+          value={theme}
           className="min-w-40"
           ariaLabelledBy="app-theme-label"
           options={[
@@ -89,9 +87,6 @@ export function AppearanceSection() {
           onValueChange={(value) => setTheme(value as ThemePref)}
         />
       </div>
-      <When condition={!presetSupportsMode(themePreset)}>
-        <p className="mt-2 text-sm text-mist">{t("settings.darkPreset")}</p>
-      </When>
       <div className="mt-5 flex items-center justify-between gap-6">
         <div>
           <p className="text-sm font-medium">{t("settings.transparency")}</p>

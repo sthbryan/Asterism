@@ -39,7 +39,7 @@ export function readStoredPreset(): ThemePreset {
 }
 
 export function presetSupportsMode(preset: ThemePreset) {
-  return preset === "default" || preset === "pulso";
+  return isThemePreset(preset);
 }
 
 export function sephiroTheme(preset: ThemePreset, resolved: ResolvedTheme) {
