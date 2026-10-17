@@ -8,12 +8,13 @@ import { Badge, EmptyState, Input } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { VList } from "virtua";
 import { useI18n } from "@/app/hooks";
+import { useListMemory } from "@/app/useScrollMemory";
 import { fmtNum, fmtSigned } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
 import type { ListSort, ListSortKey } from "../hooks/useListControls";
 
-const COLS = "grid-cols-[minmax(0,1fr)_80px_80px_96px_24px]";
+const COLS = "grid-cols-[minmax(0,1fr)_62px_54px_78px_16px]";
 
 type Props = {
   rows: TrackedRepo[];
@@ -33,6 +34,7 @@ export function RepositoryTable({
   onOpenRepo,
 }: Props) {
   const { t } = useI18n();
+  const list = useListMemory("overview-list");
   const sortHead = (label: string, key: ListSortKey) => {
     const active = sort.key === key;
     return (
@@ -54,7 +56,7 @@ export function RepositoryTable({
     <button
       type="button"
       onClick={() => onOpenRepo(repo.fullName)}
-      className={`group grid w-full ${COLS} items-center gap-3 py-2.5 text-left transition-colors hover:bg-hover`}
+      className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
     >
       <span className="flex min-w-0 items-center gap-2">
         <span
@@ -82,7 +84,7 @@ export function RepositoryTable({
           <Badge
             size="sm"
             variant="neutral"
-            className="shrink-0 rounded-md border border-line px-1.5 py-px font-mono text-[10px] tracking-wide uppercase"
+            className="shrink-0 rounded border border-line px-1 py-px leading-none font-mono text-[9px] tracking-wide uppercase"
           >
             {t("Private")}
           </Badge>
@@ -131,8 +133,8 @@ export function RepositoryTable({
   );
 
   return (
-    <div className="app-section min-w-0">
-      <div className="flex items-center gap-3 pb-1">
+    <div className="app-card flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex shrink-0 items-center gap-3 px-4 pt-3 pb-1">
         <span className="text-[13px] font-semibold">{t("Repositories")}</span>
         <label
           htmlFor="repository-filter"
@@ -151,7 +153,7 @@ export function RepositoryTable({
         </label>
       </div>
       <div
-        className={`grid ${COLS} items-center gap-3 border-b border-hairline py-2 text-[11px] font-medium text-faint`}
+        className={`grid shrink-0 ${COLS} items-center gap-3 border-b border-hairline px-4 py-2 text-[11px] font-medium text-faint`}
       >
         {sortHead(t("Repository"), "fullName")}
         <div className="flex justify-end">{sortHead(t("Stars"), "stars")}</div>
@@ -161,47 +163,32 @@ export function RepositoryTable({
         </div>
         <span />
       </div>
-      <If condition={rows.length <= 30}>
+      <If condition={rows.length === 0}>
         <Then>
-          <ul>
-            <If condition={rows.length === 0}>
-              <Then>
-                <li>
-                  <EmptyState
-                    compact
-                    icon={<MagnifyingGlassIcon />}
-                    title={t("list.noResults", { query: query.trim() })}
-                    className="py-5"
-                  />
-                </li>
-              </Then>
-              <Else>
-                {rows.map((repo) => (
-                  <li
-                    key={repo.fullName}
-                    className="border-b border-hairline last:border-b-0"
-                  >
-                    {renderRow(repo)}
-                  </li>
-                ))}
-              </Else>
-            </If>
-          </ul>
+          <EmptyState
+            compact
+            icon={<MagnifyingGlassIcon />}
+            title={t("list.noResults", { query: query.trim() })}
+            className="px-4 py-5"
+          />
         </Then>
         <Else>
-          <VList
-            style={{ height: Math.min(480, rows.length * 57) }}
-            itemSize={57}
-          >
-            {rows.map((repo) => (
-              <div
-                key={repo.fullName}
-                className="border-b border-hairline last:border-b-0"
-              >
-                {renderRow(repo)}
-              </div>
-            ))}
-          </VList>
+          {/* The table is its own window: only rows in view are mounted. */}
+          <div className="min-h-0 flex-1">
+            <VList
+              key={`${query}:${sort.key}:${sort.dir}`}
+              ref={list.ref}
+              onScroll={list.onScroll}
+              style={{ height: "100%" }}
+              aria-label={t("Repositories")}
+            >
+              {rows.map((repo) => (
+                <div key={repo.fullName} className="border-b border-hairline">
+                  {renderRow(repo)}
+                </div>
+              ))}
+            </VList>
+          </div>
         </Else>
       </If>
     </div>

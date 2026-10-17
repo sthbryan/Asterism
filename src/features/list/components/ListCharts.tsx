@@ -1,4 +1,4 @@
-import { When } from "react-if";
+import { ChartLineUpIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import { HistoryChart } from "@/components/charts";
 import { Section } from "@/components/Section";
@@ -17,50 +17,41 @@ export function ListCharts({
   const starDelta = delta(starSeries);
   const downloadDelta = delta(downloadSeries);
   return (
-    <div className="app-section app-split mt-6 grid gap-6 lg:grid-cols-2">
-      <Section className="app-section-flush">
-        <div className="flex items-baseline justify-between gap-3">
-          <div className="kpi-label text-faint">{t("Stars over time")}</div>
-          <When condition={starDelta != null}>
-            <span className="font-mono text-[11.5px] text-faint tabular">
-              {t("list.range", { value: fmtSigned(starDelta ?? 0) })}
-            </span>
-          </When>
-        </div>
-        <p className="mt-1 text-[11.5px] leading-snug text-faint">
-          {t("Star growth across tracked repositories.")}
-        </p>
-        <div className="mt-3">
-          <HistoryChart
-            label={t("History chart")}
-            points={starSeries}
-            tone="muted"
-            emptyText={t(
-              "Open a repository or refresh to reconstruct star history from GitHub.",
-            )}
-          />
-        </div>
+    <div className="flex flex-col gap-4">
+      <Section
+        label={t("Stars over time")}
+        icon={<ChartLineUpIcon size={15} />}
+        meta={
+          starDelta != null
+            ? t("list.range", { value: fmtSigned(starDelta ?? 0) })
+            : null
+        }
+      >
+        <HistoryChart
+          label={t("History chart")}
+          points={starSeries}
+          tone="muted"
+          emptyText={t(
+            "Open a repository or refresh to reconstruct star history from GitHub.",
+          )}
+        />
       </Section>
-      <Section className="app-section-flush">
-        <div className="flex items-baseline justify-between gap-3">
-          <div className="kpi-label text-faint">{t("Downloads over time")}</div>
-          <When condition={downloadDelta != null}>
-            <span className="font-mono text-[11.5px] text-faint tabular">
-              {t("list.range", { value: fmtSigned(downloadDelta ?? 0) })}
-            </span>
-          </When>
-        </div>
-        <p className="mt-1 text-[11.5px] leading-snug text-faint">
-          {t("Download growth across tracked repositories.")}
-        </p>
-        <div className="mt-3">
-          <HistoryChart
-            label={t("History chart")}
-            points={downloadSeries}
-            tone="accent"
-            emptyText={t("This chart fills in from the next refresh onward.")}
-          />
-        </div>
+      <Section
+        label={t("Downloads over time")}
+        icon={<DownloadSimpleIcon size={15} />}
+        tone="accent"
+        meta={
+          downloadDelta != null
+            ? t("list.range", { value: fmtSigned(downloadDelta ?? 0) })
+            : null
+        }
+      >
+        <HistoryChart
+          label={t("History chart")}
+          points={downloadSeries}
+          tone="accent"
+          emptyText={t("This chart fills in from the next refresh onward.")}
+        />
       </Section>
     </div>
   );

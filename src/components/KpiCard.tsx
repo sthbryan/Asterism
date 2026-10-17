@@ -26,9 +26,13 @@ export function KpiCard({
 }) {
   const { t } = useI18n();
   return (
-    <div className={cn("min-w-0", className)}>
-      <div className="flex items-center gap-2 text-mist">
-        {icon ? <span className="text-faint">{icon}</span> : null}
+    <div className={cn("min-w-0", hero && "is-hero", className)}>
+      <div className="flex items-center gap-2.5">
+        {icon ? (
+          <span className={cn("app-chip", hero && "app-chip--accent")}>
+            {icon}
+          </span>
+        ) : null}
         <span className="kpi-label">{label}</span>
       </div>
       <div

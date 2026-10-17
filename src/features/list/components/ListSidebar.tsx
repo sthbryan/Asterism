@@ -1,6 +1,9 @@
 import {
+  DevicesIcon,
   DownloadSimpleIcon,
   LockSimpleIcon,
+  TranslateIcon,
+  TrophyIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
 import { When } from "react-if";
@@ -30,9 +33,13 @@ export function ListSidebar({
   const { top, share } = highlight;
   const { privateCount, silentCount, errorCount } = stats;
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 space-y-4">
       <When condition={Boolean(top)}>
-        <Section label={t("Top repository")}>
+        <Section
+          label={t("Top repository")}
+          icon={<TrophyIcon size={15} />}
+          tone="accent"
+        >
           <button
             type="button"
             className="-mx-2 block w-full rounded-lg px-2 pb-1 text-left transition-colors hover:bg-hover hover:text-paper"
@@ -73,7 +80,10 @@ export function ListSidebar({
       </When>
 
       <When condition={platformBars.length > 0}>
-        <Section label={t("Downloads by platform")}>
+        <Section
+          label={t("Downloads by platform")}
+          icon={<DevicesIcon size={15} />}
+        >
           <BarList
             label={t("Downloads by platform")}
             formatValue={fmtCompact}
@@ -86,7 +96,7 @@ export function ListSidebar({
       </When>
 
       <When condition={languages.items.length > 0}>
-        <Section label={t("Languages")}>
+        <Section label={t("Languages")} icon={<TranslateIcon size={15} />}>
           <ul className="space-y-2">
             {languages.items.map(([name, count]) => {
               const pct = (count / languages.total) * 100;
@@ -126,7 +136,7 @@ export function ListSidebar({
         </Section>
       </When>
 
-      <Section label={t("Tracked set")}>
+      <Section label={t("Tracked set")} icon={<LockSimpleIcon size={15} />}>
         <dl className="space-y-2.5">
           <div className="flex items-center justify-between gap-3">
             <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">

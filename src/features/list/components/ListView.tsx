@@ -10,7 +10,6 @@ import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { detailPath } from "@/app/routes";
 import { useStore } from "@/app/store";
-import { useScrollMemory } from "@/app/useScrollMemory";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { Banner } from "@/components/Banner";
 import { BarList } from "@/components/BarList";
@@ -45,7 +44,6 @@ export function ListView() {
     !booted || (!hasData && (refreshing || awaitingInitialData));
 
   const { query, sort, setQuery, toggleSort } = useListControls();
-  const scrollRef = useScrollMemory("overview");
   const {
     totals,
     starSeries,
@@ -82,19 +80,16 @@ export function ListView() {
           <ListSkeleton />
         </div>
         <div className="t-skel-content">
-          <div
-            ref={scrollRef}
-            className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6"
-          >
+          <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
             <Banner
               message={banner ? `${t("errors.request")} ${banner}` : null}
             />
             <When condition={showPartial}>
-              <p role="status" className="mb-3 text-sm text-mist">
+              <p role="status" className="mb-3 shrink-0 text-sm text-mist">
                 {t("errors.request")}
               </p>
             </When>
-            <div className="app-kpis">
+            <div className="app-kpis shrink-0">
               <KpiCard
                 label={t("Repositories")}
                 value={selectedNames.length}
@@ -127,16 +122,10 @@ export function ListView() {
                 deltaHint={kpis.download?.hint}
               />
             </div>
-            <When condition={repos.length > 0}>
-              <ListCharts
-                starSeries={starSeries}
-                downloadSeries={downloadSeries}
-              />
-            </When>
             <If condition={repos.length === 0}>
               <Then>
                 <EmptyState
-                  className="mt-6 min-h-60 content-center border-t border-hairline pt-8"
+                  className="app-card mt-4 min-h-0 flex-1 content-center"
                   icon={<FolderSimpleIcon />}
                   title={t("No repositories tracked")}
                   description={t(
@@ -155,11 +144,24 @@ export function ListView() {
                 />
               </Then>
               <Else>
-                <div className="app-split mt-6 grid items-start gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
-                  <div className="min-w-0">
+                <div className="mt-4 grid min-h-0 flex-1 items-stretch gap-4 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
+                  <RepositoryTable
+                    rows={rows}
+                    query={query}
+                    sort={sort}
+                    onQueryChange={setQuery}
+                    onSort={toggleSort}
+                    onOpenRepo={openRepo}
+                  />
+                  <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto pb-1">
+                    <ListCharts
+                      starSeries={starSeries}
+                      downloadSeries={downloadSeries}
+                    />
                     <When condition={chart.show}>
                       <Section
                         label={t("Downloads by repo")}
+                        icon={<DownloadSimpleIcon size={15} />}
                         meta={t("list.total", {
                           value: fmtNum(totals.downloads),
                         })}
@@ -175,29 +177,21 @@ export function ListView() {
                         />
                       </Section>
                     </When>
-                    <RepositoryTable
-                      rows={rows}
-                      query={query}
-                      sort={sort}
-                      onQueryChange={setQuery}
-                      onSort={toggleSort}
+                    <ListSidebar
+                      highlight={{ top: chart.top, share: chart.share }}
+                      platformBars={platformBars}
+                      languages={{
+                        items: sidebar.languages,
+                        total: repos.length || 1,
+                      }}
+                      stats={{
+                        privateCount: sidebar.privateCount,
+                        silentCount: sidebar.silentCount,
+                        errorCount: sidebar.errorCount,
+                      }}
                       onOpenRepo={openRepo}
                     />
                   </div>
-                  <ListSidebar
-                    highlight={{ top: chart.top, share: chart.share }}
-                    platformBars={platformBars}
-                    languages={{
-                      items: sidebar.languages,
-                      total: repos.length || 1,
-                    }}
-                    stats={{
-                      privateCount: sidebar.privateCount,
-                      silentCount: sidebar.silentCount,
-                      errorCount: sidebar.errorCount,
-                    }}
-                    onOpenRepo={openRepo}
-                  />
                 </div>
               </Else>
             </If>
