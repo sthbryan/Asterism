@@ -373,10 +373,12 @@ html[data-transparency="on"] .app-sidebar {
   padding: 12px 10px 10px;
 }
 
-/* Collapsed, the mark is gone: the nav column is the identity, and a lone badge
-   above it would read as a second, unrelated icon. */
+/* Collapsed, the mark keeps the column's centre line instead of disappearing:
+   the brand row is what holds the nav down, so hiding it would make the whole
+   rail jump when the labels go away. */
 .app-sidebar[data-collapsed="true"] .app-brand {
-  display: none;
+  justify-content: center;
+  padding: 0 0 14px;
 }
 
 .app-sidebar[data-collapsed="true"] .app-brand-name,
