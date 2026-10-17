@@ -133,7 +133,7 @@ export function PullsView() {
           <Then>
             <EmptyState
               compact
-              className="card mt-3 min-h-44 content-center"
+              className="mt-4 min-h-44 content-center border-t border-hairline pt-8"
               icon={<MagnifyingGlassIcon />}
               title={
                 <Switch>
@@ -146,7 +146,7 @@ export function PullsView() {
             />
           </Then>
         </If>
-        <div className="flex flex-col gap-2">
+        <div className="border-t border-hairline">
           {page.items.map((pull) => (
             <PullRow
               key={`${pull.repo}#${pull.number}`}

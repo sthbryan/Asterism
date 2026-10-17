@@ -1,13 +1,11 @@
 import { DownloadSimpleIcon, EyeIcon } from "@phosphor-icons/react";
-import { Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { TrafficChart } from "@/components/charts";
+import { Section } from "@/components/Section";
 import type { RepoDetail } from "@/lib/types";
-
 import { TrafficBlock } from "./TrafficBlock";
-
 export function TrafficSection({ detail }: { detail: RepoDetail }) {
   const { t, locale } = useI18n();
   const fetchedAt = useStore((s) => s.detailFetchedAt);
@@ -21,11 +19,9 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
       timeZone: "UTC",
     }).format(ts * 1000);
   return (
-    <Surface padding="md" className="mt-3 border border-hairline">
+    <Section>
       <div className="flex items-baseline justify-between gap-3">
-        <div className="text-[13px] font-semibold">
-          {t("Traffic · 14 days")}
-        </div>
+        <div className="kpi-label text-faint">{t("Traffic · 14 days")}</div>
         <span className="text-[11px] text-faint">
           {days.length > 0
             ? `${fmt(Math.min(...days))} – ${fmt(Math.max(...days))}`
@@ -89,6 +85,6 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
           </div>
         </Else>
       </If>
-    </Surface>
+    </Section>
   );
 }

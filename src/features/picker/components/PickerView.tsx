@@ -1,4 +1,4 @@
-import { Button, EmptyState, Notice, Surface } from "@zovaris/sephiro";
+import { Button, EmptyState, Notice } from "@zovaris/sephiro";
 import { useCallback, useEffect } from "react";
 import { Case, Default, Switch, When } from "react-if";
 import { VList } from "virtua";
@@ -111,12 +111,9 @@ export function PickerView() {
             {t("errors.request")} {saveError}
           </Notice>
         </When>
-        <Surface
-          padding="none"
-          className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden border border-hairline"
-        >
-          <div className="shrink-0 border-b border-hairline bg-raised">
-            <div className="flex items-center gap-3 py-1.5 pr-3 pl-4">
+        <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden border-t border-hairline">
+          <div className="shrink-0 border-b border-hairline">
+            <div className="flex items-center gap-3 py-2">
               <span className="text-[13px] font-semibold">
                 {t("Repositories")}
               </span>
@@ -148,7 +145,7 @@ export function PickerView() {
                 </When>
               </div>
             </div>
-            <div className="flex items-center gap-3 border-t border-hairline px-4 py-2 text-[11px] font-medium text-faint">
+            <div className="flex items-center gap-3 border-t border-hairline pt-2 pb-1 text-[11px] font-medium text-faint">
               <span className="w-3.5 shrink-0" />
               <span className={`${ROW_COLS} flex-1`}>
                 <span>{t("Repository")}</span>
@@ -198,7 +195,7 @@ export function PickerView() {
               </div>
             </Default>
           </Switch>
-        </Surface>
+        </div>
         <PickerFooter
           changes={changes}
           busy={loading || connecting || !account || saving}

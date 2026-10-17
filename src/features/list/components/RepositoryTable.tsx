@@ -4,7 +4,7 @@ import {
   MagnifyingGlassIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { Badge, EmptyState, Input, Surface } from "@zovaris/sephiro";
+import { Badge, EmptyState, Input } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { VList } from "virtua";
 import { useI18n } from "@/app/hooks";
@@ -54,7 +54,7 @@ export function RepositoryTable({
     <button
       type="button"
       onClick={() => onOpenRepo(repo.fullName)}
-      className={`group grid w-full ${COLS} items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-hover`}
+      className={`group grid w-full ${COLS} items-center gap-3 py-2.5 text-left transition-colors hover:bg-hover`}
     >
       <span className="flex min-w-0 items-center gap-2">
         <span
@@ -131,11 +131,8 @@ export function RepositoryTable({
   );
 
   return (
-    <Surface
-      padding="none"
-      className="min-w-0 overflow-hidden border border-hairline"
-    >
-      <div className="flex items-center gap-3 border-b border-hairline py-1.5 pr-3 pl-4">
+    <div className="app-section min-w-0">
+      <div className="flex items-center gap-3 pb-1">
         <span className="text-[13px] font-semibold">{t("Repositories")}</span>
         <label
           htmlFor="repository-filter"
@@ -154,7 +151,7 @@ export function RepositoryTable({
         </label>
       </div>
       <div
-        className={`grid ${COLS} items-center gap-3 border-b border-hairline px-4 py-2`}
+        className={`grid ${COLS} items-center gap-3 border-b border-hairline py-2 text-[11px] font-medium text-faint`}
       >
         {sortHead(t("Repository"), "fullName")}
         <div className="flex justify-end">{sortHead(t("Stars"), "stars")}</div>
@@ -207,6 +204,6 @@ export function RepositoryTable({
           </VList>
         </Else>
       </If>
-    </Surface>
+    </div>
   );
 }

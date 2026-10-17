@@ -1,13 +1,12 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarList } from "@/components/BarList";
+import { Section } from "@/components/Section";
 import { fmtCompact } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import { platformItems, shortPath } from "@/lib/platform";
 import type { RepoDetail } from "@/lib/types";
-
 export function InsightsSection({ detail }: { detail: RepoDetail }) {
   const { t, formatNumber } = useI18n();
   const langTotal =
@@ -20,11 +19,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
 
   return (
     <>
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">
-            {t("Referrers · 14 days")}
-          </div>
+      <div className="app-section app-split mt-6 grid gap-6 lg:grid-cols-2">
+        <Section className="app-section-flush">
+          <div className="kpi-label text-faint">{t("Referrers · 14 days")}</div>
           <If condition={referrers.length === 0}>
             <Then>
               <p className="mt-3 text-[13px] text-faint">
@@ -46,9 +43,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </Surface>
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">
+        </Section>
+        <Section className="app-section-flush">
+          <div className="kpi-label text-faint">
             {t("Popular paths · 14 days")}
           </div>
           <If condition={paths.length === 0}>
@@ -85,12 +82,12 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </Surface>
+        </Section>
       </div>
 
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">
+      <div className="app-section app-split mt-6 grid gap-6 lg:grid-cols-2">
+        <Section className="app-section-flush">
+          <div className="kpi-label text-faint">
             {t("Downloads by platform")}
           </div>
           <If condition={platformBars.length === 0}>
@@ -112,9 +109,9 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </Surface>
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">{t("Languages")}</div>
+        </Section>
+        <Section className="app-section-flush">
+          <div className="kpi-label text-faint">{t("Languages")}</div>
           <If condition={detail.languages.length === 0}>
             <Then>
               <p className="mt-3 text-[13px] text-faint">
@@ -160,7 +157,7 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </ul>
             </Else>
           </If>
-        </Surface>
+        </Section>
       </div>
     </>
   );

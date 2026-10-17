@@ -21,7 +21,7 @@ export function PullRow({
   return (
     <button
       type="button"
-      className="card w-full p-4 text-left transition-colors hover:border-line hover:bg-hover"
+      className="w-full border-b border-hairline py-3.5 text-left transition-colors hover:bg-hover"
       onClick={onOpen}
     >
       <div className="flex items-start gap-3">

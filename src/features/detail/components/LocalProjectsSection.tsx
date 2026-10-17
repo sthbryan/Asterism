@@ -25,9 +25,12 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
   } = useLocalCheckouts(fullName);
 
   return (
-    <section className="card mt-3 p-4" aria-labelledby="local-projects-heading">
+    <section
+      className="app-section mt-3"
+      aria-labelledby="local-projects-heading"
+    >
       <div className="flex items-center justify-between gap-3">
-        <h2 id="local-projects-heading" className="text-[13px] font-semibold">
+        <h2 id="local-projects-heading" className="kpi-label text-faint">
           {t("local.title")}
         </h2>
         <div className="flex gap-2">

@@ -5,9 +5,10 @@ import {
   GitPullRequestIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { Badge, Surface } from "@zovaris/sephiro";
+import { Badge } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { Section } from "@/components/Section";
 import type { PullRequestDetail, Saved } from "@/lib/types";
 import { CheckBadge } from "./CheckBadge";
 import { DetailDisclosure } from "./DetailDisclosure";
@@ -15,7 +16,6 @@ import { DiffBody } from "./DiffBody";
 import { Fact } from "./Fact";
 import { FileList } from "./FileList";
 import { People } from "./People";
-
 export function PullDetailBody({
   pull,
   warning,
@@ -101,7 +101,7 @@ export function PullDetailBody({
           value={`${pull.approvals} ✓ · ${pull.changesRequested} !`}
         />
       </div>
-      <Surface padding="md" className="mt-3 border border-hairline">
+      <Section>
         <div className="flex flex-wrap items-center gap-4 text-[12px] text-mist">
           <span>{pull.author ?? t("pulls.unknown")}</span>
           <span>
@@ -122,7 +122,7 @@ export function PullDetailBody({
             {pull.body}
           </p>
         </When>
-      </Surface>
+      </Section>
       <section className="mt-3">
         <DetailDisclosure
           title={t("pulls.files")}
@@ -131,12 +131,9 @@ export function PullDetailBody({
           onOpenChange={toggleFiles}
           actionLabel={t("pulls.loadFiles")}
         >
-          <Surface
-            padding="none"
-            className="mt-1 overflow-hidden border border-hairline"
-          >
+          <div className="mt-1 border-t border-hairline">
             <FileList files={pull.files} />
-          </Surface>
+          </div>
         </DetailDisclosure>
       </section>
       <section className="mt-3">
@@ -146,32 +143,26 @@ export function PullDetailBody({
           onOpenChange={toggleDiff}
           actionLabel={diffLabel}
         >
-          <Surface
-            padding="none"
-            className="mt-1 overflow-hidden border border-hairline"
-          >
+          <div className="mt-1 border-t border-hairline">
             <DiffBody
               diff={diff}
               loading={diffLoading}
               refreshing={diffRefreshing}
               error={diffError}
             />
-          </Surface>
+          </div>
         </DetailDisclosure>
       </section>
       <When
         condition={pull.reviewRequests.length > 0 || pull.assignees.length > 0}
       >
-        <Surface
-          padding="md"
-          className="mt-3 grid gap-4 sm:grid-cols-2 border border-hairline"
-        >
+        <Section className="grid gap-4 sm:grid-cols-2">
           <People
             title={t("pulls.reviewRequested")}
             values={pull.reviewRequests}
           />
           <People title={t("pulls.assignee")} values={pull.assignees} />
-        </Surface>
+        </Section>
       </When>
     </div>
   );

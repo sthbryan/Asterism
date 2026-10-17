@@ -1,4 +1,4 @@
-import { Badge, Collapsible, Surface } from "@zovaris/sephiro";
+import { Badge, Collapsible } from "@zovaris/sephiro";
 import { useState } from "react";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -13,12 +13,9 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
   );
 
   return (
-    <Surface
-      padding="none"
-      className="mt-3 overflow-hidden border border-hairline"
-    >
-      <div className="flex items-center justify-between border-b border-hairline px-4 py-2.5">
-        <div className="text-[13px] font-semibold">{t("Releases")}</div>
+    <div className="app-section mt-3">
+      <div className="flex items-center justify-between pb-2">
+        <div className="kpi-label text-faint">{t("Releases")}</div>
         <span className="font-mono text-[11.5px] text-faint tabular">
           {fmtNum(detail.releases.length)}
         </span>
@@ -26,7 +23,7 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
       <When
         condition={detail.releases.some((release) => release.downloads > 0)}
       >
-        <div className="border-b border-hairline px-4 py-3">
+        <div className="border-t border-hairline py-3">
           <BarList
             label={t("Releases")}
             formatValue={fmtCompact}
@@ -132,6 +129,6 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
           </ul>
         </Else>
       </If>
-    </Surface>
+    </div>
   );
 }
