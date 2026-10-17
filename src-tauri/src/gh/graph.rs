@@ -71,31 +71,34 @@ fn failed(full_name: &str, error: String) -> TrackedRepo {
 /// Releases and assets beyond the first page make the totals a lower bound,
 /// so the caller refetches those repositories over REST.
 fn parse_repo(full_name: &str, value: &Value) -> (TrackedRepo, bool) {
+    let Some(releases) = value.get("releases").filter(|v| v.is_object()) else {
+        return (
+            failed(full_name, "Could not read release downloads.".to_string()),
+            false,
+        );
+    };
     let mut downloads = 0u64;
     let mut platforms = PlatformDownloads::default();
-    let mut truncated = false;
-    if let Some(releases) = value.get("releases").filter(|v| v.is_object()) {
-        truncated |= next_page(releases);
-        let nodes = releases
+    let mut truncated = next_page(releases);
+    let nodes = releases
+        .get("nodes")
+        .and_then(Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    for release in nodes {
+        let Some(assets) = release.get("releaseAssets").filter(|v| v.is_object()) else {
+            continue;
+        };
+        truncated |= next_page(assets);
+        for asset in assets
             .get("nodes")
             .and_then(Value::as_array)
             .map(Vec::as_slice)
-            .unwrap_or_default();
-        for release in nodes {
-            let Some(assets) = release.get("releaseAssets").filter(|v| v.is_object()) else {
-                continue;
-            };
-            truncated |= next_page(assets);
-            for asset in assets
-                .get("nodes")
-                .and_then(Value::as_array)
-                .map(Vec::as_slice)
-                .unwrap_or_default()
-            {
-                let count = as_u64(asset, "downloadCount");
-                downloads = downloads.saturating_add(count);
-                platforms.add(&as_string(asset, "name").unwrap_or_default(), count);
-            }
+            .unwrap_or_default()
+        {
+            let count = as_u64(asset, "downloadCount");
+            downloads = downloads.saturating_add(count);
+            platforms.add(&as_string(asset, "name").unwrap_or_default(), count);
         }
     }
     let language = value
