@@ -229,8 +229,9 @@ textarea {
   text-transform: uppercase;
 }
 
-/* Window chrome: one rail, one page bar, one content plane. The rail is a flat
-   hairline column, never a card: brand, navigation, account. */
+/* Window chrome: one page bar over one rail and one content plane. The rail is
+   a flat hairline column, never a card: brand, navigation, account. It starts
+   below the bar, so the window controls never sit on top of it. */
 .app-sidebar {
   position: relative;
   display: flex;
@@ -238,9 +239,7 @@ textarea {
   flex-direction: column;
   inline-size: 184px;
   min-block-size: 0;
-  /* Clear the traffic lights: the group is placed at y=28 and each button is
-     12px tall, so 44px of top inset leaves the brand row underneath it. */
-  padding: 44px 10px 10px;
+  padding: 12px 10px 10px;
   border-inline-end: 1px solid var(--hairline);
   background: var(--panel);
   transition:
@@ -366,20 +365,18 @@ html[data-transparency="on"] .app-sidebar {
 }
 
 /* Collapsed: icons only, with the label in the tooltip and the accessible name.
-   The width is set by the native window controls, not by the icons: macOS
-   draws three 12px traffic lights from x=20 to x=72, so the rail stops a hair
-   past them: 80px keeps the zoom button inside the rail with an 8px gap. */
+   Nothing but the 36px rows needs to fit once the page bar holds the window
+   controls, so the rail narrows to one column (36 + 10px each side). */
 .app-sidebar[data-collapsed="true"] {
-  flex-basis: 80px;
-  inline-size: 80px;
-  padding: 48px 8px 10px;
+  flex-basis: 56px;
+  inline-size: 56px;
+  padding: 12px 10px 10px;
 }
 
-/* Collapsed, the mark keeps the centre line so the rail reads as one column of
-   controls instead of a glyph pushed against the edge. */
+/* Collapsed, the mark is gone: the nav column is the identity, and a lone badge
+   above it would read as a second, unrelated icon. */
 .app-sidebar[data-collapsed="true"] .app-brand {
-  justify-content: center;
-  padding: 0 0 12px;
+  display: none;
 }
 
 .app-sidebar[data-collapsed="true"] .app-brand-name,
@@ -403,7 +400,8 @@ html[data-transparency="on"] .app-sidebar {
   padding-inline: 0;
 }
 
-/* The page bar belongs to the content plane, so it shares its padding. */
+/* The page bar spans the window, so it carries the window controls on macOS
+   and the rail starts underneath it. */
 .app-pagebar {
   display: flex;
   flex: 0 0 46px;
@@ -413,6 +411,12 @@ html[data-transparency="on"] .app-sidebar {
   padding: 0 24px;
   border-bottom: 1px solid var(--hairline);
   background: var(--void);
+}
+
+/* Traffic lights run from x=20 to x=72; 92px clears the zoom button with a
+   20px gap before the collapse toggle. */
+.app-pagebar.is-native {
+  padding-inline-start: 92px;
 }
 
 .app-plane {

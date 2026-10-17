@@ -138,11 +138,11 @@ Transparency is a composited mode, not a second palette: with `data-transparency
 
 ## Layout and spacing
 - Scale: 4, 8, 12, 16, 20, 24, 32, 48.
-- Grid: window is a two-column grid, rail then content. The rail is a flat `panel` column with a hairline edge, full window height, never a card; it is 184px wide and collapses to an 80px icon strip from the toggle that sits in the page bar beside the page title. The content column stacks the page bar over one plane with 24px side padding and no outer frame. Two-column modules use `minmax(0,1.65fr)` / `minmax(260px,1fr)`; charts split evenly.
+- Grid: the page bar spans the whole window, and the two-column grid (rail then content) starts underneath it. The rail is a flat `panel` column with a hairline edge, never a card; it is 184px wide and collapses to a 56px icon strip from the toggle that sits in the page bar beside the page title. Because the bar owns the top of the window, the native traffic lights sit on the bar and never on the rail. The content column is one plane with 24px side padding and no outer frame. Two-column modules use `minmax(0,1.65fr)` / `minmax(260px,1fr)`; charts split evenly.
 - Lists are windows: the repository table, the pull request list and the repository picker own their scroll viewport and virtualise their rows, so page chrome, KPIs and filters never move. On the overview the secondary modules scroll in the right column instead of the page.
-- Document pages centre one 768px column (`max-w-3xl`, centred) for Settings and Create: a form or a label/value list reads better at that measure, and equal side margins keep it from looking cut off on a wide window. Data screens (Overview, Pulls, Picker) use the full plane.
-- Density: rail 184px wide (80px collapsed) with a 48px top inset for the window controls, page bar 46px, nav item 32px, section padding 16px vertical, table rows 44px, pull rows 76px, controls 28–34px high.
-- Collapsed rail: labels, counts and the account name give way to their icons; the label survives as the item's tooltip and accessible name, so nothing is lost to a screen reader. The rail narrows to 80px, not 64: macOS draws the traffic lights from `x=20` to `x=72`, so a narrower rail would put the zoom button past its edge; 80px leaves an 8px gap after it. Inside that width the mark is centred and each nav row becomes a 36px square so the column reads as one line of controls. The expand/collapse control lives in the page bar, immediately before the page title, so it stays in the same place in both rail states.
+- Every screen fills the plane: Settings and Create use the same width as Overview, Pulls and the picker, so moving between screens never changes the measure.
+- Density: page bar 46px with a 92px start inset on macOS for the window controls, rail 184px wide (56px collapsed), nav item 32px, section padding 16px vertical, table rows 44px, pull rows 76px, controls 28–34px high.
+- Collapsed rail: labels, counts, the brand mark and the account name give way to their icons; the label survives as the item's tooltip and accessible name, so nothing is lost to a screen reader. The rail narrows to 56px — one 36px square per row plus 10px each side — because the page bar, not the rail, now clears the macOS traffic lights (`x=20` to `x=72`, which the bar answers with a 92px start inset). The expand/collapse control lives in the page bar, immediately before the page title, so it stays in the same place in both rail states.
 
 ## Elevation and depth
 - Strategy: two steps, one shadow each. A module is a `panel` card with a 1px `hairline` and `--card-shadow` (1px contact plus a wide, very low-alpha drop). A list item repeats that recipe smaller with `--row-shadow`, and lifts to `--row-shadow-hover` on hover. The rail stays flat.
@@ -162,7 +162,7 @@ Transparency is a composited mode, not a second palette: with `data-transparency
 ## Components
 | Component | Tokens | States covered |
 |---|---|---|
-| Rail | panel, hairline, width 184 / 80 collapsed | expanded, collapsed, transparency on/off, window drag, narrow window |
+| Rail | panel, hairline, width 184 / 56 collapsed | expanded, collapsed, transparency on/off, window drag, narrow window |
 | Nav item | mist, radius 8, height 32 | default, hover, selected (paper fill, void text), icon-only with tooltip, focus-visible |
 | Section | panel, card radius, card shadow, spacing.4, chip + label | default, empty, loading skeleton |
 | Icon chip | wash fill, radius 8, 26px; accent variant at 12% accent | muted, accent |
@@ -190,7 +190,7 @@ Transparency is a composited mode, not a second palette: with `data-transparency
 ## Responsive behaviour
 | Breakpoint | What changes |
 |---|---|
-| 960px (window minimum) | the rail keeps its 184px, full labels and the account, or collapses to 80px for more content width; the pull filters wrap to two rows and the overview keeps both columns |
+| 960px (window minimum) | the rail keeps its 184px, full labels and the account, or collapses to 56px for more content width; the pull filters wrap to two rows and the overview keeps both columns |
 | 1440px and up | content keeps a single plane; two-column modules gain the extra width, no new columns |
 
 ## Do's and Don'ts
