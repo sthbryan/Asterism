@@ -3,7 +3,6 @@ import {
   appendPulls,
   filterPullRequests,
   mergePullResults,
-  pageOf,
   pullPath,
 } from "../src/features/pulls/utils";
 import type { PullRequestSummary } from "../src/lib/types";
@@ -51,13 +50,7 @@ describe("pull request helpers", () => {
     expect(filterPullRequests(pulls, { reviewer: "octocat" })).toHaveLength(1);
   });
 
-  test("paginates safely and encodes repository names", () => {
-    expect(pageOf([1, 2, 3], 2, 2)).toEqual({
-      items: [3],
-      pages: 2,
-      currentPage: 2,
-    });
-    expect(pageOf([1], 99, 2).currentPage).toBe(1);
+  test("encodes repository names in pull paths", () => {
     expect(pullPath("owner/repo", 42)).toBe("/pull/owner%2Frepo/42");
   });
 });

@@ -58,16 +58,6 @@ export function pullPath(repo: string, number: number): string {
   return `/pull/${encodeURIComponent(repo)}/${number}`;
 }
 
-export function pageOf<T>(items: T[], page: number, pageSize: number) {
-  const pages = Math.max(1, Math.ceil(items.length / pageSize));
-  const currentPage = Math.min(Math.max(page, 1), pages);
-  return {
-    items: items.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    pages,
-    currentPage,
-  };
-}
-
 /**
  * Append a repository's next page without duplicating rows already listed.
  * Existing order is preserved so paging stays stable after loading more.

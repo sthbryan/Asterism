@@ -65,9 +65,9 @@ export function PullsControls({
         ]}
       />
       <Button
-        variant="quiet"
+        variant="secondary"
         size="sm"
-        className="shrink-0 text-mist hover:bg-hover hover:text-paper"
+        className="shrink-0"
         onClick={onClear}
       >
         {labels.clear}

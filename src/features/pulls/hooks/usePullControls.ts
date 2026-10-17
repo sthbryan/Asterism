@@ -1,12 +1,11 @@
 import { useMemo, useReducer } from "react";
 import type { PullFilters } from "../utils";
 
-type ControlsState = PullFilters & { page: number };
+type ControlsState = PullFilters;
 
 type ControlsAction =
   | { type: "set"; field: keyof PullFilters; value: string }
-  | { type: "clear" }
-  | { type: "page"; value: number };
+  | { type: "clear" };
 
 const initialState: ControlsState = {
   query: "",
@@ -15,7 +14,6 @@ const initialState: ControlsState = {
   assignee: "all",
   reviewer: "all",
   state: "open",
-  page: 1,
 };
 
 let remembered = initialState;
@@ -27,13 +25,10 @@ function controlsReducer(
   let next = state;
   switch (action.type) {
     case "set":
-      next = { ...state, [action.field]: action.value, page: 1 };
+      next = { ...state, [action.field]: action.value };
       break;
     case "clear":
       next = initialState;
-      break;
-    case "page":
-      next = { ...state, page: action.value };
       break;
   }
   remembered = next;
@@ -60,6 +55,5 @@ export function usePullControls() {
     set: (field: keyof PullFilters, value: string) =>
       dispatch({ type: "set", field, value }),
     clear: () => dispatch({ type: "clear" }),
-    setPage: (value: number) => dispatch({ type: "page", value }),
   };
 }

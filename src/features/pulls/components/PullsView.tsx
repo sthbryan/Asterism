@@ -1,27 +1,21 @@
-import {
-  ArrowClockwiseIcon,
-  CaretLeftIcon,
-  CaretRightIcon,
-  MagnifyingGlassIcon,
-} from "@phosphor-icons/react";
+import { ArrowClockwiseIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { Button, EmptyState, IconButton, Spinner } from "@zovaris/sephiro";
 import { useMemo } from "react";
-import { Case, Default, If, Switch, Then, When } from "react-if";
+import { Case, Default, Switch, When } from "react-if";
+import { VList } from "virtua";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
-import { useScrollMemory } from "@/app/useScrollMemory";
+import { useListMemory } from "@/app/useScrollMemory";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { usePullControls } from "../hooks/usePullControls";
 import { usePullList } from "../hooks/usePullList";
-import { filterPullRequests, pageOf, pullPath } from "../utils";
+import { filterPullRequests, pullPath } from "../utils";
 import { ErrorCard } from "./ErrorCard";
 import { LoadingRows } from "./LoadingRows";
 import { PartialErrors } from "./PartialErrors";
 import { PullRow } from "./PullRow";
 import { PullsControls } from "./PullsControls";
-
-const PAGE_SIZE = 6;
 
 export function PullsView() {
   const { t, formatDate, formatRelative } = useI18n();
@@ -30,7 +24,7 @@ export function PullsView() {
   const account = useStore((state) => state.account);
   const revision = useStore((state) => state.dataRevision);
   const controls = usePullControls();
-  const scrollRef = useScrollMemory("pulls");
+  const list = useListMemory("pulls");
   const data = usePullList({
     account,
     repos: selectedNames,
@@ -50,7 +44,6 @@ export function PullsView() {
     () => filterPullRequests(data.pulls, controls.filters),
     [controls.filters, data.pulls],
   );
-  const page = pageOf(filtered, controls.page, PAGE_SIZE);
   const labels = {
     all: t("pulls.all"),
     search: `${t("Repository")} / ${t("pulls.author")}`,
@@ -97,10 +90,7 @@ export function PullsView() {
           />
         }
       />
-      <div
-        ref={scrollRef}
-        className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6"
-      >
+      <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
         <PullsControls
           filters={controls.filters}
           options={options}
@@ -108,7 +98,7 @@ export function PullsView() {
           onClear={controls.clear}
           labels={labels}
         />
-        <p className="mb-3 flex items-center gap-2 text-[11.5px] text-faint">
+        <p className="mb-3 flex shrink-0 items-center gap-2 text-[11.5px] text-faint">
           {dateText}
           <When condition={data.refreshing && Boolean(data.fetchedAt)}>
             <span
@@ -123,91 +113,93 @@ export function PullsView() {
         <When condition={Object.keys(data.errors).length > 0}>
           <PartialErrors errors={data.errors} />
         </When>
-        <When condition={Boolean(data.error) && data.pulls.length === 0}>
-          <ErrorCard message={data.error ?? ""} />
-        </When>
-        <When condition={data.loading && data.pulls.length === 0}>
-          <LoadingRows />
-        </When>
-        <If condition={!data.loading && !data.error && page.items.length === 0}>
-          <Then>
-            <EmptyState
-              compact
-              className="mt-4 min-h-44 content-center border-t border-hairline pt-8"
-              icon={<MagnifyingGlassIcon />}
-              title={
-                <Switch>
-                  <Case condition={filtered.length > 0}>
-                    {t("pulls.noResults")}
-                  </Case>
-                  <Default>{t("pulls.empty")}</Default>
-                </Switch>
-              }
-            />
-          </Then>
-        </If>
-        <div className="border-t border-hairline">
-          {page.items.map((pull) => (
-            <PullRow
-              key={`${pull.repo}#${pull.number}`}
-              pull={pull}
-              date={pull.updatedAt ? formatDate(new Date(pull.updatedAt)) : "—"}
-              relativeDate={
-                pull.updatedAt ? formatRelative(new Date(pull.updatedAt)) : ""
-              }
-              onOpen={() => navigate(pullPath(pull.repo, pull.number))}
-            />
-          ))}
+        <div className="flex min-h-0 flex-1 flex-col">
+          <Switch>
+            <Case condition={Boolean(data.error) && data.pulls.length === 0}>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <ErrorCard message={data.error ?? ""} />
+              </div>
+            </Case>
+            <Case condition={data.loading && data.pulls.length === 0}>
+              <div className="min-h-0 flex-1 overflow-hidden">
+                <LoadingRows />
+              </div>
+            </Case>
+            <Case
+              condition={!data.loading && !data.error && filtered.length === 0}
+            >
+              <EmptyState
+                compact
+                className="app-card min-h-0 flex-1 content-center"
+                icon={<MagnifyingGlassIcon />}
+                title={
+                  <Switch>
+                    <Case condition={data.pulls.length > 0}>
+                      {t("pulls.noResults")}
+                    </Case>
+                    <Default>{t("pulls.empty")}</Default>
+                  </Switch>
+                }
+              />
+            </Case>
+            <Default>
+              {/* Only the rows in view are mounted; loading more appends to the same window. */}
+              <div className="min-h-0 flex-1">
+                <VList
+                  key={JSON.stringify(controls.filters)}
+                  ref={list.ref}
+                  onScroll={list.onScroll}
+                  style={{ height: "100%" }}
+                  aria-label={t("pulls.title")}
+                >
+                  {filtered.map((pull) => (
+                    <div
+                      key={`${pull.repo}#${pull.number}`}
+                      className="px-1 pb-2"
+                    >
+                      <PullRow
+                        pull={pull}
+                        date={
+                          pull.updatedAt
+                            ? formatDate(new Date(pull.updatedAt))
+                            : "—"
+                        }
+                        relativeDate={
+                          pull.updatedAt
+                            ? formatRelative(new Date(pull.updatedAt))
+                            : ""
+                        }
+                        onOpen={() =>
+                          navigate(pullPath(pull.repo, pull.number))
+                        }
+                      />
+                    </div>
+                  ))}
+                  <When
+                    condition={
+                      data.canLoadMore ||
+                      (data.loadingMore && filtered.length > 0)
+                    }
+                  >
+                    <div className="px-1 pt-1 pb-3">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        disabled={data.loadingMore}
+                        onClick={() => void data.loadMore()}
+                      >
+                        {data.loadingMore
+                          ? t("pulls.loadingMore")
+                          : t("pulls.loadMore")}
+                      </Button>
+                    </div>
+                  </When>
+                </VList>
+              </div>
+            </Default>
+          </Switch>
         </div>
-        <When condition={page.items.length > 0}>
-          <div className="mt-4 flex items-center justify-center gap-3 text-[12px] text-mist">
-            <Button
-              variant="quiet"
-              size="sm"
-              className="shrink-0"
-              disabled={page.currentPage <= 1}
-              aria-label={t("pulls.previous")}
-              onClick={() =>
-                controls.setPage(Math.max(1, page.currentPage - 1))
-              }
-            >
-              <CaretLeftIcon size={14} />
-              {t("pulls.previous")}
-            </Button>
-            <span className="font-mono text-faint">
-              {t("pulls.page", { page: page.currentPage, pages: page.pages })}
-            </span>
-            <Button
-              variant="quiet"
-              size="sm"
-              className="shrink-0"
-              disabled={page.currentPage >= page.pages}
-              aria-label={t("pulls.next")}
-              onClick={() =>
-                controls.setPage(Math.min(page.pages, page.currentPage + 1))
-              }
-            >
-              {t("pulls.next")}
-              <CaretRightIcon size={14} />
-            </Button>
-          </div>
-        </When>
-        <When condition={data.canLoadMore && page.currentPage >= page.pages}>
-          <div className="mt-3 flex justify-center">
-            <Button
-              variant="quiet"
-              size="sm"
-              disabled={data.loadingMore}
-              onClick={async () => {
-                const added = await data.loadMore();
-                if (added > 0)
-                  controls.setPage(Math.floor(filtered.length / PAGE_SIZE) + 1);
-              }}
-            >
-              {data.loadingMore ? t("pulls.loadingMore") : t("pulls.loadMore")}
-            </Button>
-          </div>
-        </When>
       </div>
     </>
   );
