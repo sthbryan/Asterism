@@ -39,14 +39,14 @@ export function SetupSection({ form }: { form: SetupForm }) {
 
   return (
     <>
-      <div className="border-t border-hairline pt-5">
+      <div>
         <Checkbox
           size="sm"
           checked={readme}
           onChange={(event) => setReadme(event.target.checked)}
           label={t("Add a README")}
         />
-        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label
             id="create-gitignore-label"
             htmlFor="create-gitignore"
@@ -92,16 +92,16 @@ export function SetupSection({ form }: { form: SetupForm }) {
             />
           </label>
         </div>
+        <div className="mt-4">
+          <Checkbox
+            size="sm"
+            checked={track}
+            onChange={(event) => setTrack(event.target.checked)}
+            label={t("Track this repository in Asterism")}
+          />
+        </div>
       </div>
-      <div className="border-t border-hairline pt-5">
-        <Checkbox
-          size="sm"
-          checked={track}
-          onChange={(event) => setTrack(event.target.checked)}
-          label={t("Track this repository in Asterism")}
-        />
-      </div>
-      <div className="flex justify-end pb-4">
+      <div className="mt-6 flex justify-end">
         <Button
           type="submit"
           variant="primary"

@@ -37,8 +37,8 @@ export function OnlineCreateView() {
           </h1>
         }
       />
-      <div className="h-full overflow-y-auto px-6 py-7">
-        <div className="mx-auto max-w-[640px]">
+      <div className="h-full overflow-y-auto px-6 pt-5 pb-8">
+        <div className="w-full">
           <If condition={Boolean(created)}>
             <Then>{resultCard}</Then>
             <Else>

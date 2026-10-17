@@ -1,3 +1,4 @@
+import { DatabaseIcon } from "@phosphor-icons/react";
 import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -21,14 +22,16 @@ export function CacheSection() {
     useCacheInfo();
 
   return (
-    <section
-      aria-labelledby="cache-heading"
-      className="border-t border-hairline pt-5"
-    >
+    <section aria-labelledby="cache-heading" className="app-section">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="cache-heading" className="text-base font-semibold">
-          {t("settings.cache")}
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <span className="app-chip">
+            <DatabaseIcon size={15} />
+          </span>
+          <h2 id="cache-heading" className="kpi-label text-faint">
+            {t("settings.cache")}
+          </h2>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="secondary"
@@ -60,14 +63,14 @@ export function CacheSection() {
         </p>
       </When>
       <When condition={Boolean(info)}>
-        <dl className="mt-4 space-y-4">
-          <div className="grid gap-1 sm:grid-cols-[160px_1fr]">
+        <dl className="mt-3 divide-y divide-hairline">
+          <div className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr]">
             <dt className="text-sm text-mist">{t("settings.cacheSize")}</dt>
             <dd className="text-sm">
               {loading ? t("settings.loading") : formatBytes(info?.bytes ?? 0)}
             </dd>
           </div>
-          <div className="grid gap-1 sm:grid-cols-[160px_1fr]">
+          <div className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr]">
             <dt className="text-sm text-mist">{t("settings.cacheEntries")}</dt>
             <dd className="text-sm">
               {loading
@@ -77,7 +80,7 @@ export function CacheSection() {
                   })}
             </dd>
           </div>
-          <div className="grid gap-1 sm:grid-cols-[160px_1fr]">
+          <div className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr]">
             <dt className="text-sm text-mist">{t("settings.cachePath")}</dt>
             <dd className="min-w-0 wrap-break-word font-mono text-xs leading-relaxed">
               {info?.path}

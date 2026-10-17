@@ -1,4 +1,5 @@
-import { Button } from "@zovaris/sephiro";
+import { GithubLogoIcon } from "@phosphor-icons/react";
+import { Badge, Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 
@@ -8,21 +9,23 @@ export function AccountSection() {
   const status = useStore((s) => s.status);
 
   return (
-    <section
-      aria-labelledby="account-heading"
-      className="border-t border-hairline pt-5"
-    >
-      <h2 id="account-heading" className="text-base font-semibold">
-        {t("settings.account")}
-      </h2>
+    <section aria-labelledby="account-heading" className="app-section">
+      <div className="flex items-center gap-2.5">
+        <span className="app-chip">
+          <GithubLogoIcon size={15} />
+        </span>
+        <h2 id="account-heading" className="kpi-label text-faint">
+          {t("settings.account")}
+        </h2>
+      </div>
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-2.5">
           <p className="text-sm font-medium">
             {status?.login ?? t("settings.noAccount")}
           </p>
-          <p className="mt-1 text-sm text-mist">
+          <Badge size="sm" variant={status?.ok ? "success" : "neutral"}>
             {status?.ok ? t("GitHub · connected") : t("settings.disconnected")}
-          </p>
+          </Badge>
         </div>
         <Button variant="secondary" size="sm" onClick={retryBoot}>
           {t("Check connection")}
