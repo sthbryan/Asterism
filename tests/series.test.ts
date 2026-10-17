@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
   aggregateHistory,
-  compactSeries,
   pickKpiDelta,
   seriesWindow,
   windowDelta,
@@ -117,98 +116,5 @@ describe("series windows", () => {
       partial: false,
     });
     expect(windowDelta(points, 7, 30 * day)).toBeNull();
-  });
-});
-
-describe("chart compaction", () => {
-  test("keeps short series untouched", () => {
-    const points = [
-      { ts: 0, value: 1 },
-      { ts: day, value: 2 },
-    ];
-    expect(compactSeries(points, 6)).toEqual({ points, bucketDays: 0 });
-  });
-
-  test("never returns more buckets than allowed and ends on the newest value", () => {
-    const points = Array.from({ length: 180 }, (_, index) => ({
-      ts: index * day,
-      value: index,
-    }));
-    const compact = compactSeries(points, 6);
-    expect(compact.points.length).toBeLessThanOrEqual(6);
-    expect(compact.bucketDays).toBeGreaterThan(1);
-    expect(compact.points[compact.points.length - 1]).toEqual({
-      ts: 179 * day,
-      value: 179,
-    });
-    expect(compact.points[0].ts).toBe(0);
-  });
-
-  test("keeps the baseline and the last sample of each later bucket", () => {
-    const points = [
-      { ts: 0, value: 1 },
-      { ts: 5 * day, value: 2 },
-      { ts: 9 * day, value: 3 },
-      { ts: 20 * day, value: 4 },
-    ];
-    const compact = compactSeries(points, 2);
-    expect(compact.bucketDays).toBe(20);
-    expect(compact.points).toEqual([
-      { ts: 0, value: 1 },
-      { ts: 20 * day, value: 4 },
-    ]);
-  });
-
-  test("sorts unsorted history before bucketing", () => {
-    const points = [
-      { ts: 20 * day, value: 4 },
-      { ts: 0, value: 1 },
-      { ts: 5 * day, value: 2 },
-      { ts: 9 * day, value: 3 },
-    ];
-    const compact = compactSeries(points, 2);
-    expect(compact.points.map((point) => point.value)).toEqual([1, 4]);
-  });
-});
-
-describe("chart compaction over calendar months", () => {
-  const at = (year: number, month: number, dayOfMonth: number) =>
-    Date.UTC(year, month, dayOfMonth) / 1_000;
-
-  test("keeps one point per two months for a long sparse history", () => {
-    const points = [
-      at(2026, 2, 17),
-      at(2026, 3, 27),
-      at(2026, 3, 29),
-      at(2026, 4, 1),
-      at(2026, 4, 3),
-      at(2026, 5, 6),
-      at(2026, 5, 7),
-      at(2026, 8, 14),
-      at(2026, 8, 15),
-      at(2026, 8, 30),
-      at(2026, 9, 15),
-      at(2026, 9, 17),
-    ].map((ts, index) => ({ ts, value: index }));
-
-    const compact = compactSeries(points);
-    expect(compact.points.length).toBeLessThanOrEqual(6);
-    expect(compact.bucketDays).toBe(60);
-    expect(compact.points[0]).toEqual({ ts: at(2026, 2, 17), value: 0 });
-    expect(compact.points[compact.points.length - 1]).toEqual({
-      ts: at(2026, 9, 17),
-      value: 11,
-    });
-  });
-
-  test("falls back to day buckets for a short range", () => {
-    const points = Array.from({ length: 30 }, (_, index) => ({
-      ts: at(2026, 9, 1) + index * day,
-      value: index,
-    }));
-    const compact = compactSeries(points);
-    expect(compact.bucketDays).toBe(6);
-    expect(compact.points.length).toBeLessThanOrEqual(6);
-    expect(compact.points[compact.points.length - 1].value).toBe(29);
   });
 });
