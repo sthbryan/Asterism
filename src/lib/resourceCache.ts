@@ -74,13 +74,15 @@ export function createResourceCache<T>(ttlMs: number, storage: Storage<T>) {
       const epoch = generation;
       const current = () => epoch === generation && options.isCurrent();
       let saved = memory.get(key);
-      const persistedKey = await diskKey(resource);
+      let hash: Promise<string> | null = null;
+      const persistedKey = () => (hash ??= diskKey(resource));
       if (!saved && current()) {
         let read = reads.get(key);
         if (!read) {
-          read = withTimeout(storage.read(persistedKey, resource), 1_000).catch(
-            () => null,
-          );
+          read = withTimeout(
+            persistedKey().then((key) => storage.read(key, resource)),
+            1_000,
+          ).catch(() => null);
           reads.set(key, read);
         }
         const entry = await read;
@@ -96,16 +98,18 @@ export function createResourceCache<T>(ttlMs: number, storage: Storage<T>) {
       }
       let request = pending.get(key);
       if (!request) {
-        request = withTimeout(fetch(), 90_000).then((result) => {
+        request = (async () => {
+          const target = await persistedKey();
+          const result = await withTimeout(fetch(), 90_000);
           if (current()) {
             remember(key, result);
             // Persistence is best-effort; a disk error keeps the memory result usable.
             void storage
-              .write(persistedKey, { version: 1, ...result }, resource)
+              .write(target, { version: 1, ...result }, resource)
               .catch(() => undefined);
           }
           return result;
-        });
+        })();
         pending.set(key, request);
       }
       try {
