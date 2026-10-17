@@ -2,7 +2,7 @@ import { If, Then } from "react-if";
 
 export function People({ title, values }: { title: string; values: string[] }) {
   return (
-    <div>
+    <div className="min-w-0 p-4">
       <div className="kpi-label text-faint">{title}</div>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <If condition={values.length > 0}>

@@ -1,10 +1,10 @@
-import { Surface } from "@zovaris/sephiro";
+import { InfoIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
+import { Section } from "@/components/Section";
 import { fmtDate, fmtNum, fmtRepoSizeKb } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
 import { HomepageValue } from "./HomepageValue";
-
 export function MetaFacts({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();
   const facts: [string, ReactNode][] = [
@@ -20,9 +20,8 @@ export function MetaFacts({ detail }: { detail: RepoDetail }) {
   ];
 
   return (
-    <Surface padding="md" className="mt-3 border border-hairline">
-      <div className="text-[13px] font-semibold">{t("Details")}</div>
-      <dl className="mt-3.5 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
+    <Section label={t("Details")} icon={<InfoIcon size={15} />}>
+      <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
         {facts.map(([label, value]) => (
           <div key={label} className="min-w-0">
             <dt className="font-mono text-[10px] tracking-[0.08em] uppercase text-faint">
@@ -42,6 +41,6 @@ export function MetaFacts({ detail }: { detail: RepoDetail }) {
           </dd>
         </div>
       </dl>
-    </Surface>
+    </Section>
   );
 }

@@ -4,7 +4,7 @@ import type { PullFile } from "@/lib/types";
 
 export function FileList({ files }: { files: PullFile[] }) {
   return (
-    <div className="border-t border-hairline">
+    <div className="divide-y divide-hairline border-t border-hairline">
       <If condition={files.length > 0}>
         <Then>
           {files.map((file) => (

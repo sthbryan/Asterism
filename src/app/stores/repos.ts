@@ -8,7 +8,6 @@ import {
   readCache,
   refreshTracked,
   saveConfig,
-  writeCache,
 } from "@/services/api";
 import type { AppStore } from "./types";
 
@@ -16,7 +15,6 @@ let selectionRequest = 0;
 let overviewCacheKey: string | null = null;
 let overviewCacheInFlight: Promise<PersistentCache<Cache> | null> | null = null;
 const OVERVIEW_CACHE_NAMESPACE = "overview";
-const OVERVIEW_CACHE_VERSION = 1;
 
 function cacheForSelection(cache: Cache, selectedNames: string[]): Cache {
   const selected = new Set(selectedNames);
@@ -75,13 +73,12 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
   runRefresh: async (force = false) => {
     if (!get().status?.ok || get().connecting || get().refreshing) return;
     const { fetchedAt } = get();
+    const selected = new Set(get().selectedNames);
     if (
       !force &&
       fetchedAt &&
-      get().tracked.length === get().selectedNames.length &&
-      get().tracked.every((repo) =>
-        get().selectedNames.includes(repo.fullName),
-      ) &&
+      get().tracked.length === selected.size &&
+      get().tracked.every((repo) => selected.has(repo.fullName)) &&
       isCacheFresh(fetchedAt, CACHE_TTL_MS.overview)
     )
       return;
@@ -131,12 +128,6 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
         fetchedAt: cache.fetchedAt,
         history: cache.history ?? {},
       });
-      void writeCache(OVERVIEW_CACHE_NAMESPACE, "snapshot", {
-        version: OVERVIEW_CACHE_VERSION,
-        fetchedAt: cache.fetchedAt,
-        data: cache,
-        warning: null,
-      }).catch(() => undefined);
     } catch (err) {
       if (revision !== get().dataRevision) return;
       set({ refreshing: false, banner: String(err) });

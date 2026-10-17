@@ -46,6 +46,10 @@ export type ApiClient = {
   refreshPullRequests: (
     filters?: PullRequestFilters,
   ) => Promise<Saved<PullListResult>>;
+  loadMorePullRequests: (
+    filters: PullRequestFilters,
+    cursors: Record<string, string>,
+  ) => Promise<PullListResult>;
   saveLocale: (locale: Locale) => Promise<Config>;
   getDiagnostics: () => Promise<Diagnostics>;
   listLocalCheckouts: () => Promise<LocalCheckout[]>;

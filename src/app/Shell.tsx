@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Redirect, Route, Switch, useLocation } from "wouter";
 import { AppearanceProvider } from "@/components/Appearance";
 import { Chrome, type NavId } from "@/components/Chrome";
@@ -60,21 +61,23 @@ function AppLayout() {
     >
       <div className="t-vt-content flex h-full min-h-0 flex-col">
         <div className="min-h-0 flex-1">
-          <Switch>
-            {ROUTES.map((route) => (
-              <Route
-                key={`${route.path}:${account ?? "none"}`}
-                path={route.path}
-                component={route.component}
-              />
-            ))}
-            <Route path="/boot">
-              <Redirect to="/" />
-            </Route>
-            <Route>
-              <Redirect to="/" />
-            </Route>
-          </Switch>
+          <Suspense fallback={<div className="h-full" />}>
+            <Switch>
+              {ROUTES.map((route) => (
+                <Route
+                  key={`${route.path}:${account ?? "none"}`}
+                  path={route.path}
+                  component={route.component}
+                />
+              ))}
+              <Route path="/boot">
+                <Redirect to="/" />
+              </Route>
+              <Route>
+                <Redirect to="/" />
+              </Route>
+            </Switch>
+          </Suspense>
         </div>
       </div>
     </Chrome>

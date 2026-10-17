@@ -44,7 +44,6 @@ export function useBoot() {
   const setConnecting = useStore((s) => s.setConnecting);
   const bootFail = useStore((s) => s.bootFail);
   const runRefresh = useStore((s) => s.runRefresh);
-  const loadCatalog = useStore((s) => s.loadCatalog);
 
   const [path, navigate] = useLocation();
   const pathRef = useRef(path);
@@ -71,18 +70,14 @@ export function useBoot() {
           navigate("/setup", { replace: true });
           return;
         }
-        if (next.login !== local.account?.split("/").pop()) {
-          hydrateLocal({
-            ...local,
-            account: null,
-            config: { ...local.config, repos: [] },
-          });
-        }
-        const connected = await getLocalState();
+        const sameAccount = next.login === local.account?.split("/").pop();
+        const connected = sameAccount ? local : await getLocalState();
         if (cancelled) return;
-        hydrateLocal(connected);
-        bootFail(next);
-        void loadCatalog();
+        if (sameAccount) bootFail(next);
+        else {
+          hydrateLocal(connected);
+          bootFail(next);
+        }
         if (connected.config.repos.length > 0) void runRefresh();
       } catch (err) {
         if (cancelled) return;
@@ -100,7 +95,6 @@ export function useBoot() {
     hydrateLocal,
     setConnecting,
     bootFail,
-    loadCatalog,
     navigate,
     runRefresh,
   ]);

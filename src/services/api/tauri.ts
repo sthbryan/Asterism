@@ -45,6 +45,12 @@ export const tauriClient: ApiClient = {
       filters,
       expectedAccount: account,
     }),
+  loadMorePullRequests: (filters, cursors) =>
+    invoke("load_more_pull_requests", {
+      filters,
+      cursors,
+      expectedAccount: account,
+    }),
   saveLocale: (locale) => {
     persistLocale(locale);
     return enqueuePreference(() => invoke("save_locale", { locale }));

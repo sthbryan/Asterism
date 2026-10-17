@@ -58,14 +58,22 @@ export function pullPath(repo: string, number: number): string {
   return `/pull/${encodeURIComponent(repo)}/${number}`;
 }
 
-export function pageOf<T>(items: T[], page: number, pageSize: number) {
-  const pages = Math.max(1, Math.ceil(items.length / pageSize));
-  const currentPage = Math.min(Math.max(page, 1), pages);
-  return {
-    items: items.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    pages,
-    currentPage,
-  };
+/**
+ * Append a repository's next page without duplicating rows already listed.
+ * Existing order is preserved so paging stays stable after loading more.
+ */
+export function appendPulls(
+  existing: PullRequestSummary[],
+  incoming: PullRequestSummary[],
+): PullRequestSummary[] {
+  if (incoming.length === 0) return existing;
+  const seen = new Set(
+    existing.map((pull) => `${pull.repo.toLowerCase()}#${pull.number}`),
+  );
+  const added = incoming.filter(
+    (pull) => !seen.has(`${pull.repo.toLowerCase()}#${pull.number}`),
+  );
+  return added.length === 0 ? existing : [...existing, ...added];
 }
 
 /** Retain cached rows only for repositories that failed in this refresh. */

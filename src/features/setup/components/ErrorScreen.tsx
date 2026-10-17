@@ -40,9 +40,9 @@ export function ErrorScreen({
                 )}
         </p>
         <When condition={!storage}>
-          <ol className="mt-6 space-y-4 text-sm">
+          <ol className="mt-6 divide-y divide-hairline text-sm">
             <When condition={missing}>
-              <li>
+              <li className="py-3">
                 1.{" "}
                 <Button
                   type="button"
@@ -59,19 +59,21 @@ export function ErrorScreen({
                 </Button>
               </li>
             </When>
-            <li>
+            <li className="py-3">
               {missing ? "2." : "1."} {t("In your terminal, run")}{" "}
               <code className="rounded bg-fill px-2 py-1">
                 {missing ? "gh auth login" : "gh auth status"}
               </code>
             </li>
             <When condition={!missing}>
-              <li>
+              <li className="py-3">
                 {t("2. If you need to sign in, run")}{" "}
                 <code className="rounded bg-fill px-2 py-1">gh auth login</code>
               </li>
             </When>
-            <li>{t("3. Return here and check the connection.")}</li>
+            <li className="py-3">
+              {t("3. Return here and check the connection.")}
+            </li>
           </ol>
         </When>
         <Button variant="primary" size="sm" className="mt-6" onClick={onRetry}>

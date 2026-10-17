@@ -13,7 +13,6 @@ export type DetailSlice = Pick<
   | "detailLoading"
   | "detailRefreshing"
   | "detailError"
-  | "detailCache"
   | "fetchDetail"
   | "clearDetail"
 >;
@@ -36,7 +35,6 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
   detailLoading: false,
   detailRefreshing: false,
   detailError: null,
-  detailCache: {},
 
   fetchDetail: async (fullName, force = false) => {
     if (get().connecting || !get().status?.ok || !get().account) return;
@@ -56,7 +54,6 @@ export const createDetailSlice: StateCreator<AppStore, [], [], DetailSlice> = (
         detailError: null,
         detailLoading: false,
         detailRefreshing: refreshing,
-        detailCache: { ...state.detailCache, [fullName]: saved },
         history: {
           ...state.history,
           [fullName]: {

@@ -5,11 +5,6 @@ export interface OwnerEntry {
   count: number;
 }
 
-export interface PickerGroup {
-  owner: string;
-  repos: CatalogRepo[];
-}
-
 export type PickerSort = "selected" | "name" | "stars";
 
 export function buildOwners(
@@ -71,26 +66,27 @@ export function sortRepos(
   return arr;
 }
 
-export function groupRepos(
-  sorted: CatalogRepo[],
-  owners: OwnerEntry[],
-  ownerFilter: string | null,
-): PickerGroup[] | null {
-  if (ownerFilter || owners.length < 2) return null;
-  const order = owners.map((o) => o.name);
-  const buckets = new Map<string, CatalogRepo[]>();
-  for (const repo of sorted) {
-    const list = buckets.get(repo.owner);
-    if (list) list.push(repo);
-    else buckets.set(repo.owner, [repo]);
+export function applySelection(
+  selected: Set<string>,
+  names: readonly string[],
+  value: boolean,
+): Set<string> {
+  const next = new Set(selected);
+  for (const name of names) {
+    if (value) next.add(name);
+    else next.delete(name);
   }
-  const result: PickerGroup[] = [];
-  for (const name of order) {
-    const repos = buckets.get(name);
-    if (repos && repos.length > 0) result.push({ owner: name, repos });
-  }
-  for (const [name, repos] of buckets) {
-    if (!order.includes(name)) result.push({ owner: name, repos });
-  }
-  return result;
+  return next;
+}
+
+/** Pending edits against the saved selection, counted for the save bar. */
+export function selectionChanges(
+  saved: ReadonlySet<string>,
+  selected: ReadonlySet<string>,
+): { added: number; removed: number } {
+  let added = 0;
+  let removed = 0;
+  for (const name of selected) if (!saved.has(name)) added += 1;
+  for (const name of saved) if (!selected.has(name)) removed += 1;
+  return { added, removed };
 }

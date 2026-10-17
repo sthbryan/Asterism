@@ -18,13 +18,14 @@
     "noResults": "No pull requests match these filters.",
     "empty": "No open pull requests in your followed repositories.",
     "partial": "Some repositories could not be loaded.",
-    "page": "Page {page} of {pages}",
-    "previous": "Previous",
-    "next": "Next",
     "clear": "Clear filters",
     "updated": "Updated {date}",
     "files": "Files",
     "diff": "Diff",
+    "changes": "Changes",
+    "branchesLabel": "Branches",
+    "merge": "Merge",
+    "noDescription": "No description.",
     "loadFiles": "Load files",
     "loadDiff": "Load diff",
     "closeDiff": "Close diff",
@@ -44,6 +45,8 @@
     "openGithub": "Open in GitHub",
     "branches": "{head} → {base}",
     "error": "Could not load pull requests.",
-    "detailError": "Could not load this pull request."
+    "detailError": "Could not load this pull request.",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…"
   }
 }

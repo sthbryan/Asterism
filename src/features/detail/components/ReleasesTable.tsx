@@ -1,8 +1,10 @@
-import { Badge, Collapsible, Surface } from "@zovaris/sephiro";
+import { TagIcon } from "@phosphor-icons/react";
+import { Badge, Collapsible } from "@zovaris/sephiro";
 import { useState } from "react";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarList } from "@/components/BarList";
+import { Section } from "@/components/Section";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
 
@@ -13,20 +15,15 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
   );
 
   return (
-    <Surface
-      padding="none"
-      className="mt-3 overflow-hidden border border-hairline"
+    <Section
+      label={t("Releases")}
+      icon={<TagIcon size={15} />}
+      meta={fmtNum(detail.releases.length)}
     >
-      <div className="flex items-center justify-between border-b border-hairline px-4 py-2.5">
-        <div className="text-[13px] font-semibold">{t("Releases")}</div>
-        <span className="font-mono text-[11.5px] text-faint tabular">
-          {fmtNum(detail.releases.length)}
-        </span>
-      </div>
       <When
         condition={detail.releases.some((release) => release.downloads > 0)}
       >
-        <div className="border-b border-hairline px-4 py-3">
+        <div className="border-t border-hairline py-3">
           <BarList
             label={t("Releases")}
             formatValue={fmtCompact}
@@ -132,6 +129,6 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
           </ul>
         </Else>
       </If>
-    </Surface>
+    </Section>
   );
 }

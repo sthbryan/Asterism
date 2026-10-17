@@ -1,12 +1,22 @@
+import { PaletteIcon } from "@phosphor-icons/react";
 import { Notice, Select, Toggle } from "@zovaris/sephiro";
+import { useState } from "react";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useAppearance } from "@/components/Appearance";
+import { Section } from "@/components/Section";
+import {
+  EDITOR_LABEL,
+  type EditorTarget,
+  readEditor,
+  writeEditor,
+} from "@/lib/editor";
 import type { Locale, ThemePref, ThemePreset } from "@/lib/types";
 
 export function AppearanceSection() {
   const { t, locale, setLocale } = useI18n();
+  const [editor, setEditorState] = useState<EditorTarget>(readEditor);
   const {
     theme,
     setTheme,
@@ -19,86 +29,112 @@ export function AppearanceSection() {
   const preferenceError = useStore((s) => s.preferenceError);
 
   return (
-    <section aria-labelledby="appearance-heading">
-      <h2 id="appearance-heading" className="text-base font-semibold">
-        {t("settings.appearance")}
-      </h2>
-      <p className="mt-1 text-sm text-mist">{t("settings.saved")}</p>
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <label
-          id="app-language-label"
-          htmlFor="app-language"
-          className="text-sm font-medium"
-        >
-          {t("settings.language")}
-        </label>
-        <Select
-          id="app-language"
-          value={locale}
-          className="min-w-40"
-          ariaLabelledBy="app-language-label"
-          options={[
-            { value: "es", label: "Español" },
-            { value: "en", label: "English" },
-          ]}
-          onValueChange={(value) => setLocale(value as Locale)}
-        />
-      </div>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <label
-          id="app-preset-label"
-          htmlFor="app-preset"
-          className="text-sm font-medium"
-        >
-          {t("settings.preset")}
-        </label>
-        <Select
-          id="app-preset"
-          value={themePreset}
-          className="min-w-40"
-          ariaLabelledBy="app-preset-label"
-          options={[
-            { value: "asterism", label: "Asterism" },
-            { value: "default", label: "Pine Rose" },
-            { value: "fizza", label: "Fizza" },
-            { value: "pulso", label: "Pulso" },
-          ]}
-          onValueChange={(value) => setThemePreset(value as ThemePreset)}
-        />
-      </div>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <label
-          id="app-theme-label"
-          htmlFor="app-theme"
-          className="text-sm font-medium"
-        >
-          {t("settings.theme")}
-        </label>
-        <Select
-          id="app-theme"
-          value={theme}
-          className="min-w-40"
-          ariaLabelledBy="app-theme-label"
-          options={[
-            { value: "light", label: t("settings.light") },
-            { value: "dark", label: t("settings.dark") },
-            { value: "system", label: t("settings.system") },
-          ]}
-          onValueChange={(value) => setTheme(value as ThemePref)}
-        />
-      </div>
-      <div className="mt-5 flex items-center justify-between gap-6">
-        <div>
-          <p className="text-sm font-medium">{t("settings.transparency")}</p>
-          <p className="mt-1 text-sm text-mist">
-            {t("settings.transparencyHint")}
-          </p>
+    <Section
+      labelAs="h2"
+      label={t("settings.appearance")}
+      icon={<PaletteIcon size={15} />}
+    >
+      <p className="text-sm text-mist">{t("settings.saved")}</p>
+      <div className="mt-4 divide-y divide-hairline">
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+          <label
+            id="app-language-label"
+            htmlFor="app-language"
+            className="text-sm font-medium"
+          >
+            {t("settings.language")}
+          </label>
+          <Select
+            id="app-language"
+            value={locale}
+            className="min-w-40"
+            ariaLabelledBy="app-language-label"
+            options={[
+              { value: "es", label: "Español" },
+              { value: "en", label: "English" },
+            ]}
+            onValueChange={(value) => setLocale(value as Locale)}
+          />
         </div>
-        <Toggle
-          checked={transparency}
-          onCheckedChange={setTransparency}
-          label={t("settings.transparency")}
-        />
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+          <label
+            id="app-preset-label"
+            htmlFor="app-preset"
+            className="text-sm font-medium"
+          >
+            {t("settings.preset")}
+          </label>
+          <Select
+            id="app-preset"
+            value={themePreset}
+            className="min-w-40"
+            ariaLabelledBy="app-preset-label"
+            options={[
+              { value: "asterism", label: "Asterism" },
+              { value: "default", label: "Pine Rose" },
+              { value: "fizza", label: "Fizza" },
+              { value: "pulso", label: "Pulso" },
+            ]}
+            onValueChange={(value) => setThemePreset(value as ThemePreset)}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+          <label
+            id="app-theme-label"
+            htmlFor="app-theme"
+            className="text-sm font-medium"
+          >
+            {t("settings.theme")}
+          </label>
+          <Select
+            id="app-theme"
+            value={theme}
+            className="min-w-40"
+            ariaLabelledBy="app-theme-label"
+            options={[
+              { value: "light", label: t("settings.light") },
+              { value: "dark", label: t("settings.dark") },
+              { value: "system", label: t("settings.system") },
+            ]}
+            onValueChange={(value) => setTheme(value as ThemePref)}
+          />
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+          <label
+            id="app-editor-label"
+            htmlFor="app-editor"
+            className="text-sm font-medium"
+          >
+            {t("settings.editor")}
+          </label>
+          <Select
+            id="app-editor"
+            value={editor}
+            className="min-w-40"
+            ariaLabelledBy="app-editor-label"
+            options={(Object.keys(EDITOR_LABEL) as EditorTarget[]).map(
+              (target) => ({ value: target, label: EDITOR_LABEL[target] }),
+            )}
+            onValueChange={(value) => {
+              const next = value as EditorTarget;
+              setEditorState(next);
+              writeEditor(next);
+            }}
+          />
+        </div>
+        <div className="flex items-center justify-between gap-6 py-3">
+          <div>
+            <p className="text-sm font-medium">{t("settings.transparency")}</p>
+            <p className="mt-1 text-sm text-mist">
+              {t("settings.transparencyHint")}
+            </p>
+          </div>
+          <Toggle
+            checked={transparency}
+            onCheckedChange={setTransparency}
+            label={t("settings.transparency")}
+          />
+        </div>
       </div>
       <When condition={Boolean(appearanceError || preferenceError)}>
         <Notice
@@ -111,6 +147,6 @@ export function AppearanceSection() {
           </p>
         </Notice>
       </When>
-    </section>
+    </Section>
   );
 }

@@ -27,6 +27,11 @@
   --color-fill: var(--fill);
   --color-wash: var(--wash);
   --color-thumb: var(--thumb);
+  /* One rhythm for the plane: 16px between modules, 12px under a section
+     label. Cards, KPI strips and stacks read these, so a gap is never a
+     number typed at the call site. */
+  --spacing-band: 1rem;
+  --spacing-head: 0.75rem;
 }
 
 html {
@@ -56,15 +61,32 @@ html {
   --fill: color-mix(in srgb, var(--sph-text) 6%, transparent);
   --wash: color-mix(in srgb, var(--sph-text) 2%, transparent);
   --thumb: var(--sph-border-strong);
+  --card-radius: 14px;
+  --row-radius: 12px;
+  --card-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04), 0 12px 28px -24px rgb(0 0 0 / 0.35);
+  --row-shadow: 0 1px 2px rgb(0 0 0 / 0.03);
+  --row-shadow-hover:
+    0 1px 2px rgb(0 0 0 / 0.05), 0 14px 26px -18px rgb(0 0 0 / 0.3);
   --pulse-count: infinite;
 }
 
+/* Cards lean on the border in dark mode; the shadow only lifts the surface a
+   little where the plane and panel are close in value. */
+html[data-theme="dark"] {
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --row-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  --row-shadow-hover: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+/* Glass is one composited mode: the same geometry, one blurred rail, and a
+   content scrim opaque enough to keep text readable over any wallpaper. */
 html[data-transparency="on"] {
-  --void: color-mix(in srgb, var(--void-base) 42%, transparent);
-  --night: color-mix(in srgb, var(--night-base) 26%, transparent);
-  --panel: color-mix(in srgb, var(--panel-base) 70%, transparent);
+  --void: color-mix(in srgb, var(--void-base) 80%, transparent);
+  --night: color-mix(in srgb, var(--night-base) 60%, transparent);
+  --panel: color-mix(in srgb, var(--panel-base) 74%, transparent);
   --raised: color-mix(in srgb, var(--raised-base) 74%, transparent);
-  --overlay: color-mix(in srgb, var(--overlay-base) 82%, transparent);
+  --overlay: color-mix(in srgb, var(--overlay-base) 88%, transparent);
 }
 
 html,
@@ -212,45 +234,427 @@ textarea {
   text-transform: uppercase;
 }
 
-/* Window geometry belongs to Asterism; navigation behavior and colors to Sephiro. */
+/* Window chrome: one page bar over one rail and one content plane. The rail is
+   a flat hairline column, never a card: brand, navigation, account. It starts
+   below the bar, so the window controls never sit on top of it. */
 .app-sidebar {
   position: relative;
-  flex: 0 0 212px;
-  inline-size: 212px;
+  display: flex;
+  flex: 0 0 184px;
+  flex-direction: column;
+  inline-size: 184px;
   min-block-size: 0;
-  overflow: hidden;
-  gap: 0;
-  padding: 48px 10px 10px;
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
-  background: var(--night);
+  padding: 12px 10px 10px;
+  border-inline-end: 1px solid var(--hairline);
+  background: var(--panel);
+  transition:
+    inline-size 150ms,
+    flex-basis 150ms;
 }
 
-.app-sidebar .sph-sidebar__header {
-  padding: 0 6px;
+html[data-transparency="on"] .app-sidebar {
+  backdrop-filter: blur(24px) saturate(1.5);
 }
 
-.app-sidebar .sph-sidebar__nav {
-  flex: 0 1 auto;
-  padding-top: 4px;
+.app-brand {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 14px 6px;
 }
 
-.app-sidebar .sph-sidebar__footer {
-  flex: 1 1 auto;
-  align-items: stretch;
-  min-block-size: 0;
-  border: 0;
+.app-mark {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
 }
 
-.app-sidebar .sph-sidebar__footer-content {
+.app-nav {
   display: flex;
   flex-direction: column;
-  min-block-size: 0;
+  gap: 2px;
 }
 
-.app-sidebar .sph-sidebar__footer .sph-button {
-  justify-content: flex-start;
-  inline-size: 100%;
+.app-sidebar-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--hairline);
+}
+
+.app-nav-item {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 9px;
+  block-size: 32px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mist);
+  font-size: 12.5px;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    color 150ms,
+    background-color 150ms;
+}
+
+.app-nav-item:hover {
+  background: var(--fill);
+  color: var(--paper);
+}
+
+.app-nav-item[aria-current="page"] {
+  background: var(--paper);
+  color: var(--void);
+}
+
+.app-nav-icon {
+  display: grid;
+  flex: 0 0 15px;
+  place-items: center;
+}
+
+.app-nav-count {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+.app-account {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 7px;
+  block-size: 32px;
+  padding-inline: 8px 4px;
+  color: var(--mist);
+  font-size: 11.5px;
+}
+
+.app-account .sph-avatar {
+  flex: 0 0 auto;
+}
+
+.app-rail-toggle {
+  display: grid;
+  flex: 0 0 20px;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  transition:
+    color 150ms,
+    background-color 150ms;
+}
+
+.app-rail-toggle:hover,
+.app-rail-toggle:focus-visible {
+  background: var(--fill);
+  color: var(--paper);
+}
+
+/* Collapsed: icons only, with the label in the tooltip and the accessible name.
+   Nothing but the 36px rows needs to fit once the page bar holds the window
+   controls, so the rail narrows to one column (36 + 10px each side). */
+.app-sidebar[data-collapsed="true"] {
+  flex-basis: 56px;
+  inline-size: 56px;
+  padding: 12px 10px 10px;
+}
+
+/* Collapsed, the mark keeps the column's centre line instead of disappearing:
+   the brand row is what holds the nav down, so hiding it would make the whole
+   rail jump when the labels go away. */
+.app-sidebar[data-collapsed="true"] .app-brand {
+  justify-content: center;
+  padding: 0 0 14px;
+}
+
+.app-sidebar[data-collapsed="true"] .app-brand-name,
+.app-sidebar[data-collapsed="true"] .app-nav-label,
+.app-sidebar[data-collapsed="true"] .app-nav-count,
+.app-sidebar[data-collapsed="true"] .app-account-name {
+  display: none;
+}
+
+.app-sidebar[data-collapsed="true"] .app-nav-item {
+  inline-size: 36px;
+  block-size: 36px;
+  margin-inline: auto;
+  justify-content: center;
+  padding-inline: 0;
+  border-radius: 9px;
+}
+
+.app-sidebar[data-collapsed="true"] .app-account {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+/* The page bar spans the window, so it carries the window controls on macOS
+   and the rail starts underneath it. */
+.app-pagebar {
+  display: flex;
+  flex: 0 0 46px;
+  align-items: center;
+  gap: 12px;
+  block-size: 46px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--void);
+}
+
+/* Traffic lights run from x=20 to x=72; 92px clears the zoom button with a
+   20px gap before the collapse toggle. */
+.app-pagebar.is-native {
+  padding-inline-start: 92px;
+}
+
+.app-plane {
+  min-block-size: 0;
+  background: var(--void);
+}
+
+/* Depth is a surface step plus a hairline: modules sit on the plane as cards,
+   never as a card inside a card. */
+.app-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+.app-section {
+  padding: var(--spacing-band);
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+  box-shadow: var(--card-shadow);
+}
+
+.app-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-block-end: var(--spacing-head);
+}
+
+/* A tinted tile anchors an icon the way a card header would, without a second
+   surface: one shape, one fill step. */
+.app-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sph-text) 5%, transparent);
+  color: var(--mist);
+}
+
+.app-chip--accent {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent-soft);
+}
+
+/* A list item is a card of its own: the gap between rows does the separating
+   work, so no hairline or zebra striping is needed. */
+.app-row {
+  border: 1px solid var(--hairline);
+  border-radius: var(--row-radius);
+  background: var(--panel);
+  box-shadow: var(--row-shadow);
+  transition:
+    border-color var(--sph-motion-fast) var(--sph-ease-standard),
+    box-shadow var(--sph-motion-fast) var(--sph-ease-standard);
+}
+
+.app-row:hover {
+  border-color: var(--line);
+  box-shadow: var(--row-shadow-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-row {
+    transition: none;
+  }
+}
+
+/* The band above a card's body, so a tall card reads as header plus content. */
+.app-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--wash);
+}
+
+/* Nested content keeps the outer card as its only surface. */
+.app-section-flush {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Pull request bodies arrive as markdown, so the reader gets typography rather
+   than syntax. Sizes stay one step below the page title. */
+.app-md {
+  max-inline-size: 84ch;
+  color: var(--paper);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.app-md > :first-child {
+  margin-block-start: 0;
+}
+
+.app-md > :last-child {
+  margin-block-end: 0;
+}
+
+.app-md p {
+  margin-block: 10px;
+}
+
+.app-md h1,
+.app-md h2,
+.app-md h3,
+.app-md h4,
+.app-md h5,
+.app-md h6 {
+  margin-block: 18px 8px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.app-md h1 {
+  font-size: 16px;
+}
+
+.app-md h2 {
+  font-size: 14.5px;
+}
+
+.app-md h3,
+.app-md h4,
+.app-md h5,
+.app-md h6 {
+  font-size: 13.5px;
+}
+
+.app-md ul,
+.app-md ol {
+  margin-block: 10px;
+  padding-inline-start: 20px;
+}
+
+.app-md ul {
+  list-style: disc;
+}
+
+.app-md ol {
+  list-style: decimal;
+}
+
+.app-md li {
+  margin-block: 4px;
+}
+
+.app-md code {
+  padding: 1px 4px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--sph-text) 7%, transparent);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+
+.app-md pre {
+  margin-block: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: var(--void);
+  overflow-x: auto;
+}
+
+.app-md pre code {
+  padding: 0;
+  background: transparent;
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.app-md blockquote {
+  margin-block: 12px;
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--hairline);
+  color: var(--mist);
+}
+
+.app-md a {
+  color: var(--accent-soft);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.app-md hr {
+  margin-block: 16px;
+  border: 0;
+  border-block-start: 1px solid var(--hairline);
+}
+
+/* KPI readings are cards too: one number per block, no dividers. */
+.app-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-band);
+}
+
+.app-kpis > * {
+  min-inline-size: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+  box-shadow: var(--card-shadow);
+}
+
+/* One reading carries the accent tint, so the strip has a focal point. */
+.app-kpis > .is-hero {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--hairline));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 8%, var(--panel)),
+    var(--panel) 72%
+  );
+}
+
+@media (min-width: 768px) {
+  .app-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 /* Sephiro's label span has no gap, so an icon passed alongside text sits flush against it. */
@@ -258,23 +662,19 @@ textarea {
   gap: calc(var(--spacing, 0.25rem) * 1.5);
 }
 
-/* Embedded search fields share their parent label's border and background. */
-.app-input--compact.sph-input {
-  block-size: 100%;
-  min-block-size: 0;
-  inline-size: 100%;
-  padding-inline: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  font-size: 12.5px;
-}
-
-.app-input--compact.sph-input:focus-visible {
-  background: transparent;
+/* The search icon sits on Sephiro's own input surface, so the text starts
+   after it instead of over it. */
+.app-search .sph-input {
+  padding-inline-start: 28px;
 }
 
 .app-skeleton.sph-skeleton {
   display: block;
   min-block-size: 0;
+}
+
+/* Picker rows are full-width cells, so the label must fill the checkbox label. */
+.picker-row.sph-checkbox .sph-checkbox__label {
+  flex: 1 1 0%;
+  min-inline-size: 0;
 }

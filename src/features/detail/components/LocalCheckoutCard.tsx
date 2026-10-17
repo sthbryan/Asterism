@@ -4,11 +4,11 @@ import {
   FolderOpenIcon,
   TrashIcon,
 } from "@phosphor-icons/react";
-import { Button } from "@zovaris/sephiro";
+import { Button, IconButton } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { EDITOR_LABEL, type EditorTarget } from "@/lib/editor";
 import type { LocalCheckout } from "@/lib/types";
-import type { EditorTarget } from "../hooks/useLocalCheckouts";
 import { statusKey } from "../utils/localUtils";
 import { GitSyncPanel } from "./GitSyncPanel";
 
@@ -21,6 +21,10 @@ type CheckoutCardProps = {
   onUnlink: (path: string) => void;
 };
 
+/**
+ * One checkout is a band inside the section, never a card: a card inside a card
+ * is the one shape DESIGN.md rules out.
+ */
 export function LocalCheckoutCard({
   fullName,
   item,
@@ -33,29 +37,18 @@ export function LocalCheckoutCard({
   const ready = item.status === "ready";
 
   return (
-    <div className="rounded-md border border-hairline px-3 py-2">
-      <div className="flex items-start gap-2">
-        <FolderOpenIcon size={15} className="mt-0.5 shrink-0 text-faint" />
+    <div className="py-3 first:pt-0 last:pb-0">
+      <div className="flex items-center gap-2">
+        <FolderOpenIcon size={15} className="shrink-0 text-faint" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-[12.5px] font-medium" title={item.path}>
             {item.path}
           </p>
-          <p className="mt-1 text-[11px] text-faint">
+          <p className="mt-0.5 text-[11px] text-faint">
             {t(statusKey[item.status])}
-            {item.branch ? ` · ${item.branch}` : ""}
           </p>
         </div>
-        <div className="flex gap-1">
-          <Button
-            variant="secondary"
-            size="sm"
-            className="shrink-0"
-            disabled={busy || !ready}
-            onClick={() => onOpen(item.path, "folder")}
-          >
-            <ArrowSquareOutIcon size={14} aria-hidden />
-            {t("local.open")}
-          </Button>
+        <div className="flex shrink-0 items-center gap-1">
           <Button
             variant="secondary"
             size="sm"
@@ -64,18 +57,24 @@ export function LocalCheckoutCard({
             onClick={() => onOpen(item.path, editor)}
           >
             <CodeIcon size={14} aria-hidden />
-            {t("local.editor")}
+            {t("local.openIn", { editor: EDITOR_LABEL[editor] })}
           </Button>
-          <Button
-            variant="secondary"
+          <IconButton
+            icon={<ArrowSquareOutIcon size={14} />}
+            label={t("local.open")}
             size="sm"
-            className="shrink-0"
+            variant="ghost"
+            disabled={busy || !ready}
+            onClick={() => onOpen(item.path, "folder")}
+          />
+          <IconButton
+            icon={<TrashIcon size={14} />}
+            label={t("local.unlink")}
+            size="sm"
+            variant="ghost"
             disabled={busy}
             onClick={() => onUnlink(item.path)}
-            aria-label={t("local.unlink")}
-          >
-            <TrashIcon size={14} />
-          </Button>
+          />
         </div>
       </div>
       <When condition={ready}>

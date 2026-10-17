@@ -1,6 +1,8 @@
+import { TerminalWindowIcon } from "@phosphor-icons/react";
 import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { Section } from "@/components/Section";
 import { isMockMode } from "@/services/api";
 import { useDiagnostics } from "../hooks/useDiagnostics";
 
@@ -9,14 +11,11 @@ export function DiagnosticsSection() {
   const { diagnostics, error, loading, retry } = useDiagnostics();
 
   return (
-    <section
-      aria-labelledby="diagnostics-heading"
-      className="border-t border-hairline pt-5"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="diagnostics-heading" className="text-base font-semibold">
-          {t("settings.diagnostics")}
-        </h2>
+    <Section
+      labelAs="h2"
+      label={t("settings.diagnostics")}
+      icon={<TerminalWindowIcon size={15} />}
+      trailing={
         <Button
           variant="secondary"
           size="sm"
@@ -25,8 +24,9 @@ export function DiagnosticsSection() {
         >
           {loading ? t("settings.checking") : t("Refresh")}
         </Button>
-      </div>
-      <p className="mt-2 text-sm text-mist">{t("settings.diagnosticsHint")}</p>
+      }
+    >
+      <p className="text-sm text-mist">{t("settings.diagnosticsHint")}</p>
       <When condition={isMockMode()}>
         <p className="mt-2 text-sm text-mist">{t("settings.demo")}</p>
       </When>
@@ -36,14 +36,17 @@ export function DiagnosticsSection() {
         </Notice>
       </When>
       <When condition={Boolean(diagnostics)}>
-        <dl className="mt-4 space-y-4">
+        <dl className="mt-3 divide-y divide-hairline">
           {[
             ["GitHub CLI", diagnostics?.ghVersion, diagnostics?.ghError],
             ["Git", diagnostics?.gitVersion, diagnostics?.gitError],
             [t("settings.configPath"), diagnostics?.configPath, null],
             [t("settings.historyPath"), diagnostics?.historyPath, null],
           ].map(([label, value, issue]) => (
-            <div key={label} className="grid gap-1 sm:grid-cols-[160px_1fr]">
+            <div
+              key={label}
+              className="grid gap-1 py-2.5 sm:grid-cols-[160px_1fr]"
+            >
               <dt className="text-sm text-mist">{label}</dt>
               <dd className="min-w-0 wrap-break-word font-mono text-xs leading-relaxed">
                 {value || t("Unavailable")}
@@ -55,6 +58,6 @@ export function DiagnosticsSection() {
           ))}
         </dl>
       </When>
-    </section>
+    </Section>
   );
 }

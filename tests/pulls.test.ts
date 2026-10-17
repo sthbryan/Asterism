@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
+  appendPulls,
   filterPullRequests,
   mergePullResults,
-  pageOf,
   pullPath,
 } from "../src/features/pulls/utils";
 import type { PullRequestSummary } from "../src/lib/types";
@@ -50,15 +50,27 @@ describe("pull request helpers", () => {
     expect(filterPullRequests(pulls, { reviewer: "octocat" })).toHaveLength(1);
   });
 
-  test("paginates safely and encodes repository names", () => {
-    expect(pageOf([1, 2, 3], 2, 2)).toEqual({
-      items: [3],
-      pages: 2,
-      currentPage: 2,
-    });
-    expect(pageOf([1], 99, 2).currentPage).toBe(1);
+  test("encodes repository names in pull paths", () => {
     expect(pullPath("owner/repo", 42)).toBe("/pull/owner%2Frepo/42");
   });
+});
+
+test("a loaded page appends after the existing rows without duplicates", () => {
+  const first = [pull({ number: 5 }), pull({ repo: "acme/web", number: 2 })];
+  const next = [
+    pull({ number: 4 }),
+    pull({ repo: "ACME/WEB", number: 1 }),
+    pull({ number: 5 }),
+  ];
+  const merged = appendPulls(first, next);
+  expect(merged.map((row) => `${row.repo}#${row.number}`)).toEqual([
+    "acme/app#5",
+    "acme/web#2",
+    "acme/app#4",
+    "ACME/WEB#1",
+  ]);
+  expect(appendPulls(first, [])).toBe(first);
+  expect(appendPulls(first, [pull({ number: 5 })])).toBe(first);
 });
 
 test("partial PR failures retain saved rows while successful empty repositories stay empty", () => {

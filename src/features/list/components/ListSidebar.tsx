@@ -1,16 +1,15 @@
 import {
-  CodeIcon,
-  DesktopIcon,
+  DevicesIcon,
   DownloadSimpleIcon,
-  FolderSimpleIcon,
   LockSimpleIcon,
-  StarIcon,
+  TranslateIcon,
+  TrophyIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { Surface } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarList } from "@/components/BarList";
+import { Section } from "@/components/Section";
 import { fmtCompact, fmtNum } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
@@ -34,76 +33,71 @@ export function ListSidebar({
   const { top, share } = highlight;
   const { privateCount, silentCount, errorCount } = stats;
   return (
-    <div className="flex min-w-0 flex-col gap-3">
+    <div className="min-w-0 space-y-band">
       <When condition={Boolean(top)}>
-        <button
-          type="button"
-          className="card block w-full p-4 text-left transition-colors hover:bg-hover hover:text-paper"
-          onClick={() => top && onOpenRepo(top.fullName)}
+        <Section
+          label={t("Top repository")}
+          icon={<TrophyIcon size={15} />}
+          tone="accent"
         >
-          <div className="flex items-center gap-2 text-mist">
-            <StarIcon size={14} className="text-faint" />
-            <span className="kpi-label">{t("Top repository")}</span>
-          </div>
-          <p className="mt-2.5 truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
-            {top?.fullName}
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div>
-              <div className="text-[11px] leading-none text-faint">
-                {t("Stars")}
+          <button
+            type="button"
+            className="-mx-2 block w-full rounded-lg px-2 pb-1 text-left transition-colors hover:bg-hover hover:text-paper"
+            onClick={() => top && onOpenRepo(top.fullName)}
+          >
+            <p className="truncate font-mono text-[15px] font-semibold tracking-[-0.01em]">
+              {top?.fullName}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[11px] leading-none text-faint">
+                  {t("Stars")}
+                </div>
+                <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
+                  {fmtNum(top?.stars ?? 0)}
+                </div>
               </div>
-              <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold tabular">
-                {fmtNum(top?.stars ?? 0)}
+              <div>
+                <div className="text-[11px] leading-none text-faint">
+                  {t("Downloads")}
+                </div>
+                <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
+                  {fmtNum(top?.downloads ?? 0)}
+                </div>
               </div>
             </div>
-            <div>
-              <div className="text-[11px] leading-none text-faint">
-                {t("Downloads")}
-              </div>
-              <div className="mt-1.5 font-mono text-[16px] leading-none font-semibold text-accent-soft tabular">
-                {fmtNum(top?.downloads ?? 0)}
-              </div>
+            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
+              <div
+                className="h-full rounded-full bg-linear-to-r from-accent to-accent-hover"
+                style={{ width: `${share}%` }}
+              />
             </div>
-          </div>
-          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
-            <div
-              className="h-full rounded-full bg-linear-to-r from-accent to-accent-hover"
-              style={{ width: `${share}%` }}
-            />
-          </div>
-          <p className="mt-2 text-[11.5px] leading-snug text-faint">
-            {t("list.share", { value: fmtNum(share) })}
-          </p>
-        </button>
+            <p className="mt-2 text-[11.5px] leading-snug text-faint">
+              {t("list.share", { value: fmtNum(share) })}
+            </p>
+          </button>
+        </Section>
       </When>
 
       <When condition={platformBars.length > 0}>
-        <Surface padding="md" className="border border-hairline">
-          <div className="flex items-center gap-2 text-mist">
-            <DesktopIcon size={14} className="text-faint" />
-            <span className="kpi-label">{t("Downloads by platform")}</span>
-          </div>
-          <div className="mt-3">
-            <BarList
-              label={t("Downloads by platform")}
-              formatValue={fmtCompact}
-              items={platformBars.map((item) => ({
-                ...item,
-                label: item.label === "Other" ? t("Other") : item.label,
-              }))}
-            />
-          </div>
-        </Surface>
+        <Section
+          label={t("Downloads by platform")}
+          icon={<DevicesIcon size={15} />}
+        >
+          <BarList
+            label={t("Downloads by platform")}
+            formatValue={fmtCompact}
+            items={platformBars.map((item) => ({
+              ...item,
+              label: item.label === "Other" ? t("Other") : item.label,
+            }))}
+          />
+        </Section>
       </When>
 
       <When condition={languages.items.length > 0}>
-        <Surface padding="md" className="border border-hairline">
-          <div className="flex items-center gap-2 text-mist">
-            <CodeIcon size={14} className="text-faint" />
-            <span className="kpi-label">{t("Languages")}</span>
-          </div>
-          <ul className="mt-3 space-y-2">
+        <Section label={t("Languages")} icon={<TranslateIcon size={15} />}>
+          <ul className="space-y-2">
             {languages.items.map(([name, count]) => {
               const pct = (count / languages.total) * 100;
               const color = langColor(name === "Unknown" ? null : name);
@@ -139,15 +133,11 @@ export function ListSidebar({
               );
             })}
           </ul>
-        </Surface>
+        </Section>
       </When>
 
-      <Surface padding="md" className="border border-hairline">
-        <div className="flex items-center gap-2 text-mist">
-          <FolderSimpleIcon size={14} className="text-faint" />
-          <span className="kpi-label">{t("Tracked set")}</span>
-        </div>
-        <dl className="mt-3 space-y-2.5">
+      <Section label={t("Tracked set")} icon={<LockSimpleIcon size={15} />}>
+        <dl className="space-y-2.5">
           <div className="flex items-center justify-between gap-3">
             <dt className="flex items-center gap-1.5 text-[12.5px] text-mist">
               <LockSimpleIcon size={12} className="text-faint" />
@@ -178,7 +168,7 @@ export function ListSidebar({
             </div>
           </When>
         </dl>
-      </Surface>
+      </Section>
     </div>
   );
 }

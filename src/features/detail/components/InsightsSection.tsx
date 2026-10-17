@@ -1,13 +1,18 @@
+import {
+  DevicesIcon,
+  LinkSimpleIcon,
+  SignpostIcon,
+  TranslateIcon,
+} from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Surface } from "@zovaris/sephiro";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarList } from "@/components/BarList";
+import { Section } from "@/components/Section";
 import { fmtCompact } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import { platformItems, shortPath } from "@/lib/platform";
 import type { RepoDetail } from "@/lib/types";
-
 export function InsightsSection({ detail }: { detail: RepoDetail }) {
   const { t, formatNumber } = useI18n();
   const langTotal =
@@ -20,21 +25,21 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
 
   return (
     <>
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">
-            {t("Referrers · 14 days")}
-          </div>
+      <div className="grid gap-band lg:grid-cols-2">
+        <Section
+          label={t("Referrers · 14 days")}
+          icon={<LinkSimpleIcon size={15} />}
+        >
           <If condition={referrers.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
+              <p className="text-[13px] text-faint">
                 {detail.trafficError && !detail.views
                   ? t("Referrers need push access, same as views.")
                   : t("No referrers in the last 14 days.")}
               </p>
             </Then>
             <Else>
-              <div className="mt-3">
+              <div>
                 <BarList
                   label={t("Referrers · 14 days")}
                   formatValue={fmtCompact}
@@ -46,21 +51,21 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </Surface>
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">
-            {t("Popular paths · 14 days")}
-          </div>
+        </Section>
+        <Section
+          label={t("Popular paths · 14 days")}
+          icon={<SignpostIcon size={15} />}
+        >
           <If condition={paths.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
+              <p className="text-[13px] text-faint">
                 {detail.trafficError && !detail.views
                   ? t("Paths need push access, same as views.")
                   : t("No popular paths in the last 14 days.")}
               </p>
             </Then>
             <Else>
-              <div className="mt-3">
+              <div>
                 <BarList
                   label={t("Popular paths · 14 days")}
                   formatValue={fmtCompact}
@@ -85,22 +90,22 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </Surface>
+        </Section>
       </div>
 
-      <div className="mt-3 grid gap-3 lg:grid-cols-2">
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">
-            {t("Downloads by platform")}
-          </div>
+      <div className="grid gap-band lg:grid-cols-2">
+        <Section
+          label={t("Downloads by platform")}
+          icon={<DevicesIcon size={15} />}
+        >
           <If condition={platformBars.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
+              <p className="text-[13px] text-faint">
                 {t("No release assets with a recognizable platform.")}
               </p>
             </Then>
             <Else>
-              <div className="mt-3">
+              <div>
                 <BarList
                   label={t("Downloads by platform")}
                   formatValue={fmtCompact}
@@ -112,17 +117,14 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </div>
             </Else>
           </If>
-        </Surface>
-        <Surface padding="md" className="border border-hairline">
-          <div className="text-[13px] font-semibold">{t("Languages")}</div>
+        </Section>
+        <Section label={t("Languages")} icon={<TranslateIcon size={15} />}>
           <If condition={detail.languages.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
-                {t("No language data.")}
-              </p>
+              <p className="text-[13px] text-faint">{t("No language data.")}</p>
             </Then>
             <Else>
-              <ul className="mt-3.5 space-y-2">
+              <ul className="space-y-2">
                 {detail.languages.map((lang) => {
                   const pct = (lang.bytes / langTotal) * 100;
                   return (
@@ -160,7 +162,7 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
               </ul>
             </Else>
           </If>
-        </Surface>
+        </Section>
       </div>
     </>
   );

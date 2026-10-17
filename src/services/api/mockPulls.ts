@@ -3,9 +3,28 @@ import type { PullListResult, PullRequestDetail, Saved } from "@/lib/types";
 import { delay } from "./mockDelay";
 import type { ApiClient } from "./types";
 
+/** Small enough that the mock repository with several pull requests pages. */
+const MOCK_PAGE = 2;
+
+/** Cursors are `repo:offset`, mirroring the per-repository cursor the backend keeps. */
+function pageFor(repo: string, cursor?: string) {
+  const rows = MOCK_PULLS.filter((pull) => pull.repo === repo);
+  const offset = Number.parseInt(cursor?.split(":").pop() ?? "0", 10) || 0;
+  const pulls = rows.slice(offset, offset + MOCK_PAGE);
+  const next =
+    offset + MOCK_PAGE < rows.length ? `${repo}:${offset + MOCK_PAGE}` : null;
+  return { pulls, next };
+}
+
 export function mockPullClient(
   repos: () => string[],
-): Pick<ApiClient, "refreshPullRequests" | "getPullRequest" | "getPullDiff"> {
+): Pick<
+  ApiClient,
+  | "refreshPullRequests"
+  | "loadMorePullRequests"
+  | "getPullRequest"
+  | "getPullDiff"
+> {
   return {
     refreshPullRequests: async (filters = {}) => {
       const requested = filters.repos ?? (filters.repo ? [filters.repo] : []);
@@ -15,17 +34,22 @@ export function mockPullClient(
       const errors: Record<string, string> = {};
       if (mode === "partial" && selected.includes("acme/nebula-api"))
         errors["acme/nebula-api"] = "Permission denied for this repository.";
-      const pulls = MOCK_PULLS.filter(
-        (pull) => selected.includes(pull.repo) && !errors[pull.repo],
-      );
+      const cursors: Record<string, string> = {};
+      const pulls = selected.flatMap((repo) => {
+        if (errors[repo]) return [];
+        const page = pageFor(repo);
+        if (page.next) cursors[repo] = page.next;
+        return page.pulls;
+      });
       const result: PullListResult = {
         pulls,
         errors,
         fetchedAt: Math.floor(Date.now() / 1000),
         page: 1,
-        perPage: 100,
+        perPage: MOCK_PAGE,
         total: pulls.length,
-        hasNextPage: false,
+        hasNextPage: Object.keys(cursors).length > 0,
+        cursors,
       };
       const saved: Saved<PullListResult> = {
         data: result,
@@ -33,6 +57,29 @@ export function mockPullClient(
         warning: null,
       };
       return delay(saved, 20);
+    },
+    loadMorePullRequests: (filters, cursors) => {
+      const mode = new URLSearchParams(window.location.search).get("pulls");
+      if (mode === "error") return Promise.reject("GitHub unavailable");
+      const allowed = filters.repos?.length ? filters.repos : repos();
+      const next: Record<string, string> = {};
+      const pulls = Object.entries(cursors).flatMap(([repo, cursor]) => {
+        if (!allowed.includes(repo)) return [];
+        const page = pageFor(repo, cursor);
+        if (page.next) next[repo] = page.next;
+        return page.pulls;
+      });
+      const result: PullListResult = {
+        pulls,
+        errors: {},
+        fetchedAt: Math.floor(Date.now() / 1000),
+        page: 1,
+        perPage: MOCK_PAGE,
+        total: pulls.length,
+        hasNextPage: Object.keys(next).length > 0,
+        cursors: next,
+      };
+      return delay(result, 260);
     },
     getPullRequest: (repo, number) => {
       const mode = new URLSearchParams(window.location.search).get("pulls");

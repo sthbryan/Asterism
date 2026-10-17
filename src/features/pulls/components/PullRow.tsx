@@ -21,12 +21,12 @@ export function PullRow({
   return (
     <button
       type="button"
-      className="card w-full p-4 text-left transition-colors hover:border-line hover:bg-hover"
+      className="app-row flex w-full items-start gap-3 px-4 py-3.5 text-left"
       onClick={onOpen}
     >
-      <div className="flex items-start gap-3">
-        <span className="mt-0.5 text-accent-soft">
-          <GitPullRequestIcon size={17} weight="fill" />
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <span className="app-chip app-chip--accent mt-px">
+          <GitPullRequestIcon size={15} weight="fill" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">

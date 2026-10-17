@@ -18,13 +18,14 @@
     "noResults": "Ningún pull request coincide con estos filtros.",
     "empty": "No hay pull requests abiertos en tus repositorios seguidos.",
     "partial": "No se pudieron cargar algunos repositorios.",
-    "page": "Página {page} de {pages}",
-    "previous": "Anterior",
-    "next": "Siguiente",
     "clear": "Limpiar filtros",
     "updated": "Actualizado {date}",
     "files": "Archivos",
     "diff": "Diff",
+    "changes": "Cambios",
+    "branchesLabel": "Ramas",
+    "merge": "Merge",
+    "noDescription": "Sin descripción.",
     "loadFiles": "Cargar archivos",
     "loadDiff": "Cargar diff",
     "closeDiff": "Cerrar diff",
@@ -44,6 +45,8 @@
     "openGithub": "Abrir en GitHub",
     "branches": "{head} → {base}",
     "error": "No se pudieron cargar los pull requests.",
-    "detailError": "No se pudo cargar este pull request."
+    "detailError": "No se pudo cargar este pull request.",
+    "loadMore": "Cargar más",
+    "loadingMore": "Cargando más…"
   }
 }

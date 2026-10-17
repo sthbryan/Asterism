@@ -5,6 +5,7 @@ import { If, Then, When } from "react-if";
 import { useRoute } from "wouter";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
+import { useScrollMemory } from "@/app/useScrollMemory";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
 import type { PullRequestDetail } from "@/lib/types";
@@ -22,6 +23,7 @@ export function PullDetailView() {
   const repo = decodeURIComponent(params?.repo ?? "");
   const number = Number(params?.number ?? 0);
   const detail = usePullDetail({ account, repo, number, revision });
+  const scrollRef = useScrollMemory(`pull:${repo}#${number}`);
   const openGithub = () =>
     void openUrl(
       detail.pull?.url ?? `https://github.com/${repo}/pull/${number}`,
@@ -58,7 +60,10 @@ export function PullDetailView() {
           </Button>
         }
       />
-      <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
+      <div
+        ref={scrollRef}
+        className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6"
+      >
         <When condition={Boolean(detail.fetchedAt)}>
           <p className="mb-3 flex items-center gap-2 text-xs text-mist">
             {t("list.updated", {

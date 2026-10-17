@@ -4,7 +4,7 @@ import {
   GitForkIcon,
   StarIcon,
 } from "@phosphor-icons/react";
-import { Button, EmptyState, Surface } from "@zovaris/sephiro";
+import { Button, EmptyState } from "@zovaris/sephiro";
 import { cn } from "cn";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -15,6 +15,7 @@ import { Banner } from "@/components/Banner";
 import { BarList } from "@/components/BarList";
 import { KpiCard } from "@/components/KpiCard";
 import { PageHeader } from "@/components/PageHeader";
+import { Section } from "@/components/Section";
 import { ListSkeleton } from "@/components/Skeleton";
 import { fmtCompact, fmtNum } from "@/lib/format";
 import { useListControls } from "../hooks/useListControls";
@@ -79,16 +80,16 @@ export function ListView() {
           <ListSkeleton />
         </div>
         <div className="t-skel-content">
-          <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
+          <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
             <Banner
               message={banner ? `${t("errors.request")} ${banner}` : null}
             />
             <When condition={showPartial}>
-              <p role="status" className="mb-3 text-sm text-mist">
+              <p role="status" className="mb-3 shrink-0 text-sm text-mist">
                 {t("errors.request")}
               </p>
             </When>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="app-kpis shrink-0">
               <KpiCard
                 label={t("Repositories")}
                 value={selectedNames.length}
@@ -121,16 +122,10 @@ export function ListView() {
                 deltaHint={kpis.download?.hint}
               />
             </div>
-            <When condition={repos.length > 0}>
-              <ListCharts
-                starSeries={starSeries}
-                downloadSeries={downloadSeries}
-              />
-            </When>
             <If condition={repos.length === 0}>
               <Then>
                 <EmptyState
-                  className="card mt-3 min-h-60 content-center"
+                  className="app-card mt-band min-h-0 flex-1 content-center"
                   icon={<FolderSimpleIcon />}
                   title={t("No repositories tracked")}
                   description={t(
@@ -149,59 +144,54 @@ export function ListView() {
                 />
               </Then>
               <Else>
-                <div className="mt-3 grid items-start gap-3 lg:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
-                  <div className="flex min-w-0 flex-col gap-3">
+                <div className="mt-band grid min-h-0 flex-1 items-stretch gap-band md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
+                  <RepositoryTable
+                    rows={rows}
+                    query={query}
+                    sort={sort}
+                    onQueryChange={setQuery}
+                    onSort={toggleSort}
+                    onOpenRepo={openRepo}
+                  />
+                  <div className="min-h-0 min-w-0 space-y-band overflow-y-auto pb-1">
+                    <ListCharts
+                      starSeries={starSeries}
+                      downloadSeries={downloadSeries}
+                    />
                     <When condition={chart.show}>
-                      <Surface
-                        padding="none"
-                        className="border border-hairline"
+                      <Section
+                        label={t("Downloads by repo")}
+                        icon={<DownloadSimpleIcon size={15} />}
+                        meta={t("list.total", {
+                          value: fmtNum(totals.downloads),
+                        })}
                       >
-                        <div className="flex items-center gap-3 border-b border-hairline px-4 py-2.5">
-                          <span className="text-[13px] font-semibold">
-                            {t("Downloads by repo")}
-                          </span>
-                          <span className="ml-auto font-mono text-[11.5px] text-faint tabular">
-                            {t("list.total", {
-                              value: fmtNum(totals.downloads),
-                            })}
-                          </span>
-                        </div>
-                        <div className="p-4">
-                          <BarList
-                            label={t("Downloads by repo")}
-                            formatValue={fmtCompact}
-                            items={chart.items}
-                            onSelect={(item) => openRepo(item.label)}
-                            displayLabel={(label) =>
-                              label.split("/").pop() ?? label
-                            }
-                          />
-                        </div>
-                      </Surface>
+                        <BarList
+                          label={t("Downloads by repo")}
+                          formatValue={fmtCompact}
+                          items={chart.items}
+                          onSelect={(item) => openRepo(item.label)}
+                          displayLabel={(label) =>
+                            label.split("/").pop() ?? label
+                          }
+                        />
+                      </Section>
                     </When>
-                    <RepositoryTable
-                      rows={rows}
-                      query={query}
-                      sort={sort}
-                      onQueryChange={setQuery}
-                      onSort={toggleSort}
+                    <ListSidebar
+                      highlight={{ top: chart.top, share: chart.share }}
+                      platformBars={platformBars}
+                      languages={{
+                        items: sidebar.languages,
+                        total: repos.length || 1,
+                      }}
+                      stats={{
+                        privateCount: sidebar.privateCount,
+                        silentCount: sidebar.silentCount,
+                        errorCount: sidebar.errorCount,
+                      }}
                       onOpenRepo={openRepo}
                     />
                   </div>
-                  <ListSidebar
-                    highlight={{ top: chart.top, share: chart.share }}
-                    platformBars={platformBars}
-                    languages={{
-                      items: sidebar.languages,
-                      total: repos.length || 1,
-                    }}
-                    stats={{
-                      privateCount: sidebar.privateCount,
-                      silentCount: sidebar.silentCount,
-                      errorCount: sidebar.errorCount,
-                    }}
-                    onOpenRepo={openRepo}
-                  />
                 </div>
               </Else>
             </If>

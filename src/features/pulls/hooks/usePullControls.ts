@@ -1,12 +1,11 @@
 import { useMemo, useReducer } from "react";
 import type { PullFilters } from "../utils";
 
-type ControlsState = PullFilters & { page: number };
+type ControlsState = PullFilters;
 
 type ControlsAction =
   | { type: "set"; field: keyof PullFilters; value: string }
-  | { type: "clear" }
-  | { type: "page"; value: number };
+  | { type: "clear" };
 
 const initialState: ControlsState = {
   query: "",
@@ -15,25 +14,29 @@ const initialState: ControlsState = {
   assignee: "all",
   reviewer: "all",
   state: "open",
-  page: 1,
 };
+
+let remembered = initialState;
 
 function controlsReducer(
   state: ControlsState,
   action: ControlsAction,
 ): ControlsState {
+  let next = state;
   switch (action.type) {
     case "set":
-      return { ...state, [action.field]: action.value, page: 1 };
+      next = { ...state, [action.field]: action.value };
+      break;
     case "clear":
-      return initialState;
-    case "page":
-      return { ...state, page: action.value };
+      next = initialState;
+      break;
   }
+  remembered = next;
+  return next;
 }
 
 export function usePullControls() {
-  const [state, dispatch] = useReducer(controlsReducer, initialState);
+  const [state, dispatch] = useReducer(controlsReducer, remembered);
   const filters = useMemo<PullFilters>(
     () => ({
       query: state.query,
@@ -52,6 +55,5 @@ export function usePullControls() {
     set: (field: keyof PullFilters, value: string) =>
       dispatch({ type: "set", field, value }),
     clear: () => dispatch({ type: "clear" }),
-    setPage: (value: number) => dispatch({ type: "page", value }),
   };
 }

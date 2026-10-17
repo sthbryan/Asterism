@@ -17,21 +17,32 @@ const initialControls: ControlsState = {
   sort: { key: "downloads", dir: -1 },
 };
 
+let remembered = initialControls;
+
 function controlsReducer(
   state: ControlsState,
   action: ControlsAction,
 ): ControlsState {
+  let next = state;
   switch (action.type) {
     case "setQuery":
-      return { ...state, query: action.query };
+      next = { ...state, query: action.query };
+      break;
     case "toggleSort":
-      if (state.sort.key === action.key)
-        return { ...state, sort: { key: action.key, dir: -state.sort.dir } };
-      return {
-        ...state,
-        sort: { key: action.key, dir: action.key === "fullName" ? 1 : -1 },
-      };
+      next =
+        state.sort.key === action.key
+          ? { ...state, sort: { key: action.key, dir: -state.sort.dir } }
+          : {
+              ...state,
+              sort: {
+                key: action.key,
+                dir: action.key === "fullName" ? 1 : -1,
+              },
+            };
+      break;
   }
+  remembered = next;
+  return next;
 }
 
 /**
@@ -40,7 +51,7 @@ function controlsReducer(
  * instead of scattered useStates in the view.
  */
 export function useListControls() {
-  const [state, dispatch] = useReducer(controlsReducer, initialControls);
+  const [state, dispatch] = useReducer(controlsReducer, remembered);
 
   return {
     query: state.query,

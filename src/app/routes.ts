@@ -1,13 +1,4 @@
-import type { ComponentType } from "react";
-import {
-  CreateView,
-  DetailView,
-  ListView,
-  PickerView,
-  SettingsView,
-  SetupView,
-} from "@/features";
-import { PullDetailView, PullsView } from "@/features/pulls";
+import { type ComponentType, lazy } from "react";
 
 export type NavId = "overview" | "repos" | "pulls" | "create" | "settings";
 
@@ -16,6 +7,41 @@ export type AppRoute = {
   component: ComponentType;
   nav: NavId;
 };
+
+const ListView = lazy(() =>
+  import("@/features/list").then((module) => ({ default: module.ListView })),
+);
+const PickerView = lazy(() =>
+  import("@/features/picker").then((module) => ({
+    default: module.PickerView,
+  })),
+);
+const PullsView = lazy(() =>
+  import("@/features/pulls").then((module) => ({ default: module.PullsView })),
+);
+const PullDetailView = lazy(() =>
+  import("@/features/pulls").then((module) => ({
+    default: module.PullDetailView,
+  })),
+);
+const DetailView = lazy(() =>
+  import("@/features/detail").then((module) => ({
+    default: module.DetailView,
+  })),
+);
+const CreateView = lazy(() =>
+  import("@/features/create").then((module) => ({
+    default: module.CreateView,
+  })),
+);
+const SettingsView = lazy(() =>
+  import("@/features/settings").then((module) => ({
+    default: module.SettingsView,
+  })),
+);
+const SetupView = lazy(() =>
+  import("@/features/setup").then((module) => ({ default: module.SetupView })),
+);
 
 export const ROUTES: AppRoute[] = [
   { path: "/", component: ListView, nav: "overview" },

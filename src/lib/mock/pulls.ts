@@ -84,6 +84,83 @@ export const MOCK_PULLS: PullRequestDetail[] = [
   },
   {
     ...mockPull(
+      "sthbryan/asterism",
+      36,
+      "Cache the pull list per repository",
+      "octocat",
+      "perf/pull-cache",
+      "main",
+      {
+        additions: 74,
+        deletions: 12,
+        changedFiles: 3,
+        approvals: 1,
+        reviewDecision: "APPROVED",
+      },
+    ),
+    body: "Reuse the previous page while a repository refresh is in flight.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [
+      {
+        path: "src/features/pulls/hooks/usePullList.ts",
+        additions: 74,
+        deletions: 12,
+      },
+    ],
+  },
+  {
+    ...mockPull(
+      "sthbryan/asterism",
+      33,
+      "Show reviewer avatars",
+      "lin",
+      "feat/reviewer-avatars",
+      "main",
+      {
+        additions: 40,
+        deletions: 6,
+        changedFiles: 2,
+      },
+    ),
+    body: "A first pass at surfacing reviewers on each row.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [
+      {
+        path: "src/features/pulls/components/PullRow.tsx",
+        additions: 40,
+        deletions: 6,
+      },
+    ],
+  },
+  {
+    ...mockPull(
+      "sthbryan/asterism",
+      30,
+      "Fix keyboard navigation in the inbox",
+      "sthbryan",
+      "fix/inbox-keys",
+      "main",
+      {
+        additions: 18,
+        deletions: 4,
+        changedFiles: 1,
+      },
+    ),
+    body: "Left and right arrows move between pages again.",
+    mergeable: "MERGEABLE",
+    mergeState: "CLEAN",
+    files: [
+      {
+        path: "src/features/pulls/components/PullsView.tsx",
+        additions: 18,
+        deletions: 4,
+      },
+    ],
+  },
+  {
+    ...mockPull(
       "sthbryan/hyperion",
       18,
       "Handle retry-after headers",

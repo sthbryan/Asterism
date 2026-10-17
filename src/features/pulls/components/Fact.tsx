@@ -1,20 +1,24 @@
-import { Surface } from "@zovaris/sephiro";
 export function Fact({
   icon,
   label,
   value,
+  hint,
 }: {
   icon: React.ReactNode;
   label: string;
   value: React.ReactNode;
+  hint?: string | null;
 }) {
   return (
-    <Surface padding="sm" className=" border border-hairline">
-      <div className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.08em] text-faint">
-        {icon}
-        {label}
+    <div className="min-w-0 p-4">
+      <div className="flex items-center gap-1.5">
+        <span className="shrink-0 text-faint">{icon}</span>
+        <span className="kpi-label truncate text-faint">{label}</span>
       </div>
-      <div className="mt-2 truncate text-[12.5px] font-semibold">{value}</div>
-    </Surface>
+      <div className="mt-2 truncate text-[13px] font-semibold">{value}</div>
+      {hint ? (
+        <div className="mt-1 truncate text-[11.5px] text-mist">{hint}</div>
+      ) : null}
+    </div>
   );
 }

@@ -1,17 +1,18 @@
-import { EmptyState, Notice, Surface } from "@zovaris/sephiro";
+import { Button, EmptyState, Notice } from "@zovaris/sephiro";
 import { useCallback, useEffect } from "react";
 import { Case, Default, Switch, When } from "react-if";
+import { VList } from "virtua";
 import { useCatalog, useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
+import { SearchField } from "@/components/SearchField";
 import { PickerSkeleton } from "@/components/Skeleton";
 import { usePicker } from "../hooks/usePicker";
 import { useSaveSelection } from "../hooks/useSaveSelection";
 import { OwnerFilter } from "./OwnerFilter";
-import { PickerTrailing } from "./PickerTrailing";
-import { RepoRow } from "./RepoRow";
-import { SearchBar } from "./SearchBar";
+import { PickerFooter } from "./PickerFooter";
+import { RepoRow, ROW_COLS } from "./RepoRow";
 import { SortControl } from "./SortControl";
 
 export function PickerView() {
@@ -43,15 +44,15 @@ export function PickerView() {
     setQuery,
     selected,
     toggle,
+    setNames,
     ownerFilter,
     setOwnerFilter,
     owners,
     filtered,
     sorted,
-    groups,
     sort,
     setSort,
-    dirty,
+    changes,
   } = usePicker({ login, catalog, initialSelected });
 
   useEffect(() => {
@@ -71,6 +72,9 @@ export function PickerView() {
       })
     : null;
 
+  /** Bulk actions apply to what the current filter shows. */
+  const visibleNames = filtered.map((repo) => repo.fullName);
+
   return (
     <>
       <PageHeader
@@ -79,27 +83,26 @@ export function PickerView() {
             {t("Select repositories")}
           </h1>
         }
-        trailing={
-          <PickerTrailing
-            dirty={dirty}
-            loading={loading || connecting || !account || saving}
-            onCancel={onCancel}
-            onSave={() => {
-              void save([...selected]);
-            }}
-          />
-        }
       />
       <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <SearchBar value={query} onChange={setQuery} />
-          <SortControl value={sort} onChange={setSort} />
-          <OwnerFilter
-            total={catalog.length}
-            owners={owners}
-            active={ownerFilter}
-            onChange={setOwnerFilter}
+        <div className="flex w-full min-w-0 flex-wrap items-center gap-3">
+          <SearchField
+            id="picker-search"
+            className="min-w-50 flex-1"
+            value={query}
+            onChange={setQuery}
+            placeholder={t("Search by name or language…")}
+            ariaLabel={t("Search repositories")}
           />
+          <SortControl value={sort} onChange={setSort} />
+          <div className="min-w-0 max-w-full overflow-x-auto">
+            <OwnerFilter
+              total={catalog.length}
+              owners={owners}
+              active={ownerFilter}
+              onChange={setOwnerFilter}
+            />
+          </div>
         </div>
 
         <When condition={Boolean(fetchedAt)}>
@@ -115,65 +118,99 @@ export function PickerView() {
             {t("errors.request")} {saveError}
           </Notice>
         </When>
-        <Surface
-          padding="none"
-          className="mt-3 min-h-0 flex-1 overflow-auto border border-hairline"
-        >
+        <div className="app-card mt-band flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="shrink-0 border-b border-hairline">
+            <div className="flex items-center gap-3 px-4 py-2">
+              <span className="text-[13px] font-semibold">
+                {t("Repositories")}
+              </span>
+              <div className="ml-auto flex items-center gap-1">
+                <span
+                  className="mr-1.5 font-mono text-[11.5px] text-mist tabular"
+                  aria-live="polite"
+                >
+                  {t("Selected count", {
+                    count: selected.size,
+                    total: catalog.length,
+                  })}
+                </span>
+                <Button
+                  variant="quiet"
+                  size="sm"
+                  onClick={() => setNames(visibleNames, true)}
+                >
+                  {t("Select all")}
+                </Button>
+                <When condition={selected.size > 0}>
+                  <Button
+                    variant="quiet"
+                    size="sm"
+                    onClick={() => setNames(visibleNames, false)}
+                  >
+                    {t("Clear")}
+                  </Button>
+                </When>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 border-t border-hairline px-4 pt-2 pb-1 text-[11px] font-medium text-faint">
+              <span className="w-3.5 shrink-0" />
+              <span className={`${ROW_COLS} flex-1`}>
+                <span>{t("Repository")}</span>
+                <span className="justify-self-end">{t("Stars")}</span>
+              </span>
+            </div>
+          </div>
           <Switch>
             <Case condition={Boolean(error) && catalog.length === 0}>
-              <Notice variant="danger" className="m-4">
-                <p>{t("errors.request")}</p>
-                <p className="mt-1 wrap-break-word">{error}</p>
-              </Notice>
+              <div className="min-h-0 flex-1 overflow-auto">
+                <Notice variant="danger" className="m-4">
+                  <p>{t("errors.request")}</p>
+                  <p className="mt-1 wrap-break-word">{error}</p>
+                </Notice>
+              </div>
             </Case>
             <Case condition={loading}>
-              <PickerSkeleton />
+              <div className="min-h-0 flex-1 overflow-auto">
+                <PickerSkeleton />
+              </div>
             </Case>
             <Case condition={filtered.length === 0}>
               <EmptyState
                 title={t("No repositories match that filter.")}
                 compact
-                className="px-5 text-[12.5px]"
+                className="min-h-0 flex-1 px-5 text-[12.5px]"
               />
             </Case>
-            <Case condition={Boolean(groups)}>
-              <ul>
-                {(groups ?? []).map((group) => (
-                  <li key={group.owner}>
-                    <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-hairline bg-raised px-4 py-1.5 text-[11px] font-semibold tracking-wide text-mist uppercase">
-                      {group.owner}
-                      <span className="font-mono text-[10.5px] font-normal text-faint tabular">
-                        {group.repos.length}
-                      </span>
-                    </div>
-                    <ul>
-                      {group.repos.map((repo) => (
-                        <RepoRow
-                          key={repo.fullName}
-                          repo={repo}
-                          selected={selected.has(repo.fullName)}
-                          onToggle={toggle}
-                        />
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            </Case>
             <Default>
-              <ul>
-                {sorted.map((repo) => (
-                  <RepoRow
-                    key={repo.fullName}
-                    repo={repo}
-                    selected={selected.has(repo.fullName)}
-                    onToggle={toggle}
-                  />
-                ))}
-              </ul>
+              {/* Only the rows in view are mounted, so hundreds of repos stay cheap. */}
+              <div className="min-h-0 flex-1">
+                {" "}
+                <VList
+                  key={`${query}:${ownerFilter}:${sort}`}
+                  style={{ height: "100%" }}
+                  aria-label={t("Repositories")}
+                >
+                  {sorted.map((repo) => (
+                    <RepoRow
+                      key={repo.fullName}
+                      repo={repo}
+                      selected={selected.has(repo.fullName)}
+                      onToggle={toggle}
+                    />
+                  ))}
+                </VList>
+              </div>
             </Default>
           </Switch>
-        </Surface>
+        </div>
+        <PickerFooter
+          changes={changes}
+          busy={loading || connecting || !account || saving}
+          onCancel={onCancel}
+          onSave={() => {
+            void save([...selected]);
+          }}
+        />
       </div>
     </>
   );

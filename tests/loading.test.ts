@@ -77,7 +77,6 @@ test("a late repository result cannot update a different account", async () => {
   resolve(saved("one/a"));
   await request;
   expect(useStore.getState().detail).toBeNull();
-  expect(useStore.getState().detailCache).toEqual({});
   expect(tauriClient.writeCache).not.toHaveBeenCalled();
 });
 

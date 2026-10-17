@@ -15,8 +15,8 @@ export function SettingsView() {
           <h1 className="text-[15px] font-semibold">{t("settings.title")}</h1>
         }
       />
-      <div className="h-full overflow-auto px-6 py-5">
-        <div className="max-w-3xl space-y-8">
+      <div className="h-full overflow-auto px-6 pt-5 pb-8">
+        <div className="w-full space-y-band">
           <AppearanceSection />
           <AccountSection />
           <DiagnosticsSection />

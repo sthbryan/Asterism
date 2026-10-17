@@ -23,8 +23,8 @@
         "transparent": true,
         "shadow": true,
         "trafficLightPosition": {
-          "x": 28,
-          "y": 30
+          "x": 20,
+          "y": 25
         },
         "backgroundColor": "#111111"
       }

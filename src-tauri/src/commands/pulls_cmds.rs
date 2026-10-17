@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::config;
 use crate::history;
 use crate::models::{PullListResult, PullRequestDetail};
@@ -31,11 +33,12 @@ fn pull_snapshot(
     }
     ensure_online()?;
     let state = normalized.state.clone();
-    let fetches = crate::gh::map_limited(repos.clone(), 4, move |repo| {
-        let (rows, error) =
-            pulls::list_repo_pulls_state(&repo, pulls::MAX_LIST_LIMIT, state.as_deref());
-        (repo, rows, error)
-    });
+    let fetches = pulls::list_pulls(
+        &repos,
+        pulls::MAX_LIST_LIMIT,
+        state.as_deref(),
+        &BTreeMap::new(),
+    );
     let now = history::now_secs();
     let result = merge_pull_fetches(
         &repos,
@@ -72,6 +75,44 @@ pub(crate) async fn list_pull_requests(
             ..Default::default()
         };
         Ok(pull_snapshot(expected_account.as_deref(), &filters)?.data)
+    })
+    .await?
+}
+
+#[tauri::command]
+pub(crate) async fn load_more_pull_requests(
+    filters: PullRequestFilters,
+    cursors: BTreeMap<String, String>,
+    expected_account: Option<String>,
+) -> Result<PullListResult, String> {
+    offload(move || {
+        if cursors.len() > pulls::MAX_REQUESTS_PER_REFRESH {
+            return Err("PR_REQUEST_LIMIT:too many cursors".into());
+        }
+        if cursors.is_empty() {
+            return Ok(PullListResult {
+                fetched_at: history::now_secs(),
+                page: 1,
+                per_page: pulls::MAX_LIST_LIMIT,
+                ..Default::default()
+            });
+        }
+        let normalized = filters.clone().normalized();
+        let requested: Vec<String> = cursors.keys().cloned().collect();
+        let repos = config::serialized_write(|| {
+            ensure_scope(expected_account.as_deref())?;
+            followed_pull_repos_for(&config::storage()?, &requested)
+        })?;
+        ensure_online()?;
+        let state = normalized.state.clone();
+        let pages = pulls::list_pulls(&repos, pulls::MAX_LIST_LIMIT, state.as_deref(), &cursors);
+        Ok(merge_pull_fetches(
+            &repos,
+            pages,
+            None,
+            history::now_secs(),
+            false,
+        ))
     })
     .await?
 }

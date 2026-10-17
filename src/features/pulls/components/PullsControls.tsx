@@ -1,4 +1,5 @@
-import { Button, Input } from "@zovaris/sephiro";
+import { Button } from "@zovaris/sephiro";
+import { SearchField } from "@/components/SearchField";
 import type { PullFilters } from "../utils";
 import { FilterSelect } from "./FilterSelect";
 
@@ -39,12 +40,11 @@ export function PullsControls({
         <label className="kpi-label text-faint" htmlFor="pull-search">
           {labels.search}
         </label>
-        <Input
+        <SearchField
           id="pull-search"
-          size="md"
           className="mt-1"
           value={filters.query ?? ""}
-          onChange={(event) => onChange("query", event.target.value)}
+          onChange={(value) => onChange("query", value)}
           placeholder="owner/repo, title…"
         />
       </div>
@@ -65,9 +65,9 @@ export function PullsControls({
         ]}
       />
       <Button
-        variant="quiet"
+        variant="secondary"
         size="sm"
-        className="shrink-0 text-mist hover:bg-hover hover:text-paper"
+        className="shrink-0"
         onClick={onClear}
       >
         {labels.clear}

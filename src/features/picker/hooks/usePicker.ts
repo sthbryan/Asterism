@@ -1,10 +1,11 @@
 import { useMemo, useReducer } from "react";
 import type { CatalogRepo } from "@/lib/types";
 import {
+  applySelection,
   buildOwners,
   filterRepos,
-  groupRepos,
   type PickerSort,
+  selectionChanges,
   sortRepos,
 } from "../utils/pickerData";
 
@@ -18,6 +19,7 @@ type PickerState = {
 type PickerAction =
   | { type: "setQuery"; query: string }
   | { type: "toggle"; fullName: string }
+  | { type: "setNames"; names: readonly string[]; selected: boolean }
   | { type: "setOwnerFilter"; owner: string | null }
   | { type: "setSort"; sort: PickerSort };
 
@@ -40,6 +42,11 @@ function pickerReducer(state: PickerState, action: PickerAction): PickerState {
       else copy.add(action.fullName);
       return { ...state, selected: copy };
     }
+    case "setNames":
+      return {
+        ...state,
+        selected: applySelection(state.selected, action.names, action.selected),
+      };
     case "setOwnerFilter":
       return { ...state, ownerFilter: action.owner };
     case "setSort":
@@ -69,9 +76,10 @@ export function usePicker({
   const { query, selected, ownerFilter, sort } = state;
 
   const initial = useMemo(() => new Set(initialSelected), [initialSelected]);
-  const dirty =
-    selected.size !== initial.size ||
-    [...selected].some((name) => !initial.has(name));
+  const changes = useMemo(
+    () => selectionChanges(initial, selected),
+    [initial, selected],
+  );
 
   const owners = useMemo(() => buildOwners(catalog, login), [catalog, login]);
 
@@ -85,26 +93,22 @@ export function usePicker({
     [filtered, selected, sort],
   );
 
-  const groups = useMemo(
-    () => groupRepos(sorted, owners, ownerFilter),
-    [ownerFilter, owners, sorted],
-  );
-
   return {
     query,
     setQuery: (query: string) => dispatch({ type: "setQuery", query }),
     selected,
     toggle: (fullName: string) => dispatch({ type: "toggle", fullName }),
+    setNames: (names: readonly string[], value: boolean) =>
+      dispatch({ type: "setNames", names, selected: value }),
     ownerFilter,
     setOwnerFilter: (owner: string | null) =>
       dispatch({ type: "setOwnerFilter", owner }),
     owners,
     filtered,
     sorted,
-    groups,
     sort,
     setSort: (sort: PickerSort) => dispatch({ type: "setSort", sort }),
-    dirty,
+    changes,
   };
 }
 

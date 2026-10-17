@@ -1,4 +1,5 @@
 use super::api::{cap_diff, paginate};
+use super::graphql::{list_query, parse_list};
 use super::parse::{parse_detail, parse_summary};
 use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_FILES, MAX_LIST_LIMIT};
 use crate::models::{PullChecks, PullRequestSummary};
@@ -121,6 +122,7 @@ fn pagination_filters_and_sorts_without_losing_partial_errors() {
     assert_eq!(result.pulls[0].number, 2);
     assert_eq!(result.total, 2);
     assert!(result.has_next_page);
+    assert!(result.cursors.is_empty());
     assert_eq!(result.errors["o/other"], "forbidden");
 }
 
@@ -129,4 +131,142 @@ fn diff_limit_never_panics_on_utf8_boundary() {
     let output = cap_diff("é".repeat(MAX_DIFF_CHARS));
     assert!(output.len() > MAX_DIFF_CHARS);
     assert!(output.contains("diff truncated"));
+}
+
+fn list_repos() -> Vec<String> {
+    vec!["one/alpha".into(), "two/beta".into()]
+}
+
+#[test]
+fn one_document_asks_for_every_repository_without_extra_launches() {
+    let query = list_query(&list_repos(), 100, None, &BTreeMap::new());
+    assert!(query.contains("r0: repository(owner: \"one\", name: \"alpha\")"));
+    assert!(query.contains("r1: repository(owner: \"two\", name: \"beta\")"));
+    assert!(
+        query.contains("pullRequests(first: 100, orderBy: {field: UPDATED_AT, direction: DESC})")
+    );
+    assert!(query.contains("fragment PR on PullRequest"));
+    assert!(!query.contains("states:"));
+}
+
+#[test]
+fn state_filter_and_limit_are_bounded() {
+    let query = list_query(&list_repos(), 250, Some("OPEN"), &BTreeMap::new());
+    assert!(query.contains("states: OPEN, first: 100"));
+    let merged = list_query(&list_repos(), 30, Some("merged"), &BTreeMap::new());
+    assert!(merged.contains("states: MERGED, first: 30"));
+    assert!(!list_query(&list_repos(), 30, Some("all"), &BTreeMap::new()).contains("states:"));
+}
+
+#[test]
+fn a_cursor_continues_only_its_own_repository() {
+    let cursors = BTreeMap::from([(String::from("one/alpha"), String::from("Y3Vyc29y"))]);
+    let query = list_query(&list_repos(), 100, None, &cursors);
+    let alpha = query
+        .split("r1:")
+        .next()
+        .expect("the first fragment is present");
+    assert!(alpha.contains("after: \"Y3Vyc29y\", first: 100"));
+    assert!(!query.contains("r1: repository(owner: \"two\", name: \"beta\") { pullRequests(after:"));
+    assert!(query.contains("pageInfo {hasNextPage endCursor}"));
+}
+
+#[test]
+fn unusable_repository_names_never_reach_the_document() {
+    let query = list_query(
+        &["no-slash".into(), "a/b/c".into(), "ok/name".into()],
+        10,
+        None,
+        &BTreeMap::new(),
+    );
+    assert!(query.contains("r2: repository(owner: \"ok\", name: \"name\")"));
+    assert!(!query.contains("no-slash"));
+    assert!(!query.contains("a/b"));
+}
+
+#[test]
+fn list_payload_is_flattened_into_summaries_per_repository() {
+    let json = json!({
+        "data": {
+            "r0": { "pullRequests": { "nodes": [{
+                "number": 5,
+                "title": "Speed things up",
+                "author": { "login": "octo" },
+                "headRefName": "perf",
+                "baseRefName": "main",
+                "state": "OPEN",
+                "updatedAt": "2026-10-10T10:00:00Z",
+                "statusCheckRollup": { "contexts": { "nodes": [
+                    { "conclusion": "SUCCESS", "status": "COMPLETED" },
+                    { "state": "FAILURE" },
+                    { "state": "PENDING" }
+                ]}},
+                "assignees": { "nodes": [{ "login": "a" }] },
+                "reviewRequests": { "nodes": [
+                    { "requestedReviewer": { "login": "b" } }
+                ]}
+            }]}}
+        },
+        "errors": [{ "path": ["r1"], "message": "Could not resolve to a Repository." }]
+    });
+    let rows = parse_list(&list_repos(), &json);
+    assert_eq!(rows.len(), 2);
+    let page = &rows[0];
+    assert_eq!(page.repo, "one/alpha");
+    assert!(page.error.is_none());
+    let pull = &page.pulls[0];
+    assert_eq!(pull.repo, "one/alpha");
+    assert_eq!(pull.number, 5);
+    assert_eq!(pull.state, "OPEN");
+    assert_eq!(
+        (
+            pull.checks.passing,
+            pull.checks.failing,
+            pull.checks.pending
+        ),
+        (1, 1, 1)
+    );
+    assert_eq!(pull.assignees, vec!["a"]);
+    assert_eq!(pull.review_requests, vec!["b"]);
+    assert!(page.next_cursor.is_none());
+    let page = &rows[1];
+    assert!(page.pulls.is_empty());
+    assert_eq!(
+        page.error.as_deref(),
+        Some("Could not resolve to a Repository.")
+    );
+}
+
+#[test]
+fn a_repository_with_more_pages_reports_its_end_cursor() {
+    let json = json!({"data": {"r0": {"pullRequests": {
+        "pageInfo": {"hasNextPage": true, "endCursor": "abc123"},
+        "nodes": [{"number": 1, "title": "one"}]
+    }}}});
+    let rows = parse_list(&list_repos(), &json);
+    assert_eq!(rows[0].next_cursor.as_deref(), Some("abc123"));
+    assert!(rows[1].next_cursor.is_none());
+}
+
+#[test]
+fn missing_repository_data_is_an_error_only_for_that_repository() {
+    let json = json!({"data": {"r0": {"pullRequests": {"nodes": []}}}});
+    let rows = parse_list(&list_repos(), &json);
+    assert!(rows[0].error.is_none());
+    assert!(rows[0].pulls.is_empty());
+    assert_eq!(
+        rows[1].error.as_deref(),
+        Some("GitHub did not return pull requests for that repository.")
+    );
+}
+
+#[test]
+fn nodes_without_a_number_are_skipped_instead_of_failing_the_repository() {
+    let json = json!({"data": {"r0": {"pullRequests": {"nodes": [
+        {"title": "no number"},
+        {"number": 9, "title": "ok"}
+    ]}}}});
+    let rows = parse_list(&list_repos(), &json);
+    assert_eq!(rows[0].pulls.len(), 1);
+    assert_eq!(rows[0].pulls[0].number, 9);
 }
