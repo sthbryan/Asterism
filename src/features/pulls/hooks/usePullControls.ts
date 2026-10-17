@@ -18,22 +18,30 @@ const initialState: ControlsState = {
   page: 1,
 };
 
+let remembered = initialState;
+
 function controlsReducer(
   state: ControlsState,
   action: ControlsAction,
 ): ControlsState {
+  let next = state;
   switch (action.type) {
     case "set":
-      return { ...state, [action.field]: action.value, page: 1 };
+      next = { ...state, [action.field]: action.value, page: 1 };
+      break;
     case "clear":
-      return initialState;
+      next = initialState;
+      break;
     case "page":
-      return { ...state, page: action.value };
+      next = { ...state, page: action.value };
+      break;
   }
+  remembered = next;
+  return next;
 }
 
 export function usePullControls() {
-  const [state, dispatch] = useReducer(controlsReducer, initialState);
+  const [state, dispatch] = useReducer(controlsReducer, remembered);
   const filters = useMemo<PullFilters>(
     () => ({
       query: state.query,

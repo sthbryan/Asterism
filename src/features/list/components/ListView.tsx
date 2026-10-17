@@ -10,6 +10,7 @@ import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { detailPath } from "@/app/routes";
 import { useStore } from "@/app/store";
+import { useScrollMemory } from "@/app/useScrollMemory";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { Banner } from "@/components/Banner";
 import { BarList } from "@/components/BarList";
@@ -43,6 +44,7 @@ export function ListView() {
     !booted || (!hasData && (refreshing || awaitingInitialData));
 
   const { query, sort, setQuery, toggleSort } = useListControls();
+  const scrollRef = useScrollMemory("overview");
   const {
     totals,
     starSeries,
@@ -79,7 +81,10 @@ export function ListView() {
           <ListSkeleton />
         </div>
         <div className="t-skel-content">
-          <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
+          <div
+            ref={scrollRef}
+            className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6"
+          >
             <Banner
               message={banner ? `${t("errors.request")} ${banner}` : null}
             />

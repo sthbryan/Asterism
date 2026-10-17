@@ -9,6 +9,7 @@ import { useMemo } from "react";
 import { Case, Default, If, Switch, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
+import { useScrollMemory } from "@/app/useScrollMemory";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
 import { usePullControls } from "../hooks/usePullControls";
@@ -29,6 +30,7 @@ export function PullsView() {
   const account = useStore((state) => state.account);
   const revision = useStore((state) => state.dataRevision);
   const controls = usePullControls();
+  const scrollRef = useScrollMemory("pulls");
   const data = usePullList({
     account,
     repos: selectedNames,
@@ -95,7 +97,10 @@ export function PullsView() {
           />
         }
       />
-      <div className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6">
+      <div
+        ref={scrollRef}
+        className="h-full min-h-0 overflow-auto px-6 pt-5 pb-6"
+      >
         <PullsControls
           filters={controls.filters}
           options={options}
