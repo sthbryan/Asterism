@@ -64,14 +64,19 @@ export function fmtAxisDate(unix: number) {
   });
 }
 
-export function fmtAxisDateLong(unix: number) {
+/** Axis label sized to the bucket width, so ticks never repeat or truncate. */
+export function fmtChartAxis(
+  unix: number,
+  bucketDays: number,
+  withYear = false,
+) {
   const d = new Date(unix * 1000);
   if (Number.isNaN(d.getTime())) return "";
   return d.toLocaleDateString(currentLocale(), {
-    day: "numeric",
-    timeZone: "UTC",
+    ...(bucketDays < 28 ? { day: "numeric" } : {}),
     month: "short",
-    year: "numeric",
+    timeZone: "UTC",
+    ...(withYear ? { year: "numeric" } : {}),
   });
 }
 

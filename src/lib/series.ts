@@ -37,6 +37,78 @@ export function aggregateHistory(
   }));
 }
 
+export type CompactSeries = {
+  points: SeriesPoint[];
+  /** 0 when the series already fits and keeps its own timestamps. */
+  bucketDays: number;
+};
+
+/**
+ * Cumulative series must not herd every snapshot onto the axis. The chart
+ * keeps the first sample as the baseline and the last sample of each later
+ * time bucket, so labels stay readable and the line still ends on the newest
+ * observation.
+ */
+const MONTH_BUCKET_MIN_DAYS = 120;
+
+function monthIndex(ts: number) {
+  const date = new Date(ts * 1_000);
+  return date.getUTCFullYear() * 12 + date.getUTCMonth();
+}
+
+/** Baseline plus the last sample of every bucket, never a fabricated point. */
+function bucketBy(
+  sorted: readonly SeriesPoint[],
+  key: (ts: number) => number,
+): SeriesPoint[] {
+  const out: SeriesPoint[] = [sorted[0]];
+  let bucket = Number.NEGATIVE_INFINITY;
+  for (const point of sorted) {
+    const index = key(point.ts);
+    if (index !== bucket) {
+      out.push(point);
+      bucket = index;
+    } else {
+      out[out.length - 1] = point;
+    }
+  }
+  return out.filter(
+    (point, index) => index === 0 || point.ts !== out[index - 1].ts,
+  );
+}
+
+export function compactSeries(
+  points: readonly SeriesPoint[],
+  maxBuckets = 6,
+): CompactSeries {
+  const sorted = [...points].sort((a, b) => a.ts - b.ts);
+  if (sorted.length <= maxBuckets) return { points: sorted, bucketDays: 0 };
+  const first = sorted[0];
+  const last = sorted[sorted.length - 1];
+  const spanDays = (last.ts - first.ts) / DAY;
+  const target = Math.max(1, maxBuckets - 1);
+
+  if (spanDays >= MONTH_BUCKET_MIN_DAYS) {
+    const months = monthIndex(last.ts) - monthIndex(first.ts) + 1;
+    const step = Math.max(1, Math.ceil(months / target));
+    const start = monthIndex(first.ts);
+    return {
+      points: bucketBy(sorted, (ts) =>
+        Math.min(target - 1, Math.floor((monthIndex(ts) - start) / step)),
+      ),
+      bucketDays: step * 30,
+    };
+  }
+
+  const bucketDays = Math.max(1, Math.ceil(spanDays / target));
+  return {
+    points: bucketBy(sorted, (ts) =>
+      Math.min(target - 1, Math.floor((ts - first.ts) / (bucketDays * DAY))),
+    ),
+    bucketDays,
+  };
+}
+
 export function fillTrafficDays(
   days: TrafficDay[] | undefined,
   n = 14,
