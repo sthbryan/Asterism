@@ -111,9 +111,9 @@ export function PickerView() {
             {t("errors.request")} {saveError}
           </Notice>
         </When>
-        <div className="mt-3 flex min-h-0 flex-1 flex-col overflow-hidden border-t border-hairline">
+        <div className="app-card mt-4 flex min-h-0 flex-1 flex-col overflow-hidden">
           <div className="shrink-0 border-b border-hairline">
-            <div className="flex items-center gap-3 py-2">
+            <div className="flex items-center gap-3 px-4 py-2">
               <span className="text-[13px] font-semibold">
                 {t("Repositories")}
               </span>
@@ -145,7 +145,7 @@ export function PickerView() {
                 </When>
               </div>
             </div>
-            <div className="flex items-center gap-3 border-t border-hairline pt-2 pb-1 text-[11px] font-medium text-faint">
+            <div className="flex items-center gap-3 border-t border-hairline px-4 pt-2 pb-1 text-[11px] font-medium text-faint">
               <span className="w-3.5 shrink-0" />
               <span className={`${ROW_COLS} flex-1`}>
                 <span>{t("Repository")}</span>

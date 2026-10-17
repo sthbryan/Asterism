@@ -34,7 +34,7 @@ export function RepoRow({
         onChange={() => onToggle(repo.fullName)}
         aria-label={repo.fullName}
         className={`picker-row min-h-0 w-full gap-3 px-4 py-2.5 transition-colors ${
-          selected ? "bg-fill" : "hover:bg-hover"
+          selected ? "bg-wash" : "hover:bg-hover"
         }`}
         label={
           <span className={`${ROW_COLS} w-full`}>
