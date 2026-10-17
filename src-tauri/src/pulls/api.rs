@@ -87,6 +87,7 @@ pub fn paginate(
         per_page,
         total,
         has_next_page: end < pulls.len(),
+        cursors: BTreeMap::new(),
     }
 }
 

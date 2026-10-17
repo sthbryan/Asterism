@@ -56,6 +56,7 @@ pub fn run() {
             git::commands::git_switch_branch,
             git::commands::git_create_branch,
             commands::pulls_cmds::refresh_pull_requests,
+            commands::pulls_cmds::load_more_pull_requests,
             commands::pulls_cmds::list_pull_requests,
             commands::pulls_cmds::list_pull_requests_filtered,
             commands::pulls_cmds::get_pull_request_detail,

@@ -122,6 +122,7 @@ fn pagination_filters_and_sorts_without_losing_partial_errors() {
     assert_eq!(result.pulls[0].number, 2);
     assert_eq!(result.total, 2);
     assert!(result.has_next_page);
+    assert!(result.cursors.is_empty());
     assert_eq!(result.errors["o/other"], "forbidden");
 }
 
@@ -138,7 +139,7 @@ fn list_repos() -> Vec<String> {
 
 #[test]
 fn one_document_asks_for_every_repository_without_extra_launches() {
-    let query = list_query(&list_repos(), 100, None);
+    let query = list_query(&list_repos(), 100, None, &BTreeMap::new());
     assert!(query.contains("r0: repository(owner: \"one\", name: \"alpha\")"));
     assert!(query.contains("r1: repository(owner: \"two\", name: \"beta\")"));
     assert!(
@@ -150,11 +151,24 @@ fn one_document_asks_for_every_repository_without_extra_launches() {
 
 #[test]
 fn state_filter_and_limit_are_bounded() {
-    let query = list_query(&list_repos(), 250, Some("OPEN"));
+    let query = list_query(&list_repos(), 250, Some("OPEN"), &BTreeMap::new());
     assert!(query.contains("states: OPEN, first: 100"));
-    let merged = list_query(&list_repos(), 30, Some("merged"));
+    let merged = list_query(&list_repos(), 30, Some("merged"), &BTreeMap::new());
     assert!(merged.contains("states: MERGED, first: 30"));
-    assert!(!list_query(&list_repos(), 30, Some("all")).contains("states:"));
+    assert!(!list_query(&list_repos(), 30, Some("all"), &BTreeMap::new()).contains("states:"));
+}
+
+#[test]
+fn a_cursor_continues_only_its_own_repository() {
+    let cursors = BTreeMap::from([(String::from("one/alpha"), String::from("Y3Vyc29y"))]);
+    let query = list_query(&list_repos(), 100, None, &cursors);
+    let alpha = query
+        .split("r1:")
+        .next()
+        .expect("the first fragment is present");
+    assert!(alpha.contains("after: \"Y3Vyc29y\", first: 100"));
+    assert!(!query.contains("r1: repository(owner: \"two\", name: \"beta\") { pullRequests(after:"));
+    assert!(query.contains("pageInfo {hasNextPage endCursor}"));
 }
 
 #[test]
@@ -163,6 +177,7 @@ fn unusable_repository_names_never_reach_the_document() {
         &["no-slash".into(), "a/b/c".into(), "ok/name".into()],
         10,
         None,
+        &BTreeMap::new(),
     );
     assert!(query.contains("r2: repository(owner: \"ok\", name: \"name\")"));
     assert!(!query.contains("no-slash"));
@@ -196,10 +211,10 @@ fn list_payload_is_flattened_into_summaries_per_repository() {
     });
     let rows = parse_list(&list_repos(), &json);
     assert_eq!(rows.len(), 2);
-    let (repo, pulls, error) = &rows[0];
-    assert_eq!(repo, "one/alpha");
-    assert!(error.is_none());
-    let pull = &pulls[0];
+    let page = &rows[0];
+    assert_eq!(page.repo, "one/alpha");
+    assert!(page.error.is_none());
+    let pull = &page.pulls[0];
     assert_eq!(pull.repo, "one/alpha");
     assert_eq!(pull.number, 5);
     assert_eq!(pull.state, "OPEN");
@@ -213,19 +228,34 @@ fn list_payload_is_flattened_into_summaries_per_repository() {
     );
     assert_eq!(pull.assignees, vec!["a"]);
     assert_eq!(pull.review_requests, vec!["b"]);
-    let (_, pulls, error) = &rows[1];
-    assert!(pulls.is_empty());
-    assert_eq!(error.as_deref(), Some("Could not resolve to a Repository."));
+    assert!(page.next_cursor.is_none());
+    let page = &rows[1];
+    assert!(page.pulls.is_empty());
+    assert_eq!(
+        page.error.as_deref(),
+        Some("Could not resolve to a Repository.")
+    );
+}
+
+#[test]
+fn a_repository_with_more_pages_reports_its_end_cursor() {
+    let json = json!({"data": {"r0": {"pullRequests": {
+        "pageInfo": {"hasNextPage": true, "endCursor": "abc123"},
+        "nodes": [{"number": 1, "title": "one"}]
+    }}}});
+    let rows = parse_list(&list_repos(), &json);
+    assert_eq!(rows[0].next_cursor.as_deref(), Some("abc123"));
+    assert!(rows[1].next_cursor.is_none());
 }
 
 #[test]
 fn missing_repository_data_is_an_error_only_for_that_repository() {
     let json = json!({"data": {"r0": {"pullRequests": {"nodes": []}}}});
     let rows = parse_list(&list_repos(), &json);
-    assert!(rows[0].2.is_none());
-    assert!(rows[0].1.is_empty());
+    assert!(rows[0].error.is_none());
+    assert!(rows[0].pulls.is_empty());
     assert_eq!(
-        rows[1].2.as_deref(),
+        rows[1].error.as_deref(),
         Some("GitHub did not return pull requests for that repository.")
     );
 }
@@ -237,6 +267,6 @@ fn nodes_without_a_number_are_skipped_instead_of_failing_the_repository() {
         {"number": 9, "title": "ok"}
     ]}}}});
     let rows = parse_list(&list_repos(), &json);
-    assert_eq!(rows[0].1.len(), 1);
-    assert_eq!(rows[0].1[0].number, 9);
+    assert_eq!(rows[0].pulls.len(), 1);
+    assert_eq!(rows[0].pulls[0].number, 9);
 }

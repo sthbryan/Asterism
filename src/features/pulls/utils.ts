@@ -68,6 +68,24 @@ export function pageOf<T>(items: T[], page: number, pageSize: number) {
   };
 }
 
+/**
+ * Append a repository's next page without duplicating rows already listed.
+ * Existing order is preserved so paging stays stable after loading more.
+ */
+export function appendPulls(
+  existing: PullRequestSummary[],
+  incoming: PullRequestSummary[],
+): PullRequestSummary[] {
+  if (incoming.length === 0) return existing;
+  const seen = new Set(
+    existing.map((pull) => `${pull.repo.toLowerCase()}#${pull.number}`),
+  );
+  const added = incoming.filter(
+    (pull) => !seen.has(`${pull.repo.toLowerCase()}#${pull.number}`),
+  );
+  return added.length === 0 ? existing : [...existing, ...added];
+}
+
 /** Retain cached rows only for repositories that failed in this refresh. */
 export function mergePullResults(
   fresh: PullListResult,

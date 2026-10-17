@@ -85,7 +85,7 @@ pub struct PullRequestDetail {
     pub diff_fetched_at: Option<u64>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PullListResult {
     #[serde(default)]
@@ -101,6 +101,9 @@ pub struct PullListResult {
     pub total: u64,
     #[serde(default)]
     pub has_next_page: bool,
+    /// Repository -> GraphQL end cursor for its next page of pull requests.
+    #[serde(default)]
+    pub cursors: std::collections::BTreeMap<String, String>,
 }
 
 fn default_page() -> u32 {

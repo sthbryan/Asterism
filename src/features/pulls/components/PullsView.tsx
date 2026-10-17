@@ -192,6 +192,22 @@ export function PullsView() {
             </Button>
           </div>
         </When>
+        <When condition={data.canLoadMore && page.currentPage >= page.pages}>
+          <div className="mt-3 flex justify-center">
+            <Button
+              variant="quiet"
+              size="sm"
+              disabled={data.loadingMore}
+              onClick={async () => {
+                const added = await data.loadMore();
+                if (added > 0)
+                  controls.setPage(Math.floor(filtered.length / PAGE_SIZE) + 1);
+              }}
+            >
+              {data.loadingMore ? t("pulls.loadingMore") : t("pulls.loadMore")}
+            </Button>
+          </div>
+        </When>
       </div>
     </>
   );

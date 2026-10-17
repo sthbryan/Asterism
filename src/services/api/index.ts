@@ -39,6 +39,10 @@ export const getRepoDetail = (fullName: string) =>
 export const refreshPullRequests = (
   filters: Parameters<typeof tauriClient.refreshPullRequests>[0] = {},
 ) => client().refreshPullRequests(filters);
+export const loadMorePullRequests = (
+  filters: Parameters<typeof tauriClient.loadMorePullRequests>[0],
+  cursors: Parameters<typeof tauriClient.loadMorePullRequests>[1],
+) => client().loadMorePullRequests(filters, cursors);
 export const saveLocale = (
   locale: Parameters<typeof tauriClient.saveLocale>[0],
 ) => client().saveLocale(locale);

@@ -44,6 +44,8 @@
     "openGithub": "Open in GitHub",
     "branches": "{head} → {base}",
     "error": "Could not load pull requests.",
-    "detailError": "Could not load this pull request."
+    "detailError": "Could not load this pull request.",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more…"
   }
 }

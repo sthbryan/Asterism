@@ -1,5 +1,8 @@
-use crate::models::{PullListResult, PullRequestSummary};
+use std::collections::BTreeMap;
+
+use crate::models::PullListResult;
 use crate::{config, pulls};
+use pulls::PullPage;
 
 pub(super) fn valid_pull_repo(repo: &str) -> bool {
     let mut parts = repo.split('/');
@@ -77,15 +80,22 @@ pub(super) fn followed_pull_repos_for(
 
 pub(super) fn merge_pull_fetches(
     repos: &[String],
-    fetches: impl IntoIterator<Item = (String, Vec<PullRequestSummary>, Option<String>)>,
+    fetches: impl IntoIterator<Item = PullPage>,
     previous: Option<&PullListResult>,
     fetched_at: u64,
     preserve_outside: bool,
 ) -> PullListResult {
     let mut pulls = Vec::new();
     let mut errors = std::collections::BTreeMap::new();
+    let mut cursors = BTreeMap::new();
     let old = previous.map(|result| &result.pulls);
-    for (repo, fresh, error) in fetches {
+    for page in fetches {
+        let PullPage {
+            repo,
+            pulls: fresh,
+            error,
+            next_cursor,
+        } = page;
         if let Some(error) = error {
             errors.insert(repo.clone(), error);
             if let Some(old) = old {
@@ -97,6 +107,9 @@ pub(super) fn merge_pull_fetches(
             }
         } else {
             pulls.extend(fresh);
+        }
+        if let Some(cursor) = next_cursor {
+            cursors.insert(repo, cursor);
         }
     }
 
@@ -120,6 +133,7 @@ pub(super) fn merge_pull_fetches(
         page: 1,
         per_page: pulls::MAX_LIST_LIMIT,
         total,
-        has_next_page: false,
+        has_next_page: !cursors.is_empty(),
+        cursors,
     }
 }

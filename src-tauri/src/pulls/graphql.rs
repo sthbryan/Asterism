@@ -1,9 +1,10 @@
+use std::collections::BTreeMap;
+
 use serde_json::Value;
 
 use super::parse::parse_summary;
-use super::MAX_LIST_LIMIT;
+use super::{PullPage, MAX_LIST_LIMIT};
 use crate::gh::run_gh_json_lenient;
-use crate::models::PullRequestSummary;
 
 const CHECK_CONTEXTS: usize = 20;
 const PEOPLE: usize = 10;
@@ -27,27 +28,52 @@ fn state_enum(state: Option<&str>) -> Option<&'static str> {
     }
 }
 
-fn fragment(index: usize, repo: &str, limit: u8, state: Option<&str>) -> Option<String> {
+fn fragment(
+    index: usize,
+    repo: &str,
+    limit: u8,
+    state: Option<&str>,
+    after: Option<&str>,
+) -> Option<String> {
     let (owner, name) = repo.split_once('/')?;
     let (owner, name) = (quote(owner)?, quote(name)?);
     let state = state_enum(state).map(|value| format!("states: {value}, "));
+    let after = match after {
+        Some(cursor) => format!("after: {}, ", quote(cursor)?),
+        None => String::new(),
+    };
     Some(format!(
         "r{index}: repository(owner: {owner}, name: {name}) {{ \
-         pullRequests({}first: {limit}, \
+         pullRequests({}{after}first: {limit}, \
          orderBy: {{field: UPDATED_AT, direction: DESC}}) {{ \
-         nodes {{...PR}} }} }}",
+         pageInfo {{hasNextPage endCursor}} nodes {{...PR}} }} }}",
         state.unwrap_or_default()
     ))
 }
 
 /// One document with an aliased connection per repository, so a refresh costs
-/// a single `gh` launch instead of one per repository.
-pub(crate) fn list_query(repos: &[String], limit: u8, state: Option<&str>) -> String {
+/// a single `gh` launch instead of one per repository. `cursors` continues a
+/// repository where its previous page stopped; repositories without one start
+/// from the newest pull request.
+pub(crate) fn list_query(
+    repos: &[String],
+    limit: u8,
+    state: Option<&str>,
+    cursors: &BTreeMap<String, String>,
+) -> String {
     let limit = limit.clamp(1, MAX_LIST_LIMIT);
     let fragments: Vec<String> = repos
         .iter()
         .enumerate()
-        .filter_map(|(index, repo)| fragment(index, repo, limit, state))
+        .filter_map(|(index, repo)| {
+            fragment(
+                index,
+                repo,
+                limit,
+                state,
+                cursors.get(repo).map(String::as_str),
+            )
+        })
         .collect();
     let fields = FIELDS
         .replace("{contexts}", &CHECK_CONTEXTS.to_string())
@@ -104,10 +130,17 @@ fn alias_error(json: &Value, alias: &str) -> Option<String> {
         .map(str::to_string)
 }
 
-pub(crate) fn parse_list(
-    repos: &[String],
-    json: &Value,
-) -> Vec<(String, Vec<PullRequestSummary>, Option<String>)> {
+fn next_cursor(connection: &Value) -> Option<String> {
+    let page = connection.get("pageInfo")?;
+    if !page.get("hasNextPage").and_then(Value::as_bool)? {
+        return None;
+    }
+    page.get("endCursor")
+        .and_then(Value::as_str)
+        .map(str::to_string)
+}
+
+pub(crate) fn parse_list(repos: &[String], json: &Value) -> Vec<PullPage> {
     let data = json.get("data");
     repos
         .iter()
@@ -119,8 +152,9 @@ pub(crate) fn parse_list(
                 .and_then(|repository| repository.get("pullRequests"))
                 .filter(|value| value.is_object());
             match connection {
-                Some(connection) => {
-                    let pulls = connection
+                Some(connection) => PullPage {
+                    repo: repo.clone(),
+                    pulls: connection
                         .get("nodes")
                         .and_then(Value::as_array)
                         .map(|nodes| {
@@ -130,16 +164,18 @@ pub(crate) fn parse_list(
                                 .filter_map(|node| parse_summary(repo, &node))
                                 .collect()
                         })
-                        .unwrap_or_default();
-                    (repo.clone(), pulls, None)
-                }
-                None => (
-                    repo.clone(),
-                    Vec::new(),
-                    Some(alias_error(json, &alias).unwrap_or_else(|| {
+                        .unwrap_or_default(),
+                    error: None,
+                    next_cursor: next_cursor(connection),
+                },
+                None => PullPage {
+                    repo: repo.clone(),
+                    pulls: Vec::new(),
+                    error: Some(alias_error(json, &alias).unwrap_or_else(|| {
                         "GitHub did not return pull requests for that repository.".to_string()
                     })),
-                ),
+                    next_cursor: None,
+                },
             }
         })
         .collect()
@@ -149,16 +185,22 @@ pub fn list_pulls(
     repos: &[String],
     limit: u8,
     state: Option<&str>,
-) -> Vec<(String, Vec<PullRequestSummary>, Option<String>)> {
+    cursors: &BTreeMap<String, String>,
+) -> Vec<PullPage> {
     if repos.is_empty() {
         return Vec::new();
     }
-    let query = list_query(repos, limit, state);
+    let query = list_query(repos, limit, state, cursors);
     match run_gh_json_lenient(&["api", "graphql", "-f", &format!("query={query}")]) {
         Ok(json) => parse_list(repos, &json),
         Err(err) => repos
             .iter()
-            .map(|repo| (repo.clone(), Vec::new(), Some(err.clone())))
+            .map(|repo| PullPage {
+                repo: repo.clone(),
+                pulls: Vec::new(),
+                error: Some(err.clone()),
+                next_cursor: None,
+            })
             .collect(),
     }
 }

@@ -60,4 +60,6 @@ export type PullListResult = {
   perPage?: number;
   total?: number;
   hasNextPage?: boolean;
+  /** Repository -> cursor for its next page of pull requests. */
+  cursors?: Record<string, string>;
 };

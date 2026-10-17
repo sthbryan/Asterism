@@ -10,6 +10,7 @@ pub use graphql::list_pulls;
 #[allow(unused_imports)]
 pub use parse::{parse_detail, parse_summary};
 
+/// Pull requests requested per repository, per page.
 pub const MAX_LIST_LIMIT: u8 = 100;
 pub const MAX_FILES: usize = 100;
 pub const MAX_DIFF_CHARS: usize = 200 * 1024;
@@ -17,6 +18,15 @@ pub const MAX_REPOS_PER_REFRESH: usize = 100;
 pub const MAX_REQUESTS_PER_REFRESH: usize = 100;
 pub const MAX_PAGE: u32 = 1000;
 pub const MAX_PAGE_SIZE: u8 = 100;
+
+/// One repository's page of pull requests, with the cursor that continues it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PullPage {
+    pub repo: String,
+    pub pulls: Vec<crate::models::PullRequestSummary>,
+    pub error: Option<String>,
+    pub next_cursor: Option<String>,
+}
 
 #[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
