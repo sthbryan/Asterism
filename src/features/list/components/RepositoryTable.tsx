@@ -89,11 +89,26 @@ export function RepositoryTable({
         </When>
       </span>
       {[
-        { value: repo.stars, strong: false, change: repo.starsDelta },
-        { value: repo.forks, strong: false, change: repo.forksDelta },
-        { value: repo.downloads, strong: true, change: repo.downloadsDelta },
-      ].map(({ value, strong, change }) => (
-        <span key={value + String(change)} className="text-right">
+        {
+          id: "stars",
+          value: repo.stars,
+          strong: false,
+          change: repo.starsDelta,
+        },
+        {
+          id: "forks",
+          value: repo.forks,
+          strong: false,
+          change: repo.forksDelta,
+        },
+        {
+          id: "downloads",
+          value: repo.downloads,
+          strong: true,
+          change: repo.downloadsDelta,
+        },
+      ].map(({ id, value, strong, change }) => (
+        <span key={id} className="text-right">
           <span
             className={`block text-[12.5px] tabular ${value > 0 ? (strong ? "font-medium" : "") : "text-faint"}`}
           >
