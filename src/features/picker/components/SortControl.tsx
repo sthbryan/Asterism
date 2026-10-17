@@ -23,27 +23,16 @@ export function SortControl({
   };
 
   return (
-    <div className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-hairline bg-wash pl-2.5 transition-colors focus-within:border-line">
-      <label
-        id="picker-sort-label"
-        htmlFor="picker-sort"
-        className="text-[11px] font-medium tracking-wide text-faint uppercase"
-      >
-        {t("Sort")}
-      </label>
-      <Select
-        id="picker-sort"
-        value={value}
-        onValueChange={changeSort}
-        ariaLabel={t("Sort repositories")}
-        ariaLabelledBy="picker-sort-label"
-        className="min-w-44"
-        options={OPTIONS.map((option) => ({
-          value: option.value,
-          label: t(option.label),
-        }))}
-        size="sm"
-      />
-    </div>
+    <Select
+      value={value}
+      onValueChange={changeSort}
+      ariaLabel={t("Sort repositories")}
+      className="w-44 shrink-0"
+      options={OPTIONS.map((option) => ({
+        value: option.value,
+        label: t(option.label),
+      }))}
+      size="sm"
+    />
   );
 }

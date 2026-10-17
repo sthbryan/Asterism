@@ -278,3 +278,9 @@ textarea {
   display: block;
   min-block-size: 0;
 }
+
+/* Picker rows are full-width cells, so the label must fill the checkbox label. */
+.picker-row.sph-checkbox .sph-checkbox__label {
+  flex: 1 1 0%;
+  min-inline-size: 0;
+}
