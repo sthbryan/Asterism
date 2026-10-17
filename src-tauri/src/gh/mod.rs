@@ -4,17 +4,19 @@ mod catalog;
 mod create;
 mod detail;
 mod detail_parse;
+mod graph;
 mod process;
 mod status;
 
 #[cfg(test)]
 mod tests;
 
+pub use catalog::list_catalog;
 pub(crate) use catalog::map_limited;
-pub use catalog::{list_catalog, refresh_tracked};
 pub use create::{create_repo, list_create_options};
 pub use detail::repo_detail;
-pub(crate) use process::{run_gh_env, run_gh_json, tool_version};
+pub use graph::refresh_tracked;
+pub(crate) use process::{run_gh_env, run_gh_json, run_gh_json_lenient, tool_version};
 pub use status::{last_status, remember_status, status};
 
 fn as_u64(value: &Value, key: &str) -> u64 {

@@ -24,11 +24,47 @@ fn augmented_path() -> String {
     }
 }
 
+fn error_message(status: &std::process::ExitStatus, stdout: &[u8], stderr: &[u8]) -> String {
+    let stderr = String::from_utf8_lossy(stderr);
+    let stdout = String::from_utf8_lossy(stdout);
+    if !stderr.trim().is_empty() {
+        stderr.trim().to_string()
+    } else if !stdout.trim().is_empty() {
+        stdout.trim().to_string()
+    } else {
+        format!("gh exited with status {status}")
+    }
+}
+
 fn run_gh(args: &[&str]) -> Result<String, String> {
     run_gh_env(args, &[])
 }
 
 pub(crate) fn run_gh_env(args: &[&str], extra_env: &[(&str, &str)]) -> Result<String, String> {
+    let (status, stdout, stderr) = execute(args, extra_env)?;
+    if status.success() {
+        return Ok(String::from_utf8_lossy(&stdout).to_string());
+    }
+    Err(error_message(&status, &stdout, &stderr))
+}
+
+/// Like `run_gh_env`, but a non-zero exit with valid output is not fatal.
+/// GraphQL reports per-field errors while still returning usable `data`.
+pub(crate) fn run_gh_env_lenient(
+    args: &[&str],
+    extra_env: &[(&str, &str)],
+) -> Result<String, String> {
+    let (status, stdout, stderr) = execute(args, extra_env)?;
+    if status.success() || !stdout.is_empty() {
+        return Ok(String::from_utf8_lossy(&stdout).to_string());
+    }
+    Err(error_message(&status, &stdout, &stderr))
+}
+
+fn execute(
+    args: &[&str],
+    extra_env: &[(&str, &str)],
+) -> Result<(std::process::ExitStatus, Vec<u8>, Vec<u8>), String> {
     let mut cmd = Command::new("gh");
     cmd.args(args)
         .env("PATH", augmented_path())
@@ -78,29 +114,23 @@ pub(crate) fn run_gh_env(args: &[&str], extra_env: &[(&str, &str)]) -> Result<St
 
     let stdout = stdout_reader.join().unwrap_or_default();
     let stderr = stderr_reader.join().unwrap_or_default();
-    if !status.success() {
-        let stderr = String::from_utf8_lossy(&stderr);
-        let stdout = String::from_utf8_lossy(&stdout);
-        let msg = if !stderr.trim().is_empty() {
-            stderr.trim().to_string()
-        } else if !stdout.trim().is_empty() {
-            stdout.trim().to_string()
-        } else {
-            format!("gh exited with status {status}")
-        };
-        return Err(msg);
-    }
-
-    Ok(String::from_utf8_lossy(&stdout).to_string())
+    Ok((status, stdout, stderr))
 }
 
-pub(crate) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
-    let raw = run_gh(args)?;
+fn parse_json(raw: &str) -> Result<Value, String> {
     let trimmed = raw.trim();
     if trimmed.is_empty() {
         return Ok(Value::Null);
     }
     serde_json::from_str(trimmed).map_err(|e| format!("Could not parse gh JSON: {e}"))
+}
+
+pub(crate) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
+    parse_json(&run_gh(args)?)
+}
+
+pub(crate) fn run_gh_json_lenient(args: &[&str]) -> Result<Value, String> {
+    parse_json(&run_gh_env_lenient(args, &[])?)
 }
 
 pub(super) fn first_line(output: &str) -> String {

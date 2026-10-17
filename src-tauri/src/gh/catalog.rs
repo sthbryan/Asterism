@@ -216,6 +216,6 @@ where
     slots.into_iter().flatten().collect()
 }
 
-pub fn refresh_tracked(full_names: Vec<String>) -> Vec<TrackedRepo> {
+pub(crate) fn refresh_tracked_rest(full_names: Vec<String>) -> Vec<TrackedRepo> {
     map_limited(full_names, 4, fetch_tracked)
 }
