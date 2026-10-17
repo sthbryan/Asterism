@@ -1,5 +1,8 @@
-import type { Renderable } from "@zovaris/sephiro";
-import { Badge, Collapsible } from "@zovaris/sephiro";
+import { CaretRightIcon } from "@phosphor-icons/react";
+import { Badge } from "@zovaris/sephiro";
+import { cn } from "cn";
+import type { ReactNode } from "react";
+import { When } from "react-if";
 
 export function DetailDisclosure({
   title,
@@ -14,22 +17,38 @@ export function DetailDisclosure({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   actionLabel: string;
-  children: Renderable;
+  children: ReactNode;
 }) {
   return (
-    <Collapsible
-      className="[&_.sph-collapsible__trigger]:h-9 [&_.sph-collapsible__trigger]:justify-between [&_.sph-collapsible__trigger]:gap-3 [&_.sph-collapsible__trigger]:rounded-md [&_.sph-collapsible__trigger]:border [&_.sph-collapsible__trigger]:border-line [&_.sph-collapsible__trigger]:bg-wash [&_.sph-collapsible__trigger]:px-3 [&_.sph-collapsible__trigger]:text-sm [&_.sph-collapsible__trigger]:text-paper [&_.sph-collapsible__trigger]:hover:bg-fill [&_.sph-collapsible__trigger]:hover:text-paper [&_.sph-collapsible__inner]:p-0"
-      open={open}
-      onOpenChange={onOpenChange}
-      trigger={
-        <span className="flex min-w-0 items-center gap-2">
-          <span className="truncate">{actionLabel}</span>
-          {count != null && <Badge size="sm">{count}</Badge>}
-          <span className="sr-only">{title}</span>
+    <div>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => onOpenChange(!open)}
+        className="flex w-full items-center gap-2.5 px-4 py-3 text-left transition-colors hover:bg-hover"
+      >
+        <CaretRightIcon
+          size={12}
+          className={cn(
+            "shrink-0 text-faint transition-transform",
+            open && "rotate-90",
+          )}
+        />
+        <span className="text-[12.5px] font-medium">{title}</span>
+        <When condition={count != null}>
+          <Badge
+            size="sm"
+            variant="neutral"
+            className="px-1.5 py-0.5 text-[10px]"
+          >
+            {count}
+          </Badge>
+        </When>
+        <span className="ml-auto shrink-0 text-[11.5px] text-faint">
+          {actionLabel}
         </span>
-      }
-    >
-      {open ? children : null}
-    </Collapsible>
+      </button>
+      {open ? <div className="pb-1">{children}</div> : null}
+    </div>
   );
 }
