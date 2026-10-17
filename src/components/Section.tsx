@@ -7,6 +7,8 @@ export function Section({
   meta,
   icon,
   tone = "muted",
+  trailing,
+  labelAs = "span",
   children,
   className,
 }: {
@@ -14,12 +16,17 @@ export function Section({
   meta?: ReactNode;
   icon?: ReactNode;
   tone?: "muted" | "accent";
+  /** Actions that belong to the section itself, right-aligned in the head. */
+  trailing?: ReactNode;
+  /** Settings read as a document outline, so their labels are real headings. */
+  labelAs?: "span" | "h2";
   children: ReactNode;
   className?: string;
 }) {
+  const Label = labelAs;
   return (
     <section className={cn("app-section", className)}>
-      {label || meta || icon ? (
+      {label || meta || icon || trailing ? (
         <div className="app-section-head">
           {icon ? (
             <span
@@ -31,10 +38,17 @@ export function Section({
               {icon}
             </span>
           ) : null}
-          {label ? <span className="kpi-label text-faint">{label}</span> : null}
-          {meta ? (
-            <span className="ml-auto font-mono text-[11.5px] text-faint tabular">
-              {meta}
+          {label ? (
+            <Label className="kpi-label text-faint">{label}</Label>
+          ) : null}
+          {meta || trailing ? (
+            <span className="ml-auto flex shrink-0 items-center gap-2">
+              {meta ? (
+                <span className="font-mono text-[11.5px] text-faint tabular">
+                  {meta}
+                </span>
+              ) : null}
+              {trailing}
             </span>
           ) : null}
         </div>

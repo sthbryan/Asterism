@@ -22,10 +22,12 @@ export function DetailBody({
   const { t, locale } = useI18n();
   const fetchedAt = useStore((s) => s.detailFetchedAt);
   const warning = useStore((s) => s.detailWarning);
+  // The stack owns the 16px band rhythm: a new section added here cannot touch
+  // the one above it, and no child needs to carry its own top margin.
   return (
-    <div>
+    <div className="space-y-band">
       <When condition={fetchedAt}>
-        <p className="mb-3 flex items-center gap-2 text-xs text-mist">
+        <p className="flex items-center gap-2 text-xs text-mist">
           {t("list.updated", {
             value: new Intl.DateTimeFormat(locale, {
               dateStyle: "medium",
@@ -41,7 +43,7 @@ export function DetailBody({
         </p>
       </When>
       <When condition={warning}>
-        <div role="status" className="mb-4 text-sm text-mist">
+        <div role="status" className="text-sm text-mist">
           <p>{t("errors.request")}</p>
           <Collapsible
             className="[&_.sph-collapsible__trigger]:text-sm [&_.sph-collapsible__inner]:p-0"

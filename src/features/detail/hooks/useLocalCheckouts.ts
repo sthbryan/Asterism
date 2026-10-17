@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { useResource } from "@/app/hooks/useResource";
 import { useStore } from "@/app/store";
+import { type EditorTarget, readEditor, writeEditor } from "@/lib/editor";
 import {
   chooseLocalFolder,
   cloneLocalRepository,
@@ -13,16 +14,7 @@ import {
 import { checkoutCache } from "@/services/api/resources";
 import { localError, suggestFolderName } from "../utils/localUtils";
 
-export type EditorTarget = "vscode" | "cursor" | "zed";
-
-function readEditor(): EditorTarget {
-  try {
-    const value = localStorage.getItem("asterism.editor");
-    return value === "cursor" || value === "zed" ? value : "vscode";
-  } catch {
-    return "vscode";
-  }
-}
+export type { EditorTarget };
 
 async function fetchCheckouts() {
   return {
@@ -105,11 +97,7 @@ export function useLocalCheckouts(fullName: string) {
     editor,
     setEditor: (next: EditorTarget) => {
       setEditorState(next);
-      try {
-        localStorage.setItem("asterism.editor", next);
-      } catch {
-        /* best effort */
-      }
+      writeEditor(next);
     },
     link: () =>
       run(async (current) => {

@@ -27,6 +27,11 @@
   --color-fill: var(--fill);
   --color-wash: var(--wash);
   --color-thumb: var(--thumb);
+  /* One rhythm for the plane: 16px between modules, 12px under a section
+     label. Cards, KPI strips and stacks read these, so a gap is never a
+     number typed at the call site. */
+  --spacing-band: 1rem;
+  --spacing-head: 0.75rem;
 }
 
 html {
@@ -436,7 +441,7 @@ html[data-transparency="on"] .app-sidebar {
 }
 
 .app-section {
-  padding: 16px;
+  padding: var(--spacing-band);
   border: 1px solid var(--hairline);
   border-radius: var(--card-radius);
   background: var(--panel);
@@ -447,7 +452,7 @@ html[data-transparency="on"] .app-sidebar {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-block-end: 12px;
+  margin-block-end: var(--spacing-head);
 }
 
 /* A tinted tile anchors an icon the way a card header would, without a second
@@ -624,7 +629,7 @@ html[data-transparency="on"] .app-sidebar {
 .app-kpis {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: var(--spacing-band);
 }
 
 .app-kpis > * {

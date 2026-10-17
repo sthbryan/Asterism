@@ -1,13 +1,22 @@
 import { PaletteIcon } from "@phosphor-icons/react";
 import { Notice, Select, Toggle } from "@zovaris/sephiro";
+import { useState } from "react";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useAppearance } from "@/components/Appearance";
+import { Section } from "@/components/Section";
+import {
+  EDITOR_LABEL,
+  type EditorTarget,
+  readEditor,
+  writeEditor,
+} from "@/lib/editor";
 import type { Locale, ThemePref, ThemePreset } from "@/lib/types";
 
 export function AppearanceSection() {
   const { t, locale, setLocale } = useI18n();
+  const [editor, setEditorState] = useState<EditorTarget>(readEditor);
   const {
     theme,
     setTheme,
@@ -20,18 +29,12 @@ export function AppearanceSection() {
   const preferenceError = useStore((s) => s.preferenceError);
 
   return (
-    <section aria-labelledby="appearance-heading" className="app-section">
-      <div className="flex items-center gap-2.5">
-        <span className="app-chip">
-          <PaletteIcon size={15} />
-        </span>
-        <div className="min-w-0">
-          <h2 id="appearance-heading" className="kpi-label text-faint">
-            {t("settings.appearance")}
-          </h2>
-          <p className="mt-1 text-sm text-mist">{t("settings.saved")}</p>
-        </div>
-      </div>
+    <Section
+      labelAs="h2"
+      label={t("settings.appearance")}
+      icon={<PaletteIcon size={15} />}
+    >
+      <p className="text-sm text-mist">{t("settings.saved")}</p>
       <div className="mt-4 divide-y divide-hairline">
         <div className="flex flex-wrap items-center justify-between gap-3 py-3">
           <label
@@ -96,6 +99,29 @@ export function AppearanceSection() {
             onValueChange={(value) => setTheme(value as ThemePref)}
           />
         </div>
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3">
+          <label
+            id="app-editor-label"
+            htmlFor="app-editor"
+            className="text-sm font-medium"
+          >
+            {t("settings.editor")}
+          </label>
+          <Select
+            id="app-editor"
+            value={editor}
+            className="min-w-40"
+            ariaLabelledBy="app-editor-label"
+            options={(Object.keys(EDITOR_LABEL) as EditorTarget[]).map(
+              (target) => ({ value: target, label: EDITOR_LABEL[target] }),
+            )}
+            onValueChange={(value) => {
+              const next = value as EditorTarget;
+              setEditorState(next);
+              writeEditor(next);
+            }}
+          />
+        </div>
         <div className="flex items-center justify-between gap-6 py-3">
           <div>
             <p className="text-sm font-medium">{t("settings.transparency")}</p>
@@ -121,6 +147,6 @@ export function AppearanceSection() {
           </p>
         </Notice>
       </When>
-    </section>
+    </Section>
   );
 }

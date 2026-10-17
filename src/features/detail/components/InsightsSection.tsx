@@ -25,7 +25,7 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
 
   return (
     <>
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-band lg:grid-cols-2">
         <Section
           label={t("Referrers · 14 days")}
           icon={<LinkSimpleIcon size={15} />}
@@ -93,7 +93,7 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
         </Section>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-band lg:grid-cols-2">
         <Section
           label={t("Downloads by platform")}
           icon={<DevicesIcon size={15} />}

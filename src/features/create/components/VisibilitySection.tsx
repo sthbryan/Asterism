@@ -10,7 +10,9 @@ export function VisibilitySection({ form }: { form: VisibilityForm }) {
   return (
     <RadioGroup
       name="visibility"
-      label={<span className="kpi-label text-faint">{t("Visibility")}</span>}
+      // The section head shows "Visibility"; the legend only names the group for
+      // screen readers, so it stays out of the layout.
+      label={<span className="sr-only">{t("Visibility")}</span>}
       value={visibility}
       onValueChange={(value) => {
         if (value === "private" || value === "public") setVisibility(value);

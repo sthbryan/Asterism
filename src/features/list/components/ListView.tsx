@@ -125,7 +125,7 @@ export function ListView() {
             <If condition={repos.length === 0}>
               <Then>
                 <EmptyState
-                  className="app-card mt-4 min-h-0 flex-1 content-center"
+                  className="app-card mt-band min-h-0 flex-1 content-center"
                   icon={<FolderSimpleIcon />}
                   title={t("No repositories tracked")}
                   description={t(
@@ -144,7 +144,7 @@ export function ListView() {
                 />
               </Then>
               <Else>
-                <div className="mt-4 grid min-h-0 flex-1 items-stretch gap-4 md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
+                <div className="mt-band grid min-h-0 flex-1 items-stretch gap-band md:grid-cols-[minmax(0,1.65fr)_minmax(260px,1fr)]">
                   <RepositoryTable
                     rows={rows}
                     query={query}
@@ -153,7 +153,7 @@ export function ListView() {
                     onSort={toggleSort}
                     onOpenRepo={openRepo}
                   />
-                  <div className="min-h-0 min-w-0 space-y-4 overflow-y-auto pb-1">
+                  <div className="min-h-0 min-w-0 space-y-band overflow-y-auto pb-1">
                     <ListCharts
                       starSeries={starSeries}
                       downloadSeries={downloadSeries}

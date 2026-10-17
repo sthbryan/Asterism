@@ -1,5 +1,6 @@
 import { GitBranchIcon, PlusIcon } from "@phosphor-icons/react";
 import { Button, Checkbox, Input, Select, Spinner } from "@zovaris/sephiro";
+import { useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { isValidBranchName } from "@/lib/git";
 import type { useGitSync } from "../hooks/useGitSync";
@@ -12,6 +13,7 @@ export function GitBranchControls({
   path: string;
 }) {
   const { t } = useI18n();
+  const [creating, setCreating] = useState(false);
   const {
     status,
     busy,
@@ -27,7 +29,7 @@ export function GitBranchControls({
   } = sync;
   return (
     <>
-      <div className="flex flex-wrap items-center gap-1">
+      <div className="mt-2 flex flex-wrap items-center gap-1">
         <Select
           value={switchTo}
           onValueChange={setSwitchTo}
@@ -44,7 +46,7 @@ export function GitBranchControls({
           disabled={
             busy || !switchTo || switchTo === status?.branch || !status?.clean
           }
-          size="md"
+          size="sm"
           onClick={() => void doSwitch()}
         >
           {active === "switch" ? (
@@ -54,39 +56,50 @@ export function GitBranchControls({
           )}
           {t("local.git.switch")}
         </Button>
-      </div>
-      <div className="space-y-1">
-        <div className="flex flex-wrap items-center gap-1">
-          <Input
-            size="md"
-            className="mt-2 min-w-28 flex-1"
-            value={newBranch}
-            onChange={(e) => setNewBranch(e.target.value)}
-            aria-label={t("local.git.newBranch")}
-            placeholder={t("local.git.newBranch")}
-          />
-          <Button
-            disabled={busy || !isValidBranchName(newBranch) || !status?.clean}
-            size="md"
-            className="mt-2"
-            onClick={() => void doCreate()}
-          >
-            {active === "create" ? (
-              <Spinner size="sm" />
-            ) : (
-              <PlusIcon size={14} aria-hidden />
-            )}
-            {t("local.git.create")}
-          </Button>
-        </div>
-        <Checkbox
-          id={`git-switch-new-${path}`}
+        <Button
+          variant="quiet"
+          className="shrink-0"
           size="sm"
-          checked={switchNew}
-          onChange={(e) => setSwitchNew(e.target.checked)}
-          label={t("local.git.switchToNew")}
-        />
+          aria-expanded={creating}
+          onClick={() => setCreating((open) => !open)}
+        >
+          <PlusIcon size={14} aria-hidden />
+          {t("local.git.newBranchAction")}
+        </Button>
       </div>
+      {creating && (
+        <div className="mt-2 space-y-1">
+          <div className="flex flex-wrap items-center gap-1">
+            <Input
+              size="sm"
+              className="min-w-28 flex-1"
+              value={newBranch}
+              onChange={(e) => setNewBranch(e.target.value)}
+              aria-label={t("local.git.newBranch")}
+              placeholder={t("local.git.newBranch")}
+            />
+            <Button
+              disabled={busy || !isValidBranchName(newBranch) || !status?.clean}
+              size="sm"
+              onClick={() => void doCreate()}
+            >
+              {active === "create" ? (
+                <Spinner size="sm" />
+              ) : (
+                <PlusIcon size={14} aria-hidden />
+              )}
+              {t("local.git.create")}
+            </Button>
+          </div>
+          <Checkbox
+            id={`git-switch-new-${path}`}
+            size="sm"
+            checked={switchNew}
+            onChange={(e) => setSwitchNew(e.target.checked)}
+            label={t("local.git.switchToNew")}
+          />
+        </div>
+      )}
     </>
   );
 }

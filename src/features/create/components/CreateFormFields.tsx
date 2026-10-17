@@ -71,7 +71,7 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
       </div>
       <fieldset
         disabled={busy || loading || !options}
-        className="mt-4 space-y-4"
+        className="mt-band space-y-band"
       >
         <Section label={t("Details")}>
           <div className="grid items-start gap-4 sm:grid-cols-[1fr_2fr]">
@@ -141,7 +141,7 @@ export function CreateFormFields({ form }: { form: CreateFormApi }) {
           </div>
         </Section>
 
-        <Section>
+        <Section label={t("Visibility")}>
           <VisibilitySection form={form} />
         </Section>
 

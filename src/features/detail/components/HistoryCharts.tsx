@@ -8,7 +8,7 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
   const stars = detail.starHistory ?? [];
   const downloads = detail.downloadHistory ?? [];
   return (
-    <div className="mt-4 grid gap-4 lg:grid-cols-2">
+    <div className="grid gap-band lg:grid-cols-2">
       <Section
         label={t("Stars over time")}
         icon={<ChartLineUpIcon size={15} />}

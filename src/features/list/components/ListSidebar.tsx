@@ -33,7 +33,7 @@ export function ListSidebar({
   const { top, share } = highlight;
   const { privateCount, silentCount, errorCount } = stats;
   return (
-    <div className="min-w-0 space-y-4">
+    <div className="min-w-0 space-y-band">
       <When condition={Boolean(top)}>
         <Section
           label={t("Top repository")}

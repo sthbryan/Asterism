@@ -22,10 +22,7 @@ export function RepoRow({
 }) {
   const { t } = useI18n();
   const [owner, name] = repo.fullName.split("/");
-  const sub =
-    repo.description ||
-    [repo.language, repo.fork ? t("Fork") : null].filter(Boolean).join(" · ") ||
-    null;
+  const sub = repo.description || (repo.fork ? t("Fork") : null);
   return (
     <div className="border-b border-hairline last:border-b-0">
       <Checkbox
@@ -40,14 +37,19 @@ export function RepoRow({
           <span className={`${ROW_COLS} w-full`}>
             <span className="min-w-0">
               <span className="flex min-w-0 items-center gap-2">
-                <span
-                  className="h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: langColor(repo.language) }}
-                />
                 <span className="truncate text-[12.5px]">
                   <span className="text-faint">{owner}/</span>
                   <span className="font-medium">{name ?? repo.fullName}</span>
                 </span>
+                <When condition={Boolean(repo.language)}>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded border border-line px-1 py-px leading-none font-mono text-[9px] text-mist">
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ background: langColor(repo.language) }}
+                    />
+                    {repo.language}
+                  </span>
+                </When>
                 <When condition={repo.private}>
                   <RepoMeta>{t("Private")}</RepoMeta>
                 </When>
@@ -56,7 +58,7 @@ export function RepoRow({
                 </When>
               </span>
               <When condition={Boolean(sub)}>
-                <span className="mt-0.5 block truncate pl-3.5 text-[11.5px] text-faint">
+                <span className="mt-0.5 block truncate text-[11.5px] text-faint">
                   {sub}
                 </span>
               </When>

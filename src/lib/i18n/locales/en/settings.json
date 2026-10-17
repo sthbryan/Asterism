@@ -7,6 +7,7 @@
   "light": "Light",
   "dark": "Dark",
   "system": "System",
+  "editor": "Editor for local projects",
   "transparency": "Window transparency",
   "transparencyHint": "Let the desktop show through the window background.",
   "saveError": "Could not save this preference to disk. Try changing it again.",

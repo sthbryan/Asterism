@@ -2,6 +2,7 @@ import { TerminalWindowIcon } from "@phosphor-icons/react";
 import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { Section } from "@/components/Section";
 import { isMockMode } from "@/services/api";
 import { useDiagnostics } from "../hooks/useDiagnostics";
 
@@ -10,16 +11,11 @@ export function DiagnosticsSection() {
   const { diagnostics, error, loading, retry } = useDiagnostics();
 
   return (
-    <section aria-labelledby="diagnostics-heading" className="app-section">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="app-chip">
-            <TerminalWindowIcon size={15} />
-          </span>
-          <h2 id="diagnostics-heading" className="kpi-label text-faint">
-            {t("settings.diagnostics")}
-          </h2>
-        </div>
+    <Section
+      labelAs="h2"
+      label={t("settings.diagnostics")}
+      icon={<TerminalWindowIcon size={15} />}
+      trailing={
         <Button
           variant="secondary"
           size="sm"
@@ -28,8 +24,9 @@ export function DiagnosticsSection() {
         >
           {loading ? t("settings.checking") : t("Refresh")}
         </Button>
-      </div>
-      <p className="mt-2 text-sm text-mist">{t("settings.diagnosticsHint")}</p>
+      }
+    >
+      <p className="text-sm text-mist">{t("settings.diagnosticsHint")}</p>
       <When condition={isMockMode()}>
         <p className="mt-2 text-sm text-mist">{t("settings.demo")}</p>
       </When>
@@ -61,6 +58,6 @@ export function DiagnosticsSection() {
           ))}
         </dl>
       </When>
-    </section>
+    </Section>
   );
 }

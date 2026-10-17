@@ -40,8 +40,12 @@ export function SetupSection({ form }: { form: SetupForm }) {
   return (
     <>
       <div>
+        {/* The control reserves a touch-sized box and centers its label, which
+            would sit 8px lower than the field labels under the other section
+            heads. Pull it back onto the same line. */}
         <Checkbox
           size="sm"
+          className="-mt-2"
           checked={readme}
           onChange={(event) => setReadme(event.target.checked)}
           label={t("Add a README")}

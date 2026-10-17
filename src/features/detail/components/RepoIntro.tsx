@@ -7,7 +7,7 @@ import type { RepoDetail } from "@/lib/types";
 export function RepoIntro({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();
   return (
-    <>
+    <div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 text-[11px] leading-none font-medium text-accent-soft">
           <If condition={detail.private}>
@@ -45,6 +45,6 @@ export function RepoIntro({ detail }: { detail: RepoDetail }) {
           ))}
         </div>
       </When>
-    </>
+    </div>
   );
 }

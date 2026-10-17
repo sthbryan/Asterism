@@ -2,6 +2,7 @@ import { GithubLogoIcon } from "@phosphor-icons/react";
 import { Badge, Button } from "@zovaris/sephiro";
 import { useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
+import { Section } from "@/components/Section";
 
 export function AccountSection() {
   const { t } = useI18n();
@@ -9,16 +10,12 @@ export function AccountSection() {
   const status = useStore((s) => s.status);
 
   return (
-    <section aria-labelledby="account-heading" className="app-section">
-      <div className="flex items-center gap-2.5">
-        <span className="app-chip">
-          <GithubLogoIcon size={15} />
-        </span>
-        <h2 id="account-heading" className="kpi-label text-faint">
-          {t("settings.account")}
-        </h2>
-      </div>
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+    <Section
+      labelAs="h2"
+      label={t("settings.account")}
+      icon={<GithubLogoIcon size={15} />}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           <p className="text-sm font-medium">
             {status?.login ?? t("settings.noAccount")}
@@ -31,6 +28,6 @@ export function AccountSection() {
           {t("Check connection")}
         </Button>
       </div>
-    </section>
+    </Section>
   );
 }

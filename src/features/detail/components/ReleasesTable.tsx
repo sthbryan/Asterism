@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { BarList } from "@/components/BarList";
+import { Section } from "@/components/Section";
 import { fmtBytes, fmtCompact, fmtDate, fmtNum } from "@/lib/format";
 import type { RepoDetail } from "@/lib/types";
 
@@ -14,18 +15,11 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
   );
 
   return (
-    <div className="app-section mt-3">
-      <div className="flex items-center justify-between pb-2">
-        <div className="flex items-center gap-2.5">
-          <span className="app-chip">
-            <TagIcon size={15} />
-          </span>
-          <div className="kpi-label text-faint">{t("Releases")}</div>
-        </div>
-        <span className="font-mono text-[11.5px] text-faint tabular">
-          {fmtNum(detail.releases.length)}
-        </span>
-      </div>
+    <Section
+      label={t("Releases")}
+      icon={<TagIcon size={15} />}
+      meta={fmtNum(detail.releases.length)}
+    >
       <When
         condition={detail.releases.some((release) => release.downloads > 0)}
       >
@@ -135,6 +129,6 @@ export function ReleasesTable({ detail }: { detail: RepoDetail }) {
           </ul>
         </Else>
       </If>
-    </div>
+    </Section>
   );
 }

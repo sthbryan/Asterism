@@ -63,7 +63,7 @@ export function PullDetailBody({
   const body = pull.body?.trim();
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-band">
       <header>
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-[21px] leading-tight font-semibold tracking-[-0.03em]">

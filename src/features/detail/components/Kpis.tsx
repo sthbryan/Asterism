@@ -11,7 +11,7 @@ import type { RepoDetail } from "@/lib/types";
 export function Kpis({ detail }: { detail: RepoDetail }) {
   const { t } = useI18n();
   return (
-    <div className="app-kpis mt-6">
+    <div className="app-kpis">
       <KpiCard
         label={t("Stars")}
         value={detail.stars}

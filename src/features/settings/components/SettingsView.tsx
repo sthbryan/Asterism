@@ -16,7 +16,7 @@ export function SettingsView() {
         }
       />
       <div className="h-full overflow-auto px-6 pt-5 pb-8">
-        <div className="w-full space-y-4">
+        <div className="w-full space-y-band">
           <AppearanceSection />
           <AccountSection />
           <DiagnosticsSection />

@@ -2,6 +2,7 @@ import { DatabaseIcon } from "@phosphor-icons/react";
 import { Button, Notice } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
+import { Section } from "@/components/Section";
 import { useCacheInfo } from "../hooks/useCacheInfo";
 
 function formatBytes(bytes: number) {
@@ -22,17 +23,12 @@ export function CacheSection() {
     useCacheInfo();
 
   return (
-    <section aria-labelledby="cache-heading" className="app-section">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <span className="app-chip">
-            <DatabaseIcon size={15} />
-          </span>
-          <h2 id="cache-heading" className="kpi-label text-faint">
-            {t("settings.cache")}
-          </h2>
-        </div>
-        <div className="flex gap-2">
+    <Section
+      labelAs="h2"
+      label={t("settings.cache")}
+      icon={<DatabaseIcon size={15} />}
+      trailing={
+        <>
           <Button
             variant="secondary"
             size="sm"
@@ -49,9 +45,10 @@ export function CacheSection() {
           >
             {clearing ? t("settings.cacheClearing") : t("settings.cacheClear")}
           </Button>
-        </div>
-      </div>
-      <p className="mt-2 text-sm text-mist">{t("settings.cacheHint")}</p>
+        </>
+      }
+    >
+      <p className="text-sm text-mist">{t("settings.cacheHint")}</p>
       <When condition={Boolean(error)}>
         <Notice variant="danger" className="mt-3">
           {t("settings.cacheError")} {error}
@@ -88,6 +85,6 @@ export function CacheSection() {
           </div>
         </dl>
       </When>
-    </section>
+    </Section>
   );
 }

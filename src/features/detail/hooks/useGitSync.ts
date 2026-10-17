@@ -21,7 +21,8 @@ import { gitErrorCode, gitErrorDetail } from "../utils/gitErrors";
  */
 export function useGitSync(fullName: string, path: string) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  // The panel shows its actions inline, so the status loads with the checkout.
+  const open = true;
   const [status, setStatus] = useState<GitSyncStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [active, setActive] = useState<string | null>(null);
@@ -115,11 +116,6 @@ export function useGitSync(fullName: string, path: string) {
     }
   }
 
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-  }
-
   const failure = error ?? resource.error;
   const code = failure ? gitErrorCode(failure) : null;
   const detail = failure ? gitErrorDetail(failure) : "";
@@ -127,7 +123,6 @@ export function useGitSync(fullName: string, path: string) {
   const badge = status ? aheadBehindText(status.ahead, status.behind) : null;
 
   return {
-    open,
     status,
     busy: busy || resource.loading,
     active,
@@ -144,7 +139,6 @@ export function useGitSync(fullName: string, path: string) {
     setNewBranch,
     switchNew,
     setSwitchNew,
-    toggle,
     doFetch: () =>
       run(
         "fetch",

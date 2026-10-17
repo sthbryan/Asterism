@@ -17,7 +17,7 @@ export function ListCharts({
   const starDelta = delta(starSeries);
   const downloadDelta = delta(downloadSeries);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-band">
       <Section
         label={t("Stars over time")}
         icon={<ChartLineUpIcon size={15} />}

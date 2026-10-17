@@ -154,7 +154,11 @@ export function Chrome({
             })}
             {login ? (
               <div className="app-account" title={login}>
-                <Avatar name={login} size="sm" />
+                <Avatar
+                  src={`https://github.com/${login}.png?size=64`}
+                  name={login}
+                  size="sm"
+                />
                 <span className="app-account-name truncate">{login}</span>
               </div>
             ) : null}
