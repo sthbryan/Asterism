@@ -56,7 +56,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
               />
               <div className="mt-3">
                 <TrafficChart
-                  label={t("Traffic · 14 days")}
+                  label={t("Views")}
                   tone="muted"
                   points={(detail.views?.days ?? []).map((day) => ({
                     ts: day.ts,
@@ -76,7 +76,7 @@ export function TrafficSection({ detail }: { detail: RepoDetail }) {
               />
               <div className="mt-3">
                 <TrafficChart
-                  label={t("Traffic · 14 days")}
+                  label={t("Clones")}
                   tone="accent"
                   points={(detail.clones?.days ?? []).map((day) => ({
                     ts: day.ts,

@@ -1,5 +1,4 @@
-import { Chart } from "@zovaris/sephiro";
-import { useId, useMemo, useState } from "react";
+import { type ReactNode, useId, useMemo, useState } from "react";
 import { fmtAxisDate, fmtChartAxis, fmtCompact } from "@/lib/format";
 
 type Point = { ts: number; value: number };
@@ -70,19 +69,7 @@ export function HistoryChart({
   const y = (value: number) => 100 - (value / top) * 100;
 
   const xs = sorted.map((point) => x(point.ts));
-  const labelled: number[] = [0];
-  for (let index = 1; index < sorted.length; index += 1) {
-    if (xs[index] - xs[labelled[labelled.length - 1]] >= MIN_LABEL_GAP) {
-      labelled.push(index);
-    }
-  }
-  const end = sorted.length - 1;
-  if (labelled[labelled.length - 1] !== end) {
-    if (xs[end] - xs[labelled[labelled.length - 1]] < MIN_LABEL_GAP) {
-      labelled.pop();
-    }
-    labelled.push(end);
-  }
+  const labelled = labelIndexes(xs);
 
   const withYear =
     new Date(first.ts * 1_000).getUTCFullYear() !==
@@ -201,46 +188,76 @@ export function HistoryChart({
                   background: color,
                 }}
               />
-              <div
-                className="pointer-events-none absolute top-1 z-10 whitespace-nowrap rounded-md border border-hairline bg-raised px-2 py-1 text-[11px] text-paper shadow-sm"
-                style={{
-                  left: `${x(active.ts)}%`,
-                  transform: `translateX(${x(active.ts) > 60 ? "-100%" : "0"})`,
-                }}
-              >
+              <HoverCard left={x(active.ts)}>
                 <span className="text-faint">
                   {fmtChartAxis(active.ts, 0, true)}
                 </span>{" "}
                 <span className="font-mono text-ink tabular">
                   {fmtCompact(active.value)}
                 </span>
-              </div>
+              </HoverCard>
             </>
           )}
         </div>
       </div>
-      <div className="relative mt-1 ml-11 h-4 text-[11px] text-mist">
-        {labelled.map((index, position) => {
-          const left = xs[index];
-          return (
-            <span
-              key={`${index}-${unique[position]}`}
-              className="absolute top-0 whitespace-nowrap"
-              style={{
-                left: `${left}%`,
-                transform: `translateX(${left >= 99 ? "-100%" : left <= 1 ? "0" : "-50%"})`,
-              }}
-            >
-              {unique[position]}
-            </span>
-          );
-        })}
-      </div>
+      <AxisLabels
+        items={labelled.map((index, position) => ({
+          left: xs[index],
+          text: unique[position],
+        }))}
+      />
     </figure>
   );
 }
 
-/** Daily traffic columns; Sephiro 0.11.0 expresses ColumnChart as Chart bars. */
+function labelIndexes(positions: number[], gap = MIN_LABEL_GAP) {
+  const kept = [0];
+  for (let index = 1; index < positions.length; index += 1) {
+    if (positions[index] - positions[kept[kept.length - 1]] >= gap)
+      kept.push(index);
+  }
+  const end = positions.length - 1;
+  if (kept[kept.length - 1] !== end) {
+    if (positions[end] - positions[kept[kept.length - 1]] < gap) kept.pop();
+    kept.push(end);
+  }
+  return kept;
+}
+
+function AxisLabels({ items }: { items: { left: number; text: string }[] }) {
+  return (
+    <div className="relative mt-1 ml-11 h-4 text-[11px] text-mist">
+      {items.map((item) => (
+        <span
+          key={`${item.left}-${item.text}`}
+          className="absolute top-0 whitespace-nowrap"
+          style={{
+            left: `${item.left}%`,
+            transform: `translateX(${item.left >= 99 ? "-100%" : item.left <= 1 ? "0" : "-50%"})`,
+          }}
+        >
+          {item.text}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function HoverCard({ left, children }: { left: number; children: ReactNode }) {
+  return (
+    <div
+      className="pointer-events-none absolute top-1 z-10 whitespace-nowrap rounded-md border border-hairline bg-raised px-2 py-1 text-[11px] text-paper shadow-sm"
+      style={{
+        left: `${left}%`,
+        transform: `translateX(${left > 60 ? "-100%" : "0"})`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/** One bar per day, with labels thinned so none of them are cut off. */
 export function TrafficChart({
   points,
   label,
@@ -252,21 +269,100 @@ export function TrafficChart({
   tone?: "accent" | "muted";
   emptyText?: string;
 }) {
-  if (points.length === 0) return <EmptyText text={emptyText} />;
+  const [hover, setHover] = useState<number | null>(null);
+  const sorted = useMemo(
+    () => [...points].sort((a, b) => a.ts - b.ts),
+    [points],
+  );
+  if (sorted.length === 0) return <EmptyText text={emptyText} />;
+
+  const count = sorted.length;
+  const band = 100 / count;
+  const max = Math.max(1, ...sorted.map((point) => point.value));
+  const steps = niceTicks(max);
+  const top = steps[steps.length - 1] || 1;
+  const centre = (index: number) => (index + 0.5) * band;
+  const centres = sorted.map((_, index) => centre(index));
+  const labelled = labelIndexes(centres);
+  const color = TONE_VAR[tone] ?? TONE_VAR.muted;
+  const active = hover === null ? null : sorted[hover];
+
   return (
-    <Chart
-      label={label}
-      variant="bar"
-      height={96}
-      categories={points.map((point) => fmtAxisDate(point.ts))}
-      series={[
-        {
-          name: label,
-          values: points.map((point) => point.value),
-          tone,
-        },
-      ]}
-      legend={false}
-    />
+    <figure
+      className="sph-chart"
+      aria-label={`${label}: ${count} ${count === 1 ? "day" : "days"}`}
+      onPointerLeave={() => setHover(null)}
+    >
+      <div className="flex gap-2">
+        <div className="relative w-9 shrink-0 text-right text-[10px] text-mist tabular">
+          <div style={{ height: 96 }} className="relative">
+            {[0, top / 2, top].map((tick) => (
+              <span
+                key={tick}
+                className="absolute right-0 -translate-y-1/2"
+                style={{ bottom: `${(tick / top) * 100}%` }}
+              >
+                {fmtCompact(tick)}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div
+          className="relative min-w-0 flex-1 border-b border-hairline"
+          style={{ height: 96 }}
+          onPointerMove={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            if (rect.width <= 0) return;
+            const ratio = (event.clientX - rect.left) / rect.width;
+            setHover(
+              Math.min(count - 1, Math.max(0, Math.floor(ratio * count))),
+            );
+          }}
+        >
+          <svg
+            className="absolute inset-0 h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <rect
+              x={hover === null ? 0 : hover * band}
+              y={0}
+              width={hover === null ? 0 : band}
+              height={100}
+              fill={color}
+              opacity="0.08"
+            />
+            {sorted.map((point, index) => (
+              <rect
+                key={point.ts}
+                x={index * band + band * 0.15}
+                y={100 - (point.value / top) * 100}
+                width={band * 0.7}
+                height={(point.value / top) * 100}
+                fill={color}
+                opacity={hover === null || hover === index ? 0.85 : 0.4}
+              />
+            ))}
+          </svg>
+          {active && (
+            <HoverCard left={centre(hover ?? 0)}>
+              <span className="text-faint">
+                {fmtChartAxis(active.ts, 0, true)}
+              </span>{" "}
+              <span className="font-mono text-ink tabular">
+                {fmtCompact(active.value)}
+              </span>
+            </HoverCard>
+          )}
+        </div>
+      </div>
+      <AxisLabels
+        items={labelled.map((index) => ({
+          left: centres[index],
+          text: fmtAxisDate(sorted[index].ts),
+        }))}
+      />
+    </figure>
   );
 }
