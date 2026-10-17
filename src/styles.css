@@ -59,12 +59,14 @@ html {
   --pulse-count: infinite;
 }
 
+/* Glass is one composited mode: the same geometry, one blurred rail, and a
+   content scrim opaque enough to keep text readable over any wallpaper. */
 html[data-transparency="on"] {
-  --void: color-mix(in srgb, var(--void-base) 42%, transparent);
-  --night: color-mix(in srgb, var(--night-base) 26%, transparent);
-  --panel: color-mix(in srgb, var(--panel-base) 70%, transparent);
+  --void: color-mix(in srgb, var(--void-base) 80%, transparent);
+  --night: color-mix(in srgb, var(--night-base) 60%, transparent);
+  --panel: color-mix(in srgb, var(--panel-base) 74%, transparent);
   --raised: color-mix(in srgb, var(--raised-base) 74%, transparent);
-  --overlay: color-mix(in srgb, var(--overlay-base) 82%, transparent);
+  --overlay: color-mix(in srgb, var(--overlay-base) 88%, transparent);
 }
 
 html,
@@ -212,45 +214,204 @@ textarea {
   text-transform: uppercase;
 }
 
-/* Window geometry belongs to Asterism; navigation behavior and colors to Sephiro. */
-.app-sidebar {
+/* Window chrome: one rail, one page bar, one content plane. Geometry belongs to
+   Asterism; the segmented control's behavior stays with Sephiro. */
+.app-rail {
   position: relative;
-  flex: 0 0 212px;
-  inline-size: 212px;
-  min-block-size: 0;
-  overflow: hidden;
-  gap: 0;
-  padding: 48px 10px 10px;
-  border: 1px solid var(--hairline);
-  border-radius: 12px;
-  background: var(--night);
+  display: grid;
+  flex: 0 0 54px;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  block-size: 54px;
+  /* Clear the traffic lights: three 12px buttons plus their gaps end at 90px. */
+  padding: 0 14px 0 112px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--panel);
 }
 
-.app-sidebar .sph-sidebar__header {
-  padding: 0 6px;
+html[data-transparency="on"] .app-rail {
+  backdrop-filter: blur(24px) saturate(1.5);
 }
 
-.app-sidebar .sph-sidebar__nav {
-  flex: 0 1 auto;
-  padding-top: 4px;
-}
-
-.app-sidebar .sph-sidebar__footer {
-  flex: 1 1 auto;
-  align-items: stretch;
-  min-block-size: 0;
-  border: 0;
-}
-
-.app-sidebar .sph-sidebar__footer-content {
+.app-brand {
   display: flex;
-  flex-direction: column;
-  min-block-size: 0;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 8px;
 }
 
-.app-sidebar .sph-sidebar__footer .sph-button {
-  justify-content: flex-start;
-  inline-size: 100%;
+.app-mark {
+  display: grid;
+  flex: 0 0 24px;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.app-nav.sph-segmented-control {
+  block-size: 34px;
+  padding: 3px;
+  border-radius: 999px;
+  border-color: var(--hairline);
+  background: color-mix(in srgb, var(--paper) 4%, transparent);
+}
+
+.app-nav.sph-segmented-control .sph-segmented-control__thumb {
+  border-radius: 999px;
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
+
+.app-nav.sph-segmented-control .sph-segmented-control__option {
+  gap: 6px;
+  padding-inline: 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--mist);
+}
+
+.app-nav.sph-segmented-control
+  .sph-segmented-control__option[data-state="checked"] {
+  color: var(--void);
+}
+
+.app-nav-count {
+  margin-inline-start: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.55;
+}
+
+.app-rail-end {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.app-account {
+  display: flex;
+  min-inline-size: 0;
+  max-inline-size: 180px;
+  align-items: center;
+  gap: 7px;
+  block-size: 30px;
+  padding: 0 10px 0 2px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mist);
+  font-size: 11.5px;
+  transition:
+    color 150ms,
+    background-color 150ms;
+}
+
+.app-account:hover,
+.app-account[aria-current="page"] {
+  background: var(--fill);
+  color: var(--paper);
+}
+
+.app-account .sph-avatar {
+  flex: 0 0 auto;
+}
+
+/* The page bar belongs to the content plane, so it shares its padding. */
+.app-pagebar {
+  display: flex;
+  flex: 0 0 46px;
+  align-items: center;
+  gap: 12px;
+  block-size: 46px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--void);
+}
+
+.app-plane {
+  min-block-size: 0;
+  background: var(--void);
+}
+
+/* Depth is a hairline, never a card: sections sit directly on the plane. */
+.app-section {
+  padding-block: 16px;
+  border-top: 1px solid var(--hairline);
+}
+
+.app-section:first-child {
+  padding-block-start: 0;
+  border-top: 0;
+}
+
+.app-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-block-end: 12px;
+}
+
+/* The KPI strip reads as one instrument row: dividers, no boxes. */
+.app-section-flush {
+  padding-block: 0;
+  border-top: 0;
+}
+
+@media (min-width: 1024px) {
+  .app-split > * + * {
+    padding-inline-start: 24px;
+    border-inline-start: 1px solid var(--hairline);
+  }
+}
+
+.app-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px 20px;
+}
+
+.app-kpis > * + * {
+  border-inline-start: 1px solid var(--hairline);
+  padding-inline-start: 20px;
+}
+
+.app-kpis > :nth-child(3) {
+  border-inline-start: 0;
+  padding-inline-start: 0;
+}
+
+@media (min-width: 1024px) {
+  .app-section-flush {
+    padding-block: 0;
+    border-top: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .app-split > * + * {
+      padding-inline-start: 24px;
+      border-inline-start: 1px solid var(--hairline);
+    }
+  }
+
+  .app-kpis {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .app-kpis > :nth-child(3) {
+    border-inline-start: 1px solid var(--hairline);
+    padding-inline-start: 20px;
+  }
+
+  .app-kpis > :first-child {
+    border-inline-start: 0;
+    padding-inline-start: 0;
+  }
 }
 
 /* Sephiro's label span has no gap, so an icon passed alongside text sits flush against it. */
