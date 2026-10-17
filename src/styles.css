@@ -56,7 +56,22 @@ html {
   --fill: color-mix(in srgb, var(--sph-text) 6%, transparent);
   --wash: color-mix(in srgb, var(--sph-text) 2%, transparent);
   --thumb: var(--sph-border-strong);
+  --card-radius: 14px;
+  --row-radius: 12px;
+  --card-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04), 0 12px 28px -24px rgb(0 0 0 / 0.35);
+  --row-shadow: 0 1px 2px rgb(0 0 0 / 0.03);
+  --row-shadow-hover:
+    0 1px 2px rgb(0 0 0 / 0.05), 0 14px 26px -18px rgb(0 0 0 / 0.3);
   --pulse-count: infinite;
+}
+
+/* Cards lean on the border in dark mode; the shadow only lifts the surface a
+   little where the plane and panel are close in value. */
+html[data-theme="dark"] {
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+  --row-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+  --row-shadow-hover: 0 1px 2px rgb(0 0 0 / 0.4);
 }
 
 /* Glass is one composited mode: the same geometry, one blurred rail, and a
@@ -214,23 +229,26 @@ textarea {
   text-transform: uppercase;
 }
 
-/* Window chrome: one rail, one page bar, one content plane. Geometry belongs to
-   Asterism; the segmented control's behavior stays with Sephiro. */
-.app-rail {
+/* Window chrome: one rail, one page bar, one content plane. The rail is a flat
+   hairline column, never a card: brand, navigation, account. */
+.app-sidebar {
   position: relative;
-  display: grid;
-  flex: 0 0 54px;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  block-size: 54px;
-  /* Clear the traffic lights: three 12px buttons plus their gaps end at 90px. */
-  padding: 0 14px 0 112px;
-  border-bottom: 1px solid var(--hairline);
+  display: flex;
+  flex: 0 0 184px;
+  flex-direction: column;
+  inline-size: 184px;
+  min-block-size: 0;
+  /* Clear the traffic lights: the group is placed at y=28 and each button is
+     12px tall, so 44px of top inset leaves the brand row underneath it. */
+  padding: 44px 10px 10px;
+  border-inline-end: 1px solid var(--hairline);
   background: var(--panel);
+  transition:
+    inline-size 150ms,
+    flex-basis 150ms;
 }
 
-html[data-transparency="on"] .app-rail {
+html[data-transparency="on"] .app-sidebar {
   backdrop-filter: blur(24px) saturate(1.5);
 }
 
@@ -239,6 +257,7 @@ html[data-transparency="on"] .app-rail {
   min-inline-size: 0;
   align-items: center;
   gap: 8px;
+  padding: 0 2px 14px 6px;
 }
 
 .app-mark {
@@ -252,74 +271,136 @@ html[data-transparency="on"] .app-rail {
   color: #fff;
 }
 
-.app-nav.sph-segmented-control {
-  block-size: 34px;
-  padding: 3px;
-  border-radius: 999px;
-  border-color: var(--hairline);
-  background: color-mix(in srgb, var(--paper) 4%, transparent);
+.app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.app-nav.sph-segmented-control .sph-segmented-control__thumb {
-  border-radius: 999px;
-  background: var(--paper);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+.app-sidebar-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--hairline);
 }
 
-.app-nav.sph-segmented-control .sph-segmented-control__option {
-  gap: 6px;
-  padding-inline: 12px;
-  border-radius: 999px;
-  font-size: 12px;
+.app-nav-item {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: 9px;
+  block-size: 32px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--mist);
+  font-size: 12.5px;
+  text-align: start;
+  cursor: pointer;
+  transition:
+    color 150ms,
+    background-color 150ms;
 }
 
-.app-nav.sph-segmented-control
-  .sph-segmented-control__option[data-state="checked"] {
+.app-nav-item:hover {
+  background: var(--fill);
+  color: var(--paper);
+}
+
+.app-nav-item[aria-current="page"] {
+  background: var(--paper);
   color: var(--void);
 }
 
+.app-nav-icon {
+  display: grid;
+  flex: 0 0 15px;
+  place-items: center;
+}
+
 .app-nav-count {
-  margin-inline-start: 5px;
+  flex: 0 0 auto;
   font-family: var(--font-mono);
   font-size: 10px;
   font-variant-numeric: tabular-nums;
   opacity: 0.55;
 }
 
-.app-rail-end {
-  display: flex;
-  min-inline-size: 0;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-}
 .app-account {
   display: flex;
   min-inline-size: 0;
-  max-inline-size: 180px;
   align-items: center;
   gap: 7px;
-  block-size: 30px;
-  padding: 0 10px 0 2px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
+  block-size: 32px;
+  padding-inline: 8px 4px;
   color: var(--mist);
   font-size: 11.5px;
+}
+
+.app-account .sph-avatar {
+  flex: 0 0 auto;
+}
+
+.app-rail-toggle {
+  display: grid;
+  flex: 0 0 20px;
+  place-items: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
   transition:
     color 150ms,
     background-color 150ms;
 }
 
-.app-account:hover,
-.app-account[aria-current="page"] {
+.app-rail-toggle:hover,
+.app-rail-toggle:focus-visible {
   background: var(--fill);
   color: var(--paper);
 }
 
-.app-account .sph-avatar {
-  flex: 0 0 auto;
+/* Collapsed: icons only, with the label in the tooltip and the accessible name.
+   The width is set by the native window controls, not by the icons: macOS
+   draws three 12px traffic lights from x=20 to x=72, so the rail stops a hair
+   past them: 80px keeps the zoom button inside the rail with an 8px gap. */
+.app-sidebar[data-collapsed="true"] {
+  flex-basis: 80px;
+  inline-size: 80px;
+  padding: 48px 8px 10px;
+}
+
+/* Collapsed, the mark keeps the centre line so the rail reads as one column of
+   controls instead of a glyph pushed against the edge. */
+.app-sidebar[data-collapsed="true"] .app-brand {
+  justify-content: center;
+  padding: 0 0 12px;
+}
+
+.app-sidebar[data-collapsed="true"] .app-brand-name,
+.app-sidebar[data-collapsed="true"] .app-nav-label,
+.app-sidebar[data-collapsed="true"] .app-nav-count,
+.app-sidebar[data-collapsed="true"] .app-account-name {
+  display: none;
+}
+
+.app-sidebar[data-collapsed="true"] .app-nav-item {
+  inline-size: 36px;
+  block-size: 36px;
+  margin-inline: auto;
+  justify-content: center;
+  padding-inline: 0;
+  border-radius: 9px;
+}
+
+.app-sidebar[data-collapsed="true"] .app-account {
+  justify-content: center;
+  padding-inline: 0;
 }
 
 /* The page bar belongs to the content plane, so it shares its padding. */
@@ -339,78 +420,120 @@ html[data-transparency="on"] .app-rail {
   background: var(--void);
 }
 
-/* Depth is a hairline, never a card: sections sit directly on the plane. */
-.app-section {
-  padding-block: 16px;
-  border-top: 1px solid var(--hairline);
+/* Depth is a surface step plus a hairline: modules sit on the plane as cards,
+   never as a card inside a card. */
+.app-card {
+  background: var(--panel);
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
 }
 
-.app-section:first-child {
-  padding-block-start: 0;
-  border-top: 0;
+.app-section {
+  padding: 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+  box-shadow: var(--card-shadow);
 }
 
 .app-section-head {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   margin-block-end: 12px;
 }
 
-/* The KPI strip reads as one instrument row: dividers, no boxes. */
-.app-section-flush {
-  padding-block: 0;
-  border-top: 0;
+/* A tinted tile anchors an icon the way a card header would, without a second
+   surface: one shape, one fill step. */
+.app-chip {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  inline-size: 26px;
+  block-size: 26px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sph-text) 5%, transparent);
+  color: var(--mist);
 }
 
-@media (min-width: 1024px) {
-  .app-split > * + * {
-    padding-inline-start: 24px;
-    border-inline-start: 1px solid var(--hairline);
+.app-chip--accent {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent-soft);
+}
+
+/* A list item is a card of its own: the gap between rows does the separating
+   work, so no hairline or zebra striping is needed. */
+.app-row {
+  border: 1px solid var(--hairline);
+  border-radius: var(--row-radius);
+  background: var(--panel);
+  box-shadow: var(--row-shadow);
+  transition:
+    border-color var(--sph-motion-fast) var(--sph-ease-standard),
+    box-shadow var(--sph-motion-fast) var(--sph-ease-standard);
+}
+
+.app-row:hover {
+  border-color: var(--line);
+  box-shadow: var(--row-shadow-hover);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-row {
+    transition: none;
   }
 }
 
+/* The band above a card's body, so a tall card reads as header plus content. */
+.app-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--wash);
+}
+
+/* Nested content keeps the outer card as its only surface. */
+.app-section-flush {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* KPI readings are cards too: one number per block, no dividers. */
 .app-kpis {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 20px;
+  gap: 12px;
 }
 
-.app-kpis > * + * {
-  border-inline-start: 1px solid var(--hairline);
-  padding-inline-start: 20px;
+.app-kpis > * {
+  min-inline-size: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--card-radius);
+  background: var(--panel);
+  box-shadow: var(--card-shadow);
 }
 
-.app-kpis > :nth-child(3) {
-  border-inline-start: 0;
-  padding-inline-start: 0;
+/* One reading carries the accent tint, so the strip has a focal point. */
+.app-kpis > .is-hero {
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--hairline));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 8%, var(--panel)),
+    var(--panel) 72%
+  );
 }
 
-@media (min-width: 1024px) {
-  .app-section-flush {
-    padding-block: 0;
-    border-top: 0;
-  }
-
-  @media (min-width: 1024px) {
-    .app-split > * + * {
-      padding-inline-start: 24px;
-      border-inline-start: 1px solid var(--hairline);
-    }
-  }
-
+@media (min-width: 768px) {
   .app-kpis {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .app-kpis > :nth-child(3) {
-    border-inline-start: 1px solid var(--hairline);
-    padding-inline-start: 20px;
-  }
-
-  .app-kpis > :first-child {
-    border-inline-start: 0;
-    padding-inline-start: 0;
   }
 }
 

@@ -1,4 +1,5 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
+import type { VListHandle } from "virtua";
 
 const positions = new Map<string, number>();
 const RESTORE_FRAMES = 30;
@@ -27,6 +28,40 @@ function restore(node: HTMLElement, target: number) {
   node.addEventListener("wheel", stop, { passive: true, once: true });
   node.addEventListener("touchstart", stop, { passive: true, once: true });
   step();
+}
+
+/**
+ * Same memory, but owned by a virtualized list: the offset lives in the list's
+ * own viewport, so it is read back through the handle instead of a DOM node.
+ */
+export function useListMemory(key: string) {
+  const restored = useRef(false);
+  // Restore on the first handle, not on mount: a skeleton can delay the list.
+  const ref = useCallback(
+    (handle: VListHandle | null) => {
+      if (!handle || restored.current) return;
+      restored.current = true;
+      const target = positions.get(key);
+      if (!target) return;
+      let frames = 0;
+      const step = () => {
+        handle.scrollTo(target);
+        if (++frames > RESTORE_FRAMES) return;
+        if (Math.abs(handle.scrollOffset - target) > 1) {
+          requestAnimationFrame(step);
+        }
+      };
+      requestAnimationFrame(step);
+    },
+    [key],
+  );
+  const onScroll = useCallback(
+    (offset: number) => {
+      positions.set(key, offset);
+    },
+    [key],
+  );
+  return { ref, onScroll };
 }
 
 export function useScrollMemory(key: string) {
