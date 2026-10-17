@@ -1,4 +1,9 @@
-import { LinkSimpleIcon, PlusIcon } from "@phosphor-icons/react";
+import {
+  FolderDashedIcon,
+  FolderSimpleIcon,
+  LinkSimpleIcon,
+  PlusIcon,
+} from "@phosphor-icons/react";
 import { Button, Input, Select } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -30,9 +35,14 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
       aria-labelledby="local-projects-heading"
     >
       <div className="flex items-center justify-between gap-3">
-        <h2 id="local-projects-heading" className="kpi-label text-faint">
-          {t("local.title")}
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <span className="app-chip">
+            <FolderSimpleIcon size={15} />
+          </span>
+          <h2 id="local-projects-heading" className="kpi-label text-faint">
+            {t("local.title")}
+          </h2>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="secondary"
@@ -57,7 +67,7 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between gap-3">
+      <div className="mt-3 flex items-center justify-between gap-3 border-t border-hairline pt-3">
         <label htmlFor="local-editor" className="text-xs text-mist">
           {t("local.editor")}
         </label>
@@ -123,7 +133,10 @@ export function LocalProjectsSection({ fullName }: { fullName: string }) {
       <div className="mt-3 space-y-2">
         <If condition={items.length === 0}>
           <Then>
-            <p className="text-[13px] text-faint">{t("local.empty")}</p>
+            <div className="flex items-center gap-2.5 rounded-lg border border-dashed border-hairline px-3 py-2.5 text-[12.5px] text-faint">
+              <FolderDashedIcon size={15} className="shrink-0" />
+              {t("local.empty")}
+            </div>
           </Then>
           <Else>
             {items.map((item) => (

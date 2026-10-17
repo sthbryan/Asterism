@@ -1,3 +1,4 @@
+import { InfoIcon } from "@phosphor-icons/react";
 import type { ReactNode } from "react";
 import { useI18n } from "@/app/hooks";
 import { Section } from "@/components/Section";
@@ -19,9 +20,8 @@ export function MetaFacts({ detail }: { detail: RepoDetail }) {
   ];
 
   return (
-    <Section>
-      <div className="kpi-label text-faint">{t("Details")}</div>
-      <dl className="mt-3.5 grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
+    <Section label={t("Details")} icon={<InfoIcon size={15} />}>
+      <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
         {facts.map(([label, value]) => (
           <div key={label} className="min-w-0">
             <dt className="font-mono text-[10px] tracking-[0.08em] uppercase text-faint">

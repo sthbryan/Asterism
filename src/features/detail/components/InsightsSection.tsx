@@ -1,3 +1,9 @@
+import {
+  DevicesIcon,
+  LinkSimpleIcon,
+  SignpostIcon,
+  TranslateIcon,
+} from "@phosphor-icons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { Else, If, Then } from "react-if";
 import { useI18n } from "@/app/hooks";
@@ -19,19 +25,21 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
 
   return (
     <>
-      <div className="app-section app-split mt-6 grid gap-6 lg:grid-cols-2">
-        <Section className="app-section-flush">
-          <div className="kpi-label text-faint">{t("Referrers · 14 days")}</div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Section
+          label={t("Referrers · 14 days")}
+          icon={<LinkSimpleIcon size={15} />}
+        >
           <If condition={referrers.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
+              <p className="text-[13px] text-faint">
                 {detail.trafficError && !detail.views
                   ? t("Referrers need push access, same as views.")
                   : t("No referrers in the last 14 days.")}
               </p>
             </Then>
             <Else>
-              <div className="mt-3">
+              <div>
                 <BarList
                   label={t("Referrers · 14 days")}
                   formatValue={fmtCompact}
@@ -44,20 +52,20 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
             </Else>
           </If>
         </Section>
-        <Section className="app-section-flush">
-          <div className="kpi-label text-faint">
-            {t("Popular paths · 14 days")}
-          </div>
+        <Section
+          label={t("Popular paths · 14 days")}
+          icon={<SignpostIcon size={15} />}
+        >
           <If condition={paths.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
+              <p className="text-[13px] text-faint">
                 {detail.trafficError && !detail.views
                   ? t("Paths need push access, same as views.")
                   : t("No popular paths in the last 14 days.")}
               </p>
             </Then>
             <Else>
-              <div className="mt-3">
+              <div>
                 <BarList
                   label={t("Popular paths · 14 days")}
                   formatValue={fmtCompact}
@@ -85,19 +93,19 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
         </Section>
       </div>
 
-      <div className="app-section app-split mt-6 grid gap-6 lg:grid-cols-2">
-        <Section className="app-section-flush">
-          <div className="kpi-label text-faint">
-            {t("Downloads by platform")}
-          </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Section
+          label={t("Downloads by platform")}
+          icon={<DevicesIcon size={15} />}
+        >
           <If condition={platformBars.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
+              <p className="text-[13px] text-faint">
                 {t("No release assets with a recognizable platform.")}
               </p>
             </Then>
             <Else>
-              <div className="mt-3">
+              <div>
                 <BarList
                   label={t("Downloads by platform")}
                   formatValue={fmtCompact}
@@ -110,16 +118,13 @@ export function InsightsSection({ detail }: { detail: RepoDetail }) {
             </Else>
           </If>
         </Section>
-        <Section className="app-section-flush">
-          <div className="kpi-label text-faint">{t("Languages")}</div>
+        <Section label={t("Languages")} icon={<TranslateIcon size={15} />}>
           <If condition={detail.languages.length === 0}>
             <Then>
-              <p className="mt-3 text-[13px] text-faint">
-                {t("No language data.")}
-              </p>
+              <p className="text-[13px] text-faint">{t("No language data.")}</p>
             </Then>
             <Else>
-              <ul className="mt-3.5 space-y-2">
+              <ul className="space-y-2">
                 {detail.languages.map((lang) => {
                   const pct = (lang.bytes / langTotal) * 100;
                   return (

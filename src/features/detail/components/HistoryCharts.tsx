@@ -1,3 +1,4 @@
+import { ChartLineUpIcon, DownloadSimpleIcon } from "@phosphor-icons/react";
 import { useI18n } from "@/app/hooks";
 import { HistoryChart } from "@/components/charts";
 import { Section } from "@/components/Section";
@@ -7,10 +8,12 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
   const stars = detail.starHistory ?? [];
   const downloads = detail.downloadHistory ?? [];
   return (
-    <div className="app-section app-split mt-6 grid gap-6 lg:grid-cols-2">
-      <Section className="app-section-flush">
-        <div className="kpi-label text-faint">{t("Stars over time")}</div>
-        <p className="mt-1 text-[11.5px] leading-snug text-faint">
+    <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <Section
+        label={t("Stars over time")}
+        icon={<ChartLineUpIcon size={15} />}
+      >
+        <p className="text-[11.5px] leading-snug text-faint">
           {t("Star growth for this repository.")}
         </p>
         <div className="mt-3">
@@ -22,9 +25,12 @@ export function HistoryCharts({ detail }: { detail: RepoDetail }) {
           />
         </div>
       </Section>
-      <Section className="app-section-flush">
-        <div className="kpi-label text-faint">{t("Downloads over time")}</div>
-        <p className="mt-1 text-[11.5px] leading-snug text-faint">
+      <Section
+        label={t("Downloads over time")}
+        icon={<DownloadSimpleIcon size={15} />}
+        tone="accent"
+      >
+        <p className="text-[11.5px] leading-snug text-faint">
           {t("Download growth for this repository.")}
         </p>
         <div className="mt-3">
