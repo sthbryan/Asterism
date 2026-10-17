@@ -17,10 +17,11 @@ export function useDetail(fullName: string) {
     void fetchDetail(fullName);
   }, [fullName, fetchDetail, connecting, revision]);
 
+  const current = detail?.fullName === fullName ? detail : null;
   return {
-    detail: detail?.fullName === fullName ? detail : null,
-    loading,
-    refreshing,
-    error,
+    detail: current,
+    loading: loading || (!current && !error),
+    refreshing: refreshing && Boolean(current),
+    error: current ? null : error,
   };
 }
