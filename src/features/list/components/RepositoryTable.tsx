@@ -4,11 +4,12 @@ import {
   MagnifyingGlassIcon,
   WarningCircleIcon,
 } from "@phosphor-icons/react";
-import { Badge, EmptyState, Input } from "@zovaris/sephiro";
+import { Badge, EmptyState } from "@zovaris/sephiro";
 import { Else, If, Then, When } from "react-if";
 import { VList } from "virtua";
 import { useI18n } from "@/app/hooks";
 import { useListMemory } from "@/app/useScrollMemory";
+import { SearchField } from "@/components/SearchField";
 import { fmtNum, fmtSigned } from "@/lib/format";
 import { langColor } from "@/lib/langcolors";
 import type { TrackedRepo } from "@/lib/types";
@@ -136,21 +137,14 @@ export function RepositoryTable({
     <div className="app-card flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <div className="flex shrink-0 items-center gap-3 px-4 pt-3 pb-1">
         <span className="text-[13px] font-semibold">{t("Repositories")}</span>
-        <label
-          htmlFor="repository-filter"
-          className="ml-auto flex h-7 w-42.5 items-center gap-2 rounded-md border border-hairline bg-wash px-2 transition-colors focus-within:border-line"
-        >
-          <MagnifyingGlassIcon size={12} className="shrink-0 text-faint" />
-          <Input
-            id="repository-filter"
-            size="sm"
-            className="app-input--compact"
-            value={query}
-            onChange={(event) => onQueryChange(event.target.value)}
-            placeholder={t("Filter…")}
-            aria-label={t("Filter repositories")}
-          />
-        </label>
+        <SearchField
+          id="repository-filter"
+          className="ml-auto w-42.5"
+          value={query}
+          onChange={onQueryChange}
+          placeholder={t("Filter…")}
+          ariaLabel={t("Filter repositories")}
+        />
       </div>
       <div
         className={`grid shrink-0 ${COLS} items-center gap-3 border-b border-hairline px-4 py-2 text-[11px] font-medium text-faint`}

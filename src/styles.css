@@ -542,20 +542,10 @@ html[data-transparency="on"] .app-sidebar {
   gap: calc(var(--spacing, 0.25rem) * 1.5);
 }
 
-/* Embedded search fields share their parent label's border and background. */
-.app-input--compact.sph-input {
-  block-size: 100%;
-  min-block-size: 0;
-  inline-size: 100%;
-  padding-inline: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  font-size: 12.5px;
-}
-
-.app-input--compact.sph-input:focus-visible {
-  background: transparent;
+/* The search icon sits on Sephiro's own input surface, so the text starts
+   after it instead of over it. */
+.app-search .sph-input {
+  padding-inline-start: 28px;
 }
 
 .app-skeleton.sph-skeleton {

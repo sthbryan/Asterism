@@ -6,13 +6,13 @@ import { useCatalog, useI18n } from "@/app/hooks";
 import { useStore } from "@/app/store";
 import { useTransitionNavigate } from "@/app/useViewTransition";
 import { PageHeader } from "@/components/PageHeader";
+import { SearchField } from "@/components/SearchField";
 import { PickerSkeleton } from "@/components/Skeleton";
 import { usePicker } from "../hooks/usePicker";
 import { useSaveSelection } from "../hooks/useSaveSelection";
 import { OwnerFilter } from "./OwnerFilter";
 import { PickerFooter } from "./PickerFooter";
 import { RepoRow, ROW_COLS } from "./RepoRow";
-import { SearchBar } from "./SearchBar";
 import { SortControl } from "./SortControl";
 
 export function PickerView() {
@@ -86,7 +86,14 @@ export function PickerView() {
       />
       <div className="flex h-full min-h-0 flex-col px-6 pt-5 pb-5">
         <div className="flex w-full min-w-0 flex-wrap items-center gap-3">
-          <SearchBar value={query} onChange={setQuery} />
+          <SearchField
+            id="picker-search"
+            className="min-w-50 flex-1"
+            value={query}
+            onChange={setQuery}
+            placeholder={t("Search by name or language…")}
+            ariaLabel={t("Search repositories")}
+          />
           <SortControl value={sort} onChange={setSort} />
           <div className="min-w-0 max-w-full overflow-x-auto">
             <OwnerFilter

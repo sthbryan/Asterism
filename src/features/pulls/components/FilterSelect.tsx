@@ -26,6 +26,7 @@ export function FilterSelect({
         value={value}
         options={options}
         onValueChange={onChange}
+        size="sm"
       />
     </div>
   );
