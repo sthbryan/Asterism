@@ -1,4 +1,11 @@
-import { type ReactNode, useId, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { fmtAxisDate, fmtChartAxis, fmtCompact } from "@/lib/format";
 
 type Point = { ts: number; value: number };
@@ -10,7 +17,32 @@ const TONE_VAR: Record<string, string> = {
 
 const DAY = 86_400;
 const MIN_LABEL_GAP = 15;
+/** Room one axis label needs, so labels thin out as the chart gets narrower. */
+const LABEL_PX = 60;
+/** Half a label's width, so an edge label can be end-anchored instead of centred. */
+const LABEL_HALF = 22;
 const MONTH_RANGE_DAYS = 120;
+
+function useElementWidth() {
+  const [width, setWidth] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    setWidth(node.getBoundingClientRect().width);
+    const observer = new ResizeObserver(([entry]) => {
+      setWidth(entry.contentRect.width);
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  return { ref, width };
+}
+
+function labelGap(width: number) {
+  if (width <= 0) return MIN_LABEL_GAP;
+  return Math.max(MIN_LABEL_GAP, (LABEL_PX / width) * 100);
+}
 
 function EmptyText({ text }: { text?: string }) {
   return text ? (
@@ -52,6 +84,7 @@ export function HistoryChart({
 }) {
   const gradientId = useId().replace(/\W/g, "");
   const [hover, setHover] = useState<number | null>(null);
+  const plot = useElementWidth();
   const sorted = useMemo(
     () => [...points].sort((a, b) => a.ts - b.ts),
     [points],
@@ -69,7 +102,7 @@ export function HistoryChart({
   const y = (value: number) => 100 - (value / top) * 100;
 
   const xs = sorted.map((point) => x(point.ts));
-  const labelled = labelIndexes(xs);
+  const labelled = labelIndexes(xs, labelGap(plot.width));
 
   const withYear =
     new Date(first.ts * 1_000).getUTCFullYear() !==
@@ -104,20 +137,21 @@ export function HistoryChart({
     >
       <div className="flex gap-2">
         <div
-          className="relative w-9 shrink-0 text-right text-[10px] text-mist tabular"
+          className="relative w-6 shrink-0 text-right text-[10px] text-mist tabular"
           style={{ height: 160 }}
         >
           {ticks.map((tick) => (
             <span
               key={tick}
               className="absolute right-0 -translate-y-1/2"
-              style={{ bottom: `${100 - y(tick)}%` }}
+              style={{ top: `${y(tick)}%` }}
             >
               {fmtCompact(tick)}
             </span>
           ))}
         </div>
         <div
+          ref={plot.ref}
           className="relative min-w-0 flex-1 border-b border-hairline"
           style={{ height: 160 }}
           onPointerMove={(event) => {
@@ -201,6 +235,7 @@ export function HistoryChart({
         </div>
       </div>
       <AxisLabels
+        width={plot.width}
         items={labelled.map((index, position) => ({
           left: xs[index],
           text: unique[position],
@@ -224,16 +259,25 @@ function labelIndexes(positions: number[], gap = MIN_LABEL_GAP) {
   return kept;
 }
 
-function AxisLabels({ items }: { items: { left: number; text: string }[] }) {
+function AxisLabels({
+  items,
+  width,
+}: {
+  items: { left: number; text: string }[];
+  width: number;
+}) {
+  /* A centred label only fits when half of it stays inside the plot, so the
+     edge is measured in pixels instead of a fixed percentage. */
+  const edge = width > 0 ? Math.min(20, (LABEL_HALF / width) * 100) : 8;
   return (
-    <div className="relative mt-1 ml-11 h-4 text-[11px] text-mist">
+    <div className="relative mt-1 ml-8 h-4 text-[11px] text-mist">
       {items.map((item) => (
         <span
           key={`${item.left}-${item.text}`}
           className="absolute top-0 whitespace-nowrap"
           style={{
             left: `${item.left}%`,
-            transform: `translateX(${item.left >= 99 ? "-100%" : item.left <= 1 ? "0" : "-50%"})`,
+            transform: `translateX(${item.left >= 100 - edge ? "-100%" : item.left <= edge ? "0" : "-50%"})`,
           }}
         >
           {item.text}
@@ -270,6 +314,7 @@ export function TrafficChart({
   emptyText?: string;
 }) {
   const [hover, setHover] = useState<number | null>(null);
+  const plot = useElementWidth();
   const sorted = useMemo(
     () => [...points].sort((a, b) => a.ts - b.ts),
     [points],
@@ -294,13 +339,13 @@ export function TrafficChart({
       onPointerLeave={() => setHover(null)}
     >
       <div className="flex gap-2">
-        <div className="relative w-9 shrink-0 text-right text-[10px] text-mist tabular">
+        <div className="relative w-6 shrink-0 text-right text-[10px] text-mist tabular">
           <div style={{ height: 96 }} className="relative">
             {[0, top / 2, top].map((tick) => (
               <span
                 key={tick}
                 className="absolute right-0 -translate-y-1/2"
-                style={{ bottom: `${(tick / top) * 100}%` }}
+                style={{ top: `${100 - (tick / top) * 100}%` }}
               >
                 {fmtCompact(tick)}
               </span>
@@ -308,6 +353,7 @@ export function TrafficChart({
           </div>
         </div>
         <div
+          ref={plot.ref}
           className="relative min-w-0 flex-1 border-b border-hairline"
           style={{ height: 96 }}
           onPointerMove={(event) => {
@@ -358,6 +404,7 @@ export function TrafficChart({
         </div>
       </div>
       <AxisLabels
+        width={plot.width}
         items={labelled.map((index) => ({
           left: centres[index],
           text: fmtAxisDate(sorted[index].ts),
