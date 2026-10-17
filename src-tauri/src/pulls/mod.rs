@@ -1,10 +1,12 @@
 pub mod api;
+pub mod graphql;
 pub mod parse;
 #[cfg(test)]
 mod tests;
 
 #[allow(unused_imports)]
-pub use api::{cap_diff, list_repo_pulls_state, matches_filters, paginate, pull_detail, pull_diff};
+pub use api::{cap_diff, matches_filters, paginate, pull_detail, pull_diff};
+pub use graphql::list_pulls;
 #[allow(unused_imports)]
 pub use parse::{parse_detail, parse_summary};
 

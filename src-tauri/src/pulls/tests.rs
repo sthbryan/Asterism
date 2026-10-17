@@ -1,4 +1,5 @@
 use super::api::{cap_diff, paginate};
+use super::graphql::{list_query, parse_list};
 use super::parse::{parse_detail, parse_summary};
 use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_FILES, MAX_LIST_LIMIT};
 use crate::models::{PullChecks, PullRequestSummary};
@@ -129,4 +130,113 @@ fn diff_limit_never_panics_on_utf8_boundary() {
     let output = cap_diff("é".repeat(MAX_DIFF_CHARS));
     assert!(output.len() > MAX_DIFF_CHARS);
     assert!(output.contains("diff truncated"));
+}
+
+fn list_repos() -> Vec<String> {
+    vec!["one/alpha".into(), "two/beta".into()]
+}
+
+#[test]
+fn one_document_asks_for_every_repository_without_extra_launches() {
+    let query = list_query(&list_repos(), 100, None);
+    assert!(query.contains("r0: repository(owner: \"one\", name: \"alpha\")"));
+    assert!(query.contains("r1: repository(owner: \"two\", name: \"beta\")"));
+    assert!(
+        query.contains("pullRequests(first: 100, orderBy: {field: UPDATED_AT, direction: DESC})")
+    );
+    assert!(query.contains("fragment PR on PullRequest"));
+    assert!(!query.contains("states:"));
+}
+
+#[test]
+fn state_filter_and_limit_are_bounded() {
+    let query = list_query(&list_repos(), 250, Some("OPEN"));
+    assert!(query.contains("states: OPEN, first: 100"));
+    let merged = list_query(&list_repos(), 30, Some("merged"));
+    assert!(merged.contains("states: MERGED, first: 30"));
+    assert!(!list_query(&list_repos(), 30, Some("all")).contains("states:"));
+}
+
+#[test]
+fn unusable_repository_names_never_reach_the_document() {
+    let query = list_query(
+        &["no-slash".into(), "a/b/c".into(), "ok/name".into()],
+        10,
+        None,
+    );
+    assert!(query.contains("r2: repository(owner: \"ok\", name: \"name\")"));
+    assert!(!query.contains("no-slash"));
+    assert!(!query.contains("a/b"));
+}
+
+#[test]
+fn list_payload_is_flattened_into_summaries_per_repository() {
+    let json = json!({
+        "data": {
+            "r0": { "pullRequests": { "nodes": [{
+                "number": 5,
+                "title": "Speed things up",
+                "author": { "login": "octo" },
+                "headRefName": "perf",
+                "baseRefName": "main",
+                "state": "OPEN",
+                "updatedAt": "2026-10-10T10:00:00Z",
+                "statusCheckRollup": { "contexts": { "nodes": [
+                    { "conclusion": "SUCCESS", "status": "COMPLETED" },
+                    { "state": "FAILURE" },
+                    { "state": "PENDING" }
+                ]}},
+                "assignees": { "nodes": [{ "login": "a" }] },
+                "reviewRequests": { "nodes": [
+                    { "requestedReviewer": { "login": "b" } }
+                ]}
+            }]}}
+        },
+        "errors": [{ "path": ["r1"], "message": "Could not resolve to a Repository." }]
+    });
+    let rows = parse_list(&list_repos(), &json);
+    assert_eq!(rows.len(), 2);
+    let (repo, pulls, error) = &rows[0];
+    assert_eq!(repo, "one/alpha");
+    assert!(error.is_none());
+    let pull = &pulls[0];
+    assert_eq!(pull.repo, "one/alpha");
+    assert_eq!(pull.number, 5);
+    assert_eq!(pull.state, "OPEN");
+    assert_eq!(
+        (
+            pull.checks.passing,
+            pull.checks.failing,
+            pull.checks.pending
+        ),
+        (1, 1, 1)
+    );
+    assert_eq!(pull.assignees, vec!["a"]);
+    assert_eq!(pull.review_requests, vec!["b"]);
+    let (_, pulls, error) = &rows[1];
+    assert!(pulls.is_empty());
+    assert_eq!(error.as_deref(), Some("Could not resolve to a Repository."));
+}
+
+#[test]
+fn missing_repository_data_is_an_error_only_for_that_repository() {
+    let json = json!({"data": {"r0": {"pullRequests": {"nodes": []}}}});
+    let rows = parse_list(&list_repos(), &json);
+    assert!(rows[0].2.is_none());
+    assert!(rows[0].1.is_empty());
+    assert_eq!(
+        rows[1].2.as_deref(),
+        Some("GitHub did not return pull requests for that repository.")
+    );
+}
+
+#[test]
+fn nodes_without_a_number_are_skipped_instead_of_failing_the_repository() {
+    let json = json!({"data": {"r0": {"pullRequests": {"nodes": [
+        {"title": "no number"},
+        {"number": 9, "title": "ok"}
+    ]}}}});
+    let rows = parse_list(&list_repos(), &json);
+    assert_eq!(rows[0].1.len(), 1);
+    assert_eq!(rows[0].1[0].number, 9);
 }

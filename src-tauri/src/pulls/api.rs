@@ -1,48 +1,10 @@
-use super::parse::{parse_detail, parse_summary};
-use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_LIST_LIMIT, MAX_PAGE, MAX_PAGE_SIZE};
+use super::parse::parse_detail;
+use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_PAGE, MAX_PAGE_SIZE};
 use crate::gh::{run_gh_env, run_gh_json};
 use crate::models::{PullListResult, PullRequestDetail, PullRequestSummary};
 use std::collections::BTreeMap;
 
-const SUMMARY_FIELDS: &str = "number,title,author,headRefName,baseRefName,isDraft,state,createdAt,updatedAt,mergedAt,url,additions,deletions,changedFiles,reviewDecision,statusCheckRollup,reviews,assignees,reviewRequests";
-
 const DETAIL_FIELDS: &str = "number,title,author,headRefName,baseRefName,isDraft,state,createdAt,updatedAt,mergedAt,url,additions,deletions,changedFiles,reviewDecision,statusCheckRollup,reviews,assignees,reviewRequests,body,mergeable,mergeStateStatus,files";
-
-pub fn list_repo_pulls_state(
-    repo: &str,
-    limit: u8,
-    state: Option<&str>,
-) -> (Vec<PullRequestSummary>, Option<String>) {
-    let limit = limit.clamp(1, MAX_LIST_LIMIT);
-    let state = match state.unwrap_or("all").to_ascii_lowercase().as_str() {
-        "open" | "closed" | "all" => state.unwrap_or("all"),
-        "merged" => "all",
-        _ => "all",
-    };
-    let args = [
-        "pr",
-        "list",
-        "--repo",
-        repo,
-        "--state",
-        state,
-        "--limit",
-        &limit.to_string(),
-        "--json",
-        SUMMARY_FIELDS,
-    ];
-
-    let json = match run_gh_json(&args) {
-        Ok(json) => json,
-        Err(err) => return (Vec::new(), Some(err)),
-    };
-    let items = json.as_array().cloned().unwrap_or_default();
-    let pulls = items
-        .iter()
-        .filter_map(|item| parse_summary(repo, item))
-        .collect();
-    (pulls, None)
-}
 
 pub fn matches_filters(pull: &PullRequestSummary, filters: &PullRequestFilters) -> bool {
     let f = filters.clone().normalized();

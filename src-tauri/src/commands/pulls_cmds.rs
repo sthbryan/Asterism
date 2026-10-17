@@ -31,11 +31,7 @@ fn pull_snapshot(
     }
     ensure_online()?;
     let state = normalized.state.clone();
-    let fetches = crate::gh::map_limited(repos.clone(), 4, move |repo| {
-        let (rows, error) =
-            pulls::list_repo_pulls_state(&repo, pulls::MAX_LIST_LIMIT, state.as_deref());
-        (repo, rows, error)
-    });
+    let fetches = pulls::list_pulls(&repos, pulls::MAX_LIST_LIMIT, state.as_deref());
     let now = history::now_secs();
     let result = merge_pull_fetches(
         &repos,
