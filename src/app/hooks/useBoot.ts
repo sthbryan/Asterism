@@ -63,8 +63,10 @@ export function useBoot() {
         );
         setPreferences(local.config);
         hydrateLocal(local);
-        // Paint the cached overview while the account check runs.
+        // Paint the cached overview while the account check runs, and start
+        // the refresh alongside it instead of after it.
         void hydrateCachedOverview();
+        void runRefresh();
         navigate(resolveInitialRoute(pathRef.current), { replace: true });
         const next = await getStatus();
         if (cancelled) return;

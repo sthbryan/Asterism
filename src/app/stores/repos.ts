@@ -94,7 +94,11 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
   },
 
   runRefresh: async (force = false) => {
-    if (!get().status?.ok || get().connecting || get().refreshing) return;
+    const status = get().status;
+    // Boot may start this before the account check answers (`status` is null)
+    // so the network work overlaps that `gh` launch. Once the check fails,
+    // only the retry path may refresh.
+    if ((status && !status.ok) || !get().account || get().refreshing) return;
     const { fetchedAt } = get();
     const selected = new Set(get().selectedNames);
     if (

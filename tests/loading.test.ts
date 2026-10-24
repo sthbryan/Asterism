@@ -112,6 +112,36 @@ test("an overview result cannot restore a repository removed during its refresh"
   ]);
 });
 
+test("the overview refresh starts before the account check answers", async () => {
+  const fetch = spyOn(tauriClient, "refreshTracked").mockResolvedValue({
+    repos: [{ ...mockDetail("one/a"), fetchedAt: Date.now() }],
+    history: {},
+    fetchedAt: Math.floor(Date.now() / 1000),
+  });
+  useStore.setState({
+    status: null,
+    connecting: true,
+    account: "github.com/one",
+    selectedNames: ["one/a"],
+    tracked: [],
+    fetchedAt: null,
+  });
+  await useStore.getState().runRefresh();
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+test("a failed account check blocks refreshes", async () => {
+  const fetch = spyOn(tauriClient, "refreshTracked");
+  useStore.setState({
+    status: { ok: false, login: null, error: "bad credentials", hint: null },
+    connecting: false,
+    account: "github.com/one",
+    selectedNames: ["one/a"],
+  });
+  await useStore.getState().runRefresh(true);
+  expect(fetch).not.toHaveBeenCalled();
+});
+
 test("the cached overview paints before the account check answers", async () => {
   const now = Date.now();
   const repos = [{ ...mockDetail("one/a"), fetchedAt: now }];
