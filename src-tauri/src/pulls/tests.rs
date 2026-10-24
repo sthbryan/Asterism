@@ -1,7 +1,9 @@
 use super::api::{cap_diff, paginate};
-use super::graphql::{list_query, parse_list};
+use super::graphql::{combine, list_query, parse_list};
 use super::parse::{parse_detail, parse_summary};
-use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_FILES, MAX_LIST_LIMIT};
+use super::{
+    PullPage, PullRequestFilters, MAX_DIFF_CHARS, MAX_FILES, MAX_LIST_LIMIT, REQUEST_ERROR,
+};
 use crate::models::{PullChecks, PullRequestSummary};
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
@@ -269,4 +271,43 @@ fn nodes_without_a_number_are_skipped_instead_of_failing_the_repository() {
     let rows = parse_list(&list_repos(), &json);
     assert_eq!(rows[0].pulls.len(), 1);
     assert_eq!(rows[0].pulls[0].number, 9);
+}
+
+#[test]
+fn a_failed_batch_only_marks_its_own_repositories() {
+    let ok = PullPage {
+        repo: "one/alpha".into(),
+        pulls: Vec::new(),
+        error: None,
+        next_cursor: None,
+    };
+    let pages = combine(vec![
+        (vec!["one/alpha".into()], Ok(vec![ok])),
+        (
+            vec!["two/beta".into(), "two/gamma".into()],
+            Err("timeout".into()),
+        ),
+    ]);
+    assert_eq!(pages.len(), 3);
+    assert!(pages[0].error.is_none());
+    assert_eq!(pages[1].repo, "two/beta");
+    assert_eq!(pages[1].error.as_deref(), Some("timeout"));
+    assert_eq!(pages[2].repo, "two/gamma");
+}
+
+#[test]
+fn every_failed_batch_collapses_into_one_request_error() {
+    let pages = combine(vec![
+        (
+            vec!["one/alpha".into()],
+            Err("Could not parse gh JSON".into()),
+        ),
+        (
+            vec!["two/beta".into()],
+            Err("Could not parse gh JSON".into()),
+        ),
+    ]);
+    assert_eq!(pages.len(), 1);
+    assert_eq!(pages[0].repo, REQUEST_ERROR);
+    assert_eq!(pages[0].error.as_deref(), Some("Could not parse gh JSON"));
 }
