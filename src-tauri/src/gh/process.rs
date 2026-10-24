@@ -73,6 +73,11 @@ fn execute(
         .env("GH_PAGER", "cat")
         .env("NO_COLOR", "1")
         .env("CLICOLOR", "0")
+        // No background update checks or telemetry: a short command can be
+        // cancelled before the notifier finishes, paying for it every run.
+        .env("GH_NO_UPDATE_NOTIFIER", "1")
+        .env("GH_NO_EXTENSION_UPDATE_NOTIFIER", "1")
+        .env("GH_TELEMETRY", "0")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .stdin(Stdio::null());
