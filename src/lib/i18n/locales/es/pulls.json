@@ -47,7 +47,6 @@
     "unknown": "Desconocido",
     "back": "Pull requests",
     "openGithub": "Abrir en GitHub",
-    "branches": "{head} → {base}",
     "error": "No se pudieron cargar los pull requests.",
     "detailError": "No se pudo cargar este pull request.",
     "loadMore": "Cargar más",

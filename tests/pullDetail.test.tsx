@@ -66,4 +66,15 @@ describe("pull detail timestamps", () => {
   test("still shows the age of a dated pull request", () => {
     expect(html(pull())).toContain("Updated");
   });
+
+  test("keeps the base branch visible when the head branch is long", () => {
+    const out = html(
+      pull({
+        headRef: "perf/startup-cache-native-scan-with-a-very-long-name",
+        baseRef: "main",
+      }),
+    );
+    expect(out).toContain('<span class="min-w-0 truncate">');
+    expect(out).toContain('<span class="shrink-0">main</span>');
+  });
 });
