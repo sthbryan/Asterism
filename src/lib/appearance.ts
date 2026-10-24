@@ -99,9 +99,8 @@ export async function applyWindowChrome(
 ) {
   if (!("__TAURI_INTERNALS__" in window)) return;
   try {
-    const { Effect, EffectState, getCurrentWindow } = await import(
-      "@tauri-apps/api/window"
-    );
+    const { Effect, EffectState, getCurrentWindow } =
+      await import("@tauri-apps/api/window");
     const win = getCurrentWindow();
     await win.setTheme(resolved);
     if (transparency) {

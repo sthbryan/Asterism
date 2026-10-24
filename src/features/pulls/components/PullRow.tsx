@@ -19,6 +19,8 @@ export function PullRow({
   const { t } = useI18n();
   const stateVariant = pull.state === "OPEN" ? "success" : "neutral";
   return (
+    // The button's visible text (repository, number and title) is its label.
+    // oxlint-disable-next-line jsx-a11y/control-has-associated-label
     <button
       type="button"
       className="app-row flex w-full items-start gap-3 px-4 py-3.5 text-left"
