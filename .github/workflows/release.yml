@@ -41,5 +41,5 @@ jobs:
           releaseName: "Asterism ${{ github.ref_name }}"
           releaseDraft: true
           prerelease: false
-          uploadUpdaterJson: false
+          includeUpdaterJson: false
           args: --bundles app,dmg
