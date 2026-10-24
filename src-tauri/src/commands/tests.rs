@@ -181,6 +181,31 @@ mod pull_page_tests {
     }
 
     #[test]
+    fn a_whole_request_failure_is_reported_once_and_keeps_saved_rows() {
+        let previous = crate::models::PullListResult {
+            pulls: vec![summary("one/long", 5), summary("two/x", 7)],
+            ..Default::default()
+        };
+        let failed = PullPage {
+            repo: String::new(),
+            pulls: Vec::new(),
+            error: Some("Could not parse gh JSON: expected value at line 1 column 1".into()),
+            next_cursor: None,
+        };
+        let result = merge_pull_fetches(
+            &["one/long".to_string(), "two/x".to_string()],
+            vec![failed],
+            Some(&previous),
+            902,
+            false,
+        );
+        assert_eq!(result.errors.len(), 1);
+        assert!(result.errors.contains_key(""));
+        assert_eq!(result.pulls.len(), 2);
+        assert!(!result.has_next_page);
+    }
+
+    #[test]
     fn a_failed_page_keeps_saved_rows_and_offers_no_cursor() {
         let previous = crate::models::PullListResult {
             pulls: vec![summary("one/long", 5)],

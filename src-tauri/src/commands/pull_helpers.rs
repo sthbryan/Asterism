@@ -89,6 +89,7 @@ pub(super) fn merge_pull_fetches(
     let mut errors = std::collections::BTreeMap::new();
     let mut cursors = BTreeMap::new();
     let old = previous.map(|result| &result.pulls);
+    let mut whole_request_failed = false;
     for page in fetches {
         let PullPage {
             repo,
@@ -96,6 +97,13 @@ pub(super) fn merge_pull_fetches(
             error,
             next_cursor,
         } = page;
+        if repo.is_empty() {
+            whole_request_failed = error.is_some();
+            if let Some(error) = error {
+                errors.insert(repo, error);
+            }
+            continue;
+        }
         if let Some(error) = error {
             errors.insert(repo.clone(), error);
             if let Some(old) = old {
@@ -113,8 +121,11 @@ pub(super) fn merge_pull_fetches(
         }
     }
 
-    if preserve_outside {
-        if let Some(old) = old {
+    if let Some(old) = old {
+        if whole_request_failed {
+            // Nothing arrived, so the rows already on screen stay.
+            pulls.extend(old.iter().cloned());
+        } else if preserve_outside {
             let selected = &repos[0];
             pulls.extend(
                 old.iter()

@@ -193,14 +193,13 @@ pub fn list_pulls(
     let query = list_query(repos, limit, state, cursors);
     match run_gh_json_lenient(&["api", "graphql", "-f", &format!("query={query}")]) {
         Ok(json) => parse_list(repos, &json),
-        Err(err) => repos
-            .iter()
-            .map(|repo| PullPage {
-                repo: repo.clone(),
-                pulls: Vec::new(),
-                error: Some(err.clone()),
-                next_cursor: None,
-            })
-            .collect(),
+        // One document serves every repository, so a failure belongs to the
+        // request, not to each repository: report it once.
+        Err(err) => vec![PullPage {
+            repo: super::REQUEST_ERROR.to_string(),
+            pulls: Vec::new(),
+            error: Some(err),
+            next_cursor: None,
+        }],
     }
 }

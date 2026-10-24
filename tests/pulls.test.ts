@@ -85,3 +85,21 @@ test("partial PR failures retain saved rows while successful empty repositories 
   expect(merged.errors).toEqual(fresh.errors);
   expect(merged.total).toBe(1);
 });
+
+test("a whole-request failure keeps every saved row", () => {
+  const previous = {
+    pulls: [pull(), pull({ repo: "acme/web", number: 2 })],
+    errors: {},
+    fetchedAt: 1,
+  };
+  const fresh = {
+    pulls: [],
+    errors: {
+      "": "Could not parse gh JSON: expected value at line 1 column 1",
+    },
+    fetchedAt: 2,
+  };
+  const merged = mergePullResults(fresh, previous);
+  expect(merged.pulls).toHaveLength(2);
+  expect(merged.errors).toEqual(fresh.errors);
+});

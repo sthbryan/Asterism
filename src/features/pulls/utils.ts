@@ -84,8 +84,12 @@ export function mergePullResults(
   const failed = new Set(
     Object.keys(fresh.errors).map((repo) => repo.toLowerCase()),
   );
-  const kept =
-    previous?.pulls.filter((pull) => failed.has(pull.repo.toLowerCase())) ?? [];
+  // A key without "owner/name" means the request itself failed (the backend's
+  // "" or load-more's "all"): nothing arrived, so every saved row stays.
+  const kept = Array.from(failed).some((key) => !key.includes("/"))
+    ? (previous?.pulls ?? [])
+    : (previous?.pulls.filter((pull) => failed.has(pull.repo.toLowerCase())) ??
+      []);
   const pulls = [...fresh.pulls, ...kept];
   return { ...fresh, pulls, total: pulls.length };
 }
