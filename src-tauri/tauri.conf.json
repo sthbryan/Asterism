@@ -26,6 +26,7 @@
           "x": 20,
           "y": 25
         },
+        "visible": false,
         "backgroundColor": "#111111"
       }
     ],
