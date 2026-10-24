@@ -52,6 +52,7 @@ export type StoreActions = {
   bootOk: (status: Status, config: Config) => void;
   bootFail: (status: Status) => void;
   retryBoot: () => void;
+  hydrateCachedOverview: () => Promise<void>;
   runRefresh: (force?: boolean) => Promise<void>;
   loadCatalog: (force?: boolean) => Promise<void>;
   fetchDetail: (fullName: string, force?: boolean) => Promise<void>;

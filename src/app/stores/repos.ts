@@ -53,6 +53,7 @@ export type ReposSlice = Pick<
   | "fetchedAt"
   | "refreshing"
   | "banner"
+  | "hydrateCachedOverview"
   | "runRefresh"
   | "persistSelection"
   | "handleCreated"
@@ -70,8 +71,34 @@ export const createReposSlice: StateCreator<AppStore, [], [], ReposSlice> = (
   refreshing: false,
   banner: null,
 
+  // The account check costs a `gh` launch; paint whatever this account already
+  // had on disk instead of holding the screen empty until it answers.
+  hydrateCachedOverview: async () => {
+    const account = get().account;
+    const selectedNames = get().selectedNames;
+    if (!account || selectedNames.length === 0) return;
+    const revision = get().dataRevision;
+    const persisted = await withTimeout(
+      readOverviewCache(account),
+      1_000,
+    ).catch(() => null);
+    if (persisted?.version !== 1) return;
+    if (revision !== get().dataRevision || account !== get().account) return;
+    const cached = cacheForSelection(persisted.data, selectedNames);
+    if (cached.repos.length === 0) return;
+    set({
+      tracked: cached.repos,
+      fetchedAt: cached.fetchedAt,
+      history: cached.history,
+    });
+  },
+
   runRefresh: async (force = false) => {
-    if (!get().status?.ok || get().connecting || get().refreshing) return;
+    const status = get().status;
+    // Boot may start this before the account check answers (`status` is null)
+    // so the network work overlaps that `gh` launch. Once the check fails,
+    // only the retry path may refresh.
+    if ((status && !status.ok) || !get().account || get().refreshing) return;
     const { fetchedAt } = get();
     const selected = new Set(get().selectedNames);
     if (

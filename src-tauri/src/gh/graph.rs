@@ -4,10 +4,14 @@ use super::catalog::{platforms_from_releases, refresh_tracked_rest, release_down
 use super::{as_bool, as_string, as_u64, map_limited, run_gh_json_lenient};
 use crate::models::{PlatformDownloads, TrackedRepo};
 
-const REPOS_PER_REQUEST: usize = 20;
+/// Release trees are the expensive part of a refresh and GitHub resolves a
+/// batch serially, so small batches run side by side beat one large request:
+/// 18 repositories take ~1.7s in three parallel batches of six against ~3.4s
+/// in a single batch, without raising the number of concurrent `gh` processes.
+const REPOS_PER_REQUEST: usize = 6;
 const RELEASES_PER_REPO: usize = 100;
 const ASSETS_PER_RELEASE: usize = 100;
-const WORKERS: usize = 4;
+const WORKERS: usize = 3;
 
 fn repo_fragment(alias: &str, full_name: &str) -> Option<String> {
     let (owner, name) = full_name.split_once('/')?;

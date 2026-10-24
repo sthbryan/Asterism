@@ -112,6 +112,64 @@ test("an overview result cannot restore a repository removed during its refresh"
   ]);
 });
 
+test("the overview refresh starts before the account check answers", async () => {
+  const fetch = spyOn(tauriClient, "refreshTracked").mockResolvedValue({
+    repos: [{ ...mockDetail("one/a"), fetchedAt: Date.now() }],
+    history: {},
+    fetchedAt: Math.floor(Date.now() / 1000),
+  });
+  useStore.setState({
+    status: null,
+    connecting: true,
+    account: "github.com/one",
+    selectedNames: ["one/a"],
+    tracked: [],
+    fetchedAt: null,
+  });
+  await useStore.getState().runRefresh();
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+test("a failed account check blocks refreshes", async () => {
+  const fetch = spyOn(tauriClient, "refreshTracked");
+  useStore.setState({
+    status: { ok: false, login: null, error: "bad credentials", hint: null },
+    connecting: false,
+    account: "github.com/one",
+    selectedNames: ["one/a"],
+  });
+  await useStore.getState().runRefresh(true);
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+test("the cached overview paints before the account check answers", async () => {
+  const now = Date.now();
+  const repos = [{ ...mockDetail("one/a"), fetchedAt: now }];
+  (
+    tauriClient.readCache as unknown as {
+      mockResolvedValue: (value: unknown) => void;
+    }
+  ).mockResolvedValue({
+    version: 1,
+    fetchedAt: now,
+    warning: null,
+    data: { fetchedAt: now, repos, history: {} },
+  });
+  useStore.setState({
+    status: null,
+    connecting: true,
+    account: "github.com/one",
+    selectedNames: ["one/a"],
+    tracked: [],
+    fetchedAt: null,
+  });
+  await useStore.getState().hydrateCachedOverview();
+  expect(useStore.getState().tracked.map((repo) => repo.fullName)).toEqual([
+    "one/a",
+  ]);
+  expect(useStore.getState().refreshing).toBe(false);
+});
+
 test("a fresh overview in memory needs no disk read or network request", async () => {
   useStore.setState({
     selectedNames: ["one/a"],

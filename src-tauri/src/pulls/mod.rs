@@ -10,6 +10,10 @@ pub use graphql::list_pulls;
 #[allow(unused_imports)]
 pub use parse::{parse_detail, parse_summary};
 
+/// Key in `PullListResult::errors` for a failure of the single request that
+/// covers every repository, instead of one repository's own error.
+pub const REQUEST_ERROR: &str = "";
+
 /// Pull requests requested per repository, per page.
 pub const MAX_LIST_LIMIT: u8 = 100;
 pub const MAX_FILES: usize = 100;

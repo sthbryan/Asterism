@@ -7,6 +7,34 @@ mod models;
 mod platform;
 mod pulls;
 
+use std::time::Duration;
+use tauri::Manager;
+
+/// The window is created hidden so its first frame is content, not an empty
+/// plate. React reveals it once the first view is committed; this is the
+/// backstop for a frontend that never gets that far.
+const REVEAL_FALLBACK: Duration = Duration::from_secs(3);
+
+#[tauri::command]
+fn show_main_window(app: tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+fn reveal_main_window(app: tauri::AppHandle, after: Duration) {
+    std::thread::spawn(move || {
+        std::thread::sleep(after);
+        if let Some(window) = app.get_webview_window("main") {
+            if !window.is_visible().unwrap_or(true) {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }
+    });
+}
+
 #[cfg(test)]
 mod git_sync_tests;
 #[cfg(test)]
@@ -22,9 +50,11 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
             config::init(app.handle().clone());
+            reveal_main_window(app.handle().clone(), REVEAL_FALLBACK);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            show_main_window,
             commands::cache::read_cache,
             commands::cache::write_cache,
             commands::cache::remove_cache,
