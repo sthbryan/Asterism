@@ -131,8 +131,25 @@ fn pagination_filters_and_sorts_without_losing_partial_errors() {
 #[test]
 fn diff_limit_never_panics_on_utf8_boundary() {
     let output = cap_diff("é".repeat(MAX_DIFF_CHARS));
-    assert!(output.len() > MAX_DIFF_CHARS);
-    assert!(output.contains("diff truncated"));
+    assert!(output.truncated);
+    assert!(output.text.len() <= MAX_DIFF_CHARS);
+}
+
+#[test]
+fn oversized_diffs_stop_on_a_complete_line() {
+    let line = "+ a line of a very large generated file\n";
+    let output = cap_diff(line.repeat(MAX_DIFF_CHARS / line.len() + 1));
+    assert!(output.truncated);
+    assert!(output.text.len() <= MAX_DIFF_CHARS);
+    assert!(output.text.ends_with('\n'));
+}
+
+#[test]
+fn small_diffs_arrive_intact() {
+    let diff = "diff --git a/x b/x\n+added\n".to_string();
+    let output = cap_diff(diff.clone());
+    assert!(!output.truncated);
+    assert_eq!(output.text, diff);
 }
 
 fn list_repos() -> Vec<String> {

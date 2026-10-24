@@ -1,7 +1,7 @@
 use super::parse::parse_detail;
 use super::{PullRequestFilters, MAX_DIFF_CHARS, MAX_PAGE, MAX_PAGE_SIZE};
 use crate::gh::{run_gh_env, run_gh_json};
-use crate::models::{PullListResult, PullRequestDetail, PullRequestSummary};
+use crate::models::{PullDiff, PullListResult, PullRequestDetail, PullRequestSummary};
 use std::collections::BTreeMap;
 
 const DETAIL_FIELDS: &str = "number,title,author,headRefName,baseRefName,isDraft,state,createdAt,updatedAt,mergedAt,url,additions,deletions,changedFiles,reviewDecision,statusCheckRollup,reviews,assignees,reviewRequests,body,mergeable,mergeStateStatus,files";
@@ -97,7 +97,7 @@ pub fn pull_detail(repo: &str, number: u64) -> Result<PullRequestDetail, String>
     parse_detail(repo, &json).ok_or_else(|| "GitHub did not return that pull request.".to_string())
 }
 
-pub fn pull_diff(repo: &str, number: u64) -> Result<String, String> {
+pub fn pull_diff(repo: &str, number: u64) -> Result<PullDiff, String> {
     let num = number.to_string();
     let diff = run_gh_env(
         &["pr", "diff", &num, "--repo", repo],
@@ -106,14 +106,25 @@ pub fn pull_diff(repo: &str, number: u64) -> Result<String, String> {
     Ok(cap_diff(diff))
 }
 
-pub fn cap_diff(mut diff: String) -> String {
-    if diff.len() > MAX_DIFF_CHARS {
-        let mut end = MAX_DIFF_CHARS;
-        while !diff.is_char_boundary(end) {
-            end -= 1;
-        }
-        diff.truncate(end);
-        diff.push_str("\n…(diff truncated at 200 KiB)");
+/// Keeps the beginning of an oversized diff on complete lines; the UI says the
+/// rest is on GitHub, so the text needs no marker of its own.
+pub fn cap_diff(mut diff: String) -> PullDiff {
+    if diff.len() <= MAX_DIFF_CHARS {
+        return PullDiff {
+            text: diff,
+            truncated: false,
+        };
     }
-    diff
+    let mut end = MAX_DIFF_CHARS;
+    while !diff.is_char_boundary(end) {
+        end -= 1;
+    }
+    diff.truncate(end);
+    if let Some(last_line) = diff.rfind('\n') {
+        diff.truncate(last_line + 1);
+    }
+    PullDiff {
+        text: diff,
+        truncated: true,
+    }
 }

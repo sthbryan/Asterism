@@ -1,4 +1,5 @@
 import {
+  ArrowSquareOutIcon,
   ChatCircleIcon,
   CodeIcon,
   GitBranchIcon,
@@ -6,11 +7,13 @@ import {
   GitMergeIcon,
   NoteIcon,
 } from "@phosphor-icons/react";
-import { Avatar, Badge } from "@zovaris/sephiro";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { Avatar, Badge, Button } from "@zovaris/sephiro";
 import { When } from "react-if";
 import { useI18n } from "@/app/hooks";
 import { Markdown } from "@/components/Markdown";
-import type { PullRequestDetail, Saved } from "@/lib/types";
+import type { PullDiff, PullRequestDetail, Saved } from "@/lib/types";
+import { canReadDiffInline } from "../utils";
 import { CheckBadge } from "./CheckBadge";
 import { DetailDisclosure } from "./DetailDisclosure";
 import { DiffBody } from "./DiffBody";
@@ -42,7 +45,7 @@ export function PullDetailBody({
   toggleFiles: () => void;
   diffOpen: boolean;
   toggleDiff: () => void;
-  diff: Saved<string> | null;
+  diff: Saved<PullDiff> | null;
   diffLoading: boolean;
   diffRefreshing: boolean;
   diffError: string | null;
@@ -61,6 +64,11 @@ export function PullDetailBody({
   if (diffLoading) diffLabel = t("pulls.loading");
   const author = pull.author ?? t("pulls.unknown");
   const body = pull.body?.trim();
+  const inlineDiff = canReadDiffInline(pull);
+  const filesPartial = pull.changedFiles > pull.files.length;
+  const openDiff = () => {
+    if (pull.url) void openUrl(`${pull.url}/files`).catch(() => undefined);
+  };
 
   return (
     <div className="space-y-band">
@@ -175,20 +183,50 @@ export function PullDetailBody({
             actionLabel={t("pulls.loadFiles")}
           >
             <FileList files={pull.files} />
+            <When condition={filesPartial}>
+              <p className="border-t border-hairline px-4 py-2 text-[11.5px] text-faint">
+                {t("pulls.filesPartial", {
+                  shown: pull.files.length,
+                  total: pull.changedFiles,
+                })}
+              </p>
+            </When>
           </DetailDisclosure>
-          <DetailDisclosure
-            title={t("pulls.diff")}
-            open={diffOpen}
-            onOpenChange={toggleDiff}
-            actionLabel={diffLabel}
-          >
-            <DiffBody
-              diff={diff}
-              loading={diffLoading}
-              refreshing={diffRefreshing}
-              error={diffError}
-            />
-          </DetailDisclosure>
+          <When condition={inlineDiff}>
+            <DetailDisclosure
+              title={t("pulls.diff")}
+              open={diffOpen}
+              onOpenChange={toggleDiff}
+              actionLabel={diffLabel}
+            >
+              <DiffBody
+                diff={diff}
+                loading={diffLoading}
+                refreshing={diffRefreshing}
+                error={diffError}
+              />
+            </DetailDisclosure>
+          </When>
+          <When condition={!inlineDiff}>
+            <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <span className="min-w-0 flex-1 text-[12px] text-mist">
+                {t("pulls.largeDiff", {
+                  files: pull.changedFiles,
+                  additions: pull.additions,
+                  deletions: pull.deletions,
+                })}
+              </span>
+              <Button
+                variant="quiet"
+                size="sm"
+                className="shrink-0"
+                onClick={openDiff}
+              >
+                <span>{t("pulls.openDiff")}</span>
+                <ArrowSquareOutIcon size={12} />
+              </Button>
+            </div>
+          </When>
         </div>
       </section>
 

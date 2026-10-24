@@ -1,4 +1,8 @@
-import type { PullListResult, PullRequestSummary } from "@/lib/types";
+import type {
+  PullListResult,
+  PullRequestDetail,
+  PullRequestSummary,
+} from "@/lib/types";
 
 export type PullFilters = {
   query?: string;
@@ -52,6 +56,47 @@ export function filterPullRequests(
       return false;
     return true;
   });
+}
+
+/** A diff beyond this many files reads in GitHub, not in a side panel. */
+export const INLINE_DIFF_MAX_FILES = 20;
+
+export function canReadDiffInline(
+  pull: PullRequestSummary | PullRequestDetail,
+): boolean {
+  return pull.changedFiles <= INLINE_DIFF_MAX_FILES;
+}
+
+export type DiffLineKind =
+  | "file"
+  | "meta"
+  | "hunk"
+  | "add"
+  | "remove"
+  | "context";
+
+const META_PREFIXES = [
+  "index ",
+  "new file mode",
+  "deleted file mode",
+  "old mode",
+  "new mode",
+  "similarity index",
+  "rename from",
+  "rename to",
+  "Binary files",
+  "\\ No newline",
+];
+
+/** Classifies unified-diff lines so the panel can colour them like GitHub does. */
+export function diffLineKind(line: string): DiffLineKind {
+  if (line.startsWith("diff --git ")) return "file";
+  if (line.startsWith("--- ") || line.startsWith("+++ ")) return "meta";
+  if (line.startsWith("@@")) return "hunk";
+  if (line.startsWith("+")) return "add";
+  if (line.startsWith("-")) return "remove";
+  if (META_PREFIXES.some((prefix) => line.startsWith(prefix))) return "meta";
+  return "context";
 }
 
 export function pullPath(repo: string, number: number): string {

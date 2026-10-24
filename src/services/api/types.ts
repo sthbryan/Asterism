@@ -12,6 +12,7 @@ import type {
   Locale,
   LocalState,
   PersistentCache,
+  PullDiff,
   PullListResult,
   PullRequestDetail,
   PullRequestFilters,
@@ -89,5 +90,5 @@ export type ApiClient = {
     repo: string,
     number: number,
   ) => Promise<Saved<PullRequestDetail>>;
-  getPullDiff: (repo: string, number: number) => Promise<Saved<string>>;
+  getPullDiff: (repo: string, number: number) => Promise<Saved<PullDiff>>;
 };

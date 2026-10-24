@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::config;
 use crate::history;
-use crate::models::{PullListResult, PullRequestDetail};
+use crate::models::{PullDiff, PullListResult, PullRequestDetail};
 use crate::pulls;
 use crate::pulls::PullRequestFilters;
 
@@ -181,7 +181,7 @@ pub(crate) async fn get_pull_request_diff(
     repo: String,
     number: u64,
     expected_account: Option<String>,
-) -> Result<config::Saved<String>, String> {
+) -> Result<config::Saved<PullDiff>, String> {
     offload(move || {
         ensure_scope(expected_account.as_deref())?;
         if !valid_pull_repo(&repo) || number == 0 {
@@ -210,6 +210,6 @@ pub(crate) async fn get_pull_diff(
     repo: String,
     number: u64,
     expected_account: Option<String>,
-) -> Result<config::Saved<String>, String> {
+) -> Result<config::Saved<PullDiff>, String> {
     get_pull_request_diff(repo, number, expected_account).await
 }
