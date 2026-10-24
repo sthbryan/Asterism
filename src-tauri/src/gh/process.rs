@@ -117,12 +117,22 @@ fn execute(
     Ok((status, stdout, stderr))
 }
 
+/// A short, single-line look at whatever `gh` wrote, so a non-JSON reply
+/// (a proxy page, a truncated body) is visible in the error instead of hidden.
+fn preview(raw: &str) -> String {
+    let one_line = raw.split_whitespace().collect::<Vec<_>>().join(" ");
+    let mut chars = one_line.chars();
+    let head: String = chars.by_ref().take(160).collect();
+    format!("{head}{}", if chars.next().is_some() { "…" } else { "" })
+}
+
 fn parse_json(raw: &str) -> Result<Value, String> {
     let trimmed = raw.trim();
     if trimmed.is_empty() {
         return Ok(Value::Null);
     }
-    serde_json::from_str(trimmed).map_err(|e| format!("Could not parse gh JSON: {e}"))
+    serde_json::from_str(trimmed)
+        .map_err(|e| format!("Could not parse gh JSON: {e}. gh printed: {}", preview(trimmed)))
 }
 
 pub(crate) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
@@ -131,6 +141,22 @@ pub(crate) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
 
 pub(crate) fn run_gh_json_lenient(args: &[&str]) -> Result<Value, String> {
     parse_json(&run_gh_env_lenient(args, &[])?)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::preview;
+
+    #[test]
+    fn preview_flattens_unexpected_output_and_bounds_it() {
+        assert_eq!(
+            preview("<html>\n  <body>Blocked</body>\n</html>"),
+            "<html> <body>Blocked</body> </html>"
+        );
+        let long = preview(&"x".repeat(500));
+        assert!(long.ends_with('…'));
+        assert_eq!(long.chars().count(), 161);
+    }
 }
 
 pub(super) fn first_line(output: &str) -> String {
