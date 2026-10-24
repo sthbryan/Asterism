@@ -1,0 +1,48 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "react",
+    "jsx-a11y",
+    "import"
+  ],
+  "options": {
+    "reportUnusedDisableDirectives": "error"
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "rules": {
+    // React 19 uses the automatic JSX runtime; no React import is required.
+    "react/react-in-jsx-scope": "off",
+    // Index keys are intentional in static lists.
+    "react/no-array-index-key": "off",
+    // The compiler-specific rule set is not part of this project's gate.
+    "react/set-state-in-effect": "off",
+    "react/refs": "off",
+    "react/exhaustive-effect-dependencies": "off",
+    // `<p role="status">` is the established live-region markup here.
+    "jsx-a11y/prefer-tag-over-role": "off",
+    // Array#sort stays in place: same result, no new copy semantics.
+    "unicorn/no-array-sort": "off",
+    "unicorn/no-array-reverse": "off",
+    "unicorn/consistent-function-scoping": "off",
+    // Not previously enforced; fixing them would be unrelated churn.
+    "eslint/no-shadow": "off",
+    "eslint/no-await-in-loop": "off",
+    "oxc/no-map-spread": "off",
+    // Stylesheets are imported for their side effect on purpose.
+    "import/no-unassigned-import": "off",
+    "typescript/no-non-null-assertion": "error"
+  },
+  "ignorePatterns": ["dist", "node_modules", "src-tauri", ".logs"]
+}

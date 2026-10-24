@@ -38,6 +38,8 @@ export function useCacheInfo() {
     if (account) void refresh();
     else setLoading(false);
     return () => {
+      // Bumping the generation on cleanup cancels work started by this effect.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
     };
   }, [refresh, account]);

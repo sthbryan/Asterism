@@ -13,6 +13,8 @@ export default function App() {
   }, []);
 
   return (
+    // wouter's Router receives the location hook as a prop and calls it itself.
+    // oxlint-disable-next-line react/hooks
     <Router hook={useHashLocation}>
       <Shell />
     </Router>

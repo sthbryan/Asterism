@@ -31,8 +31,9 @@ export function DetailContent({
           </Notice>
         </Case>
         <Case condition={Boolean(detail)}>
-          {/** biome-ignore lint/style/noNonNullAssertion: detail is checked in the condition */}
-          <DetailBody detail={detail!} refreshing={refreshing} />
+          {detail ? (
+            <DetailBody detail={detail} refreshing={refreshing} />
+          ) : null}
         </Case>
       </Switch>
     </div>
