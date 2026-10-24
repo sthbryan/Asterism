@@ -6,6 +6,7 @@ import type {
   Diagnostics,
   GitSyncStatus,
   LocalCheckout,
+  PullDiff,
   PullListResult,
   PullRequestDetail,
 } from "@/lib/types";
@@ -26,7 +27,11 @@ export const pullDetailCache = apiCache<PullRequestDetail>(
   "pull-detail",
   CACHE_TTL_MS.pulls,
 );
-export const pullDiffCache = apiCache<string>("pull-diff", CACHE_TTL_MS.pulls);
+/* v2: the payload is { text, truncated }, so cached strings are not reused. */
+export const pullDiffCache = apiCache<PullDiff>(
+  "pull-diff-v2",
+  CACHE_TTL_MS.pulls,
+);
 export const createOptionsCache = apiCache<CreateOptions>(
   "create-options",
   CACHE_TTL_MS.create,

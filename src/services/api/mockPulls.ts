@@ -1,5 +1,10 @@
 import { MOCK_PULLS } from "@/lib/mock/pulls";
-import type { PullListResult, PullRequestDetail, Saved } from "@/lib/types";
+import type {
+  PullDiff,
+  PullListResult,
+  PullRequestDetail,
+  Saved,
+} from "@/lib/types";
 import { delay } from "./mockDelay";
 import type { ApiClient } from "./types";
 
@@ -111,10 +116,10 @@ export function mockPullClient(
         )
         .join("\n");
       const saved = {
-        data: diff,
+        data: { text: diff, truncated: false },
         fetchedAt: Math.floor(Date.now() / 1000),
         warning: null,
-      } satisfies Saved<string>;
+      } satisfies Saved<PullDiff>;
       return delay(saved, 500);
     },
   };

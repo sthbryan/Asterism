@@ -43,6 +43,12 @@ export type PullRequestDetail = PullRequestSummary & {
   diffFetchedAt?: number | null;
 };
 
+/** `text` is the beginning of the diff when `truncated` is true. */
+export type PullDiff = {
+  text: string;
+  truncated: boolean;
+};
+
 export type PullRequestFilters = {
   repos?: string[];
   repo?: string | null;

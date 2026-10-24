@@ -67,6 +67,15 @@ pub struct PullFile {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct PullDiff {
+    pub text: String,
+    /// The diff was longer than the cap, so `text` is only its beginning.
+    #[serde(default)]
+    pub truncated: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct PullRequestDetail {
     #[serde(flatten)]
     pub summary: PullRequestSummary,

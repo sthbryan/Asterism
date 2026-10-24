@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   appendPulls,
+  canReadDiffInline,
+  diffLineKind,
   filterPullRequests,
   mergePullResults,
   pullPath,
@@ -53,6 +55,23 @@ describe("pull request helpers", () => {
   test("encodes repository names in pull paths", () => {
     expect(pullPath("owner/repo", 42)).toBe("/pull/owner%2Frepo/42");
   });
+
+  test("only small pull requests get an inline diff", () => {
+    expect(canReadDiffInline(pull({ changedFiles: 3 }))).toBe(true);
+    expect(canReadDiffInline(pull({ changedFiles: 100 }))).toBe(false);
+  });
+});
+
+test("classifies unified diff lines for colouring", () => {
+  expect(diffLineKind("diff --git a/src/a.ts b/src/a.ts")).toBe("file");
+  expect(diffLineKind("index 8341f78..b1ec3a 100644")).toBe("meta");
+  expect(diffLineKind("--- a/src/a.ts")).toBe("meta");
+  expect(diffLineKind("+++ b/src/a.ts")).toBe("meta");
+  expect(diffLineKind("@@ -39,11 +39,6 @@ jobs:")).toBe("hunk");
+  expect(diffLineKind("+  name: Setup Bun")).toBe("add");
+  expect(diffLineKind("-  name: Setup Bun")).toBe("remove");
+  expect(diffLineKind("\n")).toBe("context");
+  expect(diffLineKind("   unchanged context")).toBe("context");
 });
 
 test("a loaded page appends after the existing rows without duplicates", () => {

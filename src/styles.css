@@ -613,6 +613,25 @@ html[data-transparency="on"] .app-sidebar {
   color: var(--mist);
 }
 
+.app-md details {
+  margin-block: 12px;
+}
+
+.app-md summary {
+  cursor: pointer;
+  color: var(--mist);
+  font-size: 12.5px;
+  user-select: none;
+}
+
+.app-md summary:hover {
+  color: var(--paper);
+}
+
+.app-md details > :not(summary) {
+  margin-inline-start: 4px;
+}
+
 .app-md a {
   color: var(--accent-soft);
   text-decoration: underline;
