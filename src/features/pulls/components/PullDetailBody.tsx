@@ -64,6 +64,12 @@ export function PullDetailBody({
   if (diffLoading) diffLabel = t("pulls.loading");
   const author = pull.author ?? t("pulls.unknown");
   const body = pull.body?.trim();
+  /* A null or unparseable timestamp must not reach Intl.RelativeTimeFormat. */
+  const created = pull.createdAt ? new Date(pull.createdAt) : null;
+  const createdLabel =
+    created && !Number.isNaN(created.getTime())
+      ? formatRelative(created)
+      : null;
   const inlineDiff = canReadDiffInline(pull);
   const filesPartial = pull.changedFiles > pull.files.length;
   const openDiff = () => {
@@ -87,15 +93,11 @@ export function PullDetailBody({
             <Avatar name={author} size="sm" />
             {author}
           </span>
-          <When condition={Boolean(pull.createdAt)}>
+          <When condition={createdLabel !== null}>
             <span className="text-faint" aria-hidden="true">
               ·
             </span>
-            <span>
-              {t("pulls.updated", {
-                date: formatRelative(new Date(pull.createdAt ?? "")),
-              })}
-            </span>
+            <span>{t("pulls.updated", { date: createdLabel ?? "" })}</span>
           </When>
           <When condition={Boolean(warning)}>
             <span role="status" className="text-faint">
