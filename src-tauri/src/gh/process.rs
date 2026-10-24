@@ -131,8 +131,12 @@ fn parse_json(raw: &str) -> Result<Value, String> {
     if trimmed.is_empty() {
         return Ok(Value::Null);
     }
-    serde_json::from_str(trimmed)
-        .map_err(|e| format!("Could not parse gh JSON: {e}. gh printed: {}", preview(trimmed)))
+    serde_json::from_str(trimmed).map_err(|e| {
+        format!(
+            "Could not parse gh JSON: {e}. gh printed: {}",
+            preview(trimmed)
+        )
+    })
 }
 
 pub(crate) fn run_gh_json(args: &[&str]) -> Result<Value, String> {
