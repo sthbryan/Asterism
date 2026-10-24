@@ -1,11 +1,6 @@
 pre-commit:
   jobs:
-    - run: bunx biome format {staged_files}
-      glob: "*.{js,ts,jsx,tsx,json,jsonc,css}"
-      staged: true
-    - run: bunx biome check --only=assist/source/organizeImports {staged_files}
-      glob: "*.{js,ts,jsx,tsx,json,jsonc,css}"
-      staged: true
+    - run: bun run check
 
 pre-push:
   jobs:
