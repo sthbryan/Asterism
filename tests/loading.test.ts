@@ -112,6 +112,34 @@ test("an overview result cannot restore a repository removed during its refresh"
   ]);
 });
 
+test("the cached overview paints before the account check answers", async () => {
+  const now = Date.now();
+  const repos = [{ ...mockDetail("one/a"), fetchedAt: now }];
+  (
+    tauriClient.readCache as unknown as {
+      mockResolvedValue: (value: unknown) => void;
+    }
+  ).mockResolvedValue({
+    version: 1,
+    fetchedAt: now,
+    warning: null,
+    data: { fetchedAt: now, repos, history: {} },
+  });
+  useStore.setState({
+    status: null,
+    connecting: true,
+    account: "github.com/one",
+    selectedNames: ["one/a"],
+    tracked: [],
+    fetchedAt: null,
+  });
+  await useStore.getState().hydrateCachedOverview();
+  expect(useStore.getState().tracked.map((repo) => repo.fullName)).toEqual([
+    "one/a",
+  ]);
+  expect(useStore.getState().refreshing).toBe(false);
+});
+
 test("a fresh overview in memory needs no disk read or network request", async () => {
   useStore.setState({
     selectedNames: ["one/a"],

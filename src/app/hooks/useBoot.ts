@@ -41,6 +41,7 @@ export function useBoot() {
   const bootAttempt = useStore((s) => s.bootAttempt);
   const setPreferences = useStore((s) => s.setPreferences);
   const hydrateLocal = useStore((s) => s.hydrateLocal);
+  const hydrateCachedOverview = useStore((s) => s.hydrateCachedOverview);
   const setConnecting = useStore((s) => s.setConnecting);
   const bootFail = useStore((s) => s.bootFail);
   const runRefresh = useStore((s) => s.runRefresh);
@@ -62,6 +63,8 @@ export function useBoot() {
         );
         setPreferences(local.config);
         hydrateLocal(local);
+        // Paint the cached overview while the account check runs.
+        void hydrateCachedOverview();
         navigate(resolveInitialRoute(pathRef.current), { replace: true });
         const next = await getStatus();
         if (cancelled) return;
@@ -93,6 +96,7 @@ export function useBoot() {
     bootAttempt,
     setPreferences,
     hydrateLocal,
+    hydrateCachedOverview,
     setConnecting,
     bootFail,
     navigate,
