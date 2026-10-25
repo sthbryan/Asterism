@@ -64,6 +64,8 @@ export function PullDetailBody({
   if (diffLoading) diffLabel = t("pulls.loading");
   const author = pull.author ?? t("pulls.unknown");
   const body = pull.body?.trim();
+  const head = pull.headRef ?? "?";
+  const base = pull.baseRef ?? "?";
   /* A null or unparseable timestamp must not reach Intl.RelativeTimeFormat. */
   const created = pull.createdAt ? new Date(pull.createdAt) : null;
   const createdLabel =
@@ -112,11 +114,16 @@ export function PullDetailBody({
           icon={<GitBranchIcon size={14} />}
           label={t("pulls.branchesLabel")}
           value={
-            <span className="font-mono text-[12px]">
-              {t("pulls.branches", {
-                head: pull.headRef ?? "?",
-                base: pull.baseRef ?? "?",
-              })}
+            /* Only the head truncates, so the base branch stays readable. */
+            <span
+              className="flex min-w-0 items-center gap-1.5 font-mono text-[12px]"
+              title={`${head} → ${base}`}
+            >
+              <span className="min-w-0 truncate">{head}</span>
+              <span className="shrink-0 text-faint" aria-hidden="true">
+                →
+              </span>
+              <span className="shrink-0">{base}</span>
             </span>
           }
         />
