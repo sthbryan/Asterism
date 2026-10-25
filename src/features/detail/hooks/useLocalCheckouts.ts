@@ -53,6 +53,8 @@ export function useLocalCheckouts(fullName: string) {
     running.current = false;
     generation.current++;
     return () => {
+      // Bumping the generation on cleanup cancels work started by this effect.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
     };
   }, [fullName, account, revision]);

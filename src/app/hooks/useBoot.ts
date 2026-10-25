@@ -50,7 +50,8 @@ export function useBoot() {
   const pathRef = useRef(path);
   pathRef.current = path;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: bootAttempt is an intentional re-run signal for boot retry; it is read via bootAttempt dep, not inside the effect.
+  // bootAttempt is an intentional re-run signal for boot retry; it is read
+  // through the dependency list, not inside the effect.
   useEffect(() => {
     let cancelled = false;
     (async () => {

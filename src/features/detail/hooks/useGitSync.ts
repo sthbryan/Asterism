@@ -65,6 +65,8 @@ export function useGitSync(fullName: string, path: string) {
     setActive(null);
     setBusy(false);
     return () => {
+      // Bumping the generation on cleanup cancels work started by this effect.
+      // oxlint-disable-next-line react-hooks/exhaustive-deps
       generation.current++;
     };
   }, [fullName, path, account, revision]);

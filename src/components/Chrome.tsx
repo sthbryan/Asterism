@@ -11,7 +11,6 @@ import { type ReactNode, useState } from "react";
 import { useI18n } from "@/app/hooks";
 import { dragWindow, hasTrafficLights } from "@/lib/drag";
 import { readRailCollapsed, saveRailCollapsed } from "@/lib/rail";
-
 import { Mark } from "./Mark";
 
 const trafficLights = hasTrafficLights();
@@ -91,7 +90,8 @@ export function Chrome({
     <div className="flex h-full min-h-0 flex-col text-paper">
       {/* The page bar spans the window, so the rail starts below it and the
           traffic lights never sit on top of the brand. */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: Native window drag region. */}
+      {/* The page bar is a native window drag region. */}
+      {/* oxlint-disable-next-line jsx-a11y/no-static-element-interactions */}
       <div
         data-tauri-drag-region
         onMouseDown={dragWindow}
@@ -124,6 +124,8 @@ export function Chrome({
 
       <div className="flex min-h-0 flex-1">
         {/* One rail owns the brand, the navigation and the account. */}
+        {/* The rail is also a native window drag region. */}
+        {/* oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
         <aside
           id="app-rail"
           className="app-sidebar"

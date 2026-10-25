@@ -76,7 +76,7 @@ export function usePullList({
   return {
     ...state,
     pulls,
-    errors: { ...(saved?.data.errors ?? {}), ...pages.errors },
+    errors: { ...saved?.data.errors, ...pages.errors },
     fetchedAt: saved?.fetchedAt ?? null,
     canLoadMore: Object.keys(pages.cursors).length > 0,
     loadingMore,

@@ -11,7 +11,7 @@ export function useDetail(fullName: string) {
   const error = useStore((s) => s.detailError);
   const fetchDetail = useStore((s) => s.fetchDetail);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: account hydration invalidates requests and must reload an open detail.
+  // Account hydration invalidates requests and must reload an open detail.
   useEffect(() => {
     if (!fullName || connecting) return;
     void fetchDetail(fullName);
